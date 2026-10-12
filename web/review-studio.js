@@ -436,6 +436,7 @@ function render() {
   renderChrome();
   renderDraftBar();
   for (const id of ["btnTimeline", "btnScr"]) $("#" + id).hidden = CUR === HOME;   // the Homepage is only an introduction
+  $("#btnType").textContent = `🧭 ${S.review_type.label} · ${S.review_type.guideline}`;
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
   const page = $("#page");
   page.replaceChildren(PAGES[CUR]());
@@ -756,6 +757,34 @@ PAGES.home = () => h("div", { class: "home" },
     h("div", {}, h("h3", {}, "🎓 New here? Take the tour"), h("p", { class: "sub" }, "One minute: what each part of the screen is for.")),
     btn("Start the tour", () => startTour(), "primary tour-big")));
 
+/** Switches the review to type `v` (asks first; after locking it is an amendment with a reason). */
+async function switchReviewType(v) {
+  if (v === S.review_type.key) return;
+  const other = S.review_types.find(t => t.key === v);
+  const msg = `Switch to a ${other.label.toLowerCase()} reported to ${other.guideline}? The stages, the question framework and the checklist change; nothing you entered is deleted.`;
+  if (S.state.protocol.locked && !S.dev_mode) {
+    const why = await promptText("Change the review type", msg + " The protocol is locked, so this is an amendment: give the reason.", "reason for the amendment");
+    if (why) api("review_type", { type: v, amendment: why }).then(() => delete D.questions);
+  } else if (await confirmBox("Change the review type", msg, "Switch")) api("review_type", { type: v }).then(() => delete D.questions);
+}
+
+/** Scoping (PRISMA-ScR) or systematic (PRISMA 2020): the card on Research questions. */
+function reviewTypeCard() {
+  const rt = S.review_type;
+  return card("Review type", `${rt.label}: reported to ${rt.guideline} (${rt.guidelineCitation}); methods: ${rt.methods}.`,
+    segmented(S.review_types.map(t => [t.key, `${t.label} · ${t.guideline}`]), rt.key, switchReviewType));
+}
+
+/** The top-bar button (every stage): shows the type and offers the other one. */
+async function openReviewType() {
+  const rt = S.review_type;
+  const v = await modal({ title: "Review type",
+    body: h("p", { class: "muted" }, `This review is a ${rt.label.toLowerCase()}, reported to ${rt.guideline} (${rt.guidelineCitation}).`),
+    buttons: [{ label: "Close", value: null }, ...S.review_types.filter(t => t.key !== rt.key)
+      .map(t => ({ label: `Switch to ${t.label.toLowerCase()} · ${t.guideline}`, primary: true, value: t.key }))] });
+  if (v) switchReviewType(v);
+}
+
 PAGES.idea = () => {
   const ta = autosize(h("textarea", { placeholder: exampleFor("idea", "Note") || "What do you want to find out, and why? What did you read or discuss? What changed?", rows: 4, value: D.idea || "", oninput: e => D.idea = e.target.value }));
   const ideas = [...S.state.idea].reverse();
@@ -781,18 +810,8 @@ PAGES.questions = () => {
   const hints = rt.key === "systematic"
     ? { population: "Who or what is studied, with the conditions that define it", concept: "The intervention or exposure being evaluated", context: "What it is compared with (another intervention, usual care, none)", outcome: "The outcomes measured, with the main outcome first" }
     : { population: "What is studied? (products, systems, people…)", concept: "The core phenomenon, method or intervention", context: "Setting, domain, period, publication types" };
-  const typeCard = card("Review type", `${rt.label}: reported to ${rt.guideline} (${rt.guidelineCitation}); methods: ${rt.methods}.`,
-    segmented(S.review_types.map(t => [t.key, `${t.label} · ${t.guideline}`]), rt.key, async v => {
-      if (v === rt.key) return;
-      const other = S.review_types.find(t => t.key === v);
-      const msg = `Switch to a ${other.label.toLowerCase()} reported to ${other.guideline}? The stages, the question framework and the checklist change; nothing you entered is deleted.`;
-      if (S.state.protocol.locked && !S.dev_mode) {
-        const why = await promptText("Change the review type", msg + " The protocol is locked, so this is an amendment: give the reason.", "reason for the amendment");
-        if (why) api("review_type", { type: v, amendment: why }).then(() => delete D.questions);
-      } else if (await confirmBox("Change the review type", msg, "Switch")) api("review_type", { type: v }).then(() => delete D.questions);
-    }));
   return h("div", {},
-    typeCard,
+    reviewTypeCard(),
     h("div", { class: Q.outcome ? "grid4" : "grid3", style: "margin-bottom:16px" },
       pcc("population", Q.population, hints.population, "#4f46e5"),
       pcc("concept", Q.concept, hints.concept, "#0891b2"),
@@ -1733,6 +1752,7 @@ $("#btnTheme").onclick = () => { const t = document.documentElement.dataset.them
 $("#btnGlossary").onclick = openGlossary;
 $("#btnClaude").onclick = openClaudeGuide;
 $("#btnTimeline").onclick = openTimeline;
+$("#btnType").onclick = openReviewType;
 $("#btnKeys").onclick = openKeys;
 $("#btnScr").onclick = () => openChecklist();
 // The sidebar folds away (☰ or [) to give the content the whole width; remembered in this browser
