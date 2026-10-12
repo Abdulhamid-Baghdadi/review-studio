@@ -1,5 +1,5 @@
 {
-  "name": "prisma-studio",
+  "name": "review-studio",
   "version": "0.1.0",
   "private": true,
   "description": "Workbench for scoping reviews (PRISMA-ScR) and systematic reviews (PRISMA 2020) that runs in the browser and keeps every review in a folder on your own PC.",

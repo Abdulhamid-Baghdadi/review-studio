@@ -1,6 +1,6 @@
 # Builds the static site (npm run build -> dist/) after the tests pass and publishes it on GitHub Pages.
 # Also packs the app as a ZIP for running it locally (launchers for Windows, Mac and Linux) and attaches it
-# to the "latest" release: https://github.com/Robotat-tube/prisma-studio/releases/latest
+# to the "latest" release: https://github.com/Robotat-tube/review-studio/releases/latest
 name: Pages
 
 on:
@@ -36,7 +36,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.repository == 'Robotat-tube/prisma-studio'   # copies (e.g. UA-SMARTLab) only test and build
+    if: github.repository == 'Robotat-tube/review-studio'   # copies (e.g. UA-SMARTLab) only test and build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -47,7 +47,7 @@ jobs:
 
   download:
     needs: build
-    if: github.repository == 'Robotat-tube/prisma-studio'
+    if: github.repository == 'Robotat-tube/review-studio'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -69,10 +69,10 @@ jobs:
           cp -r .claude/skills "pack/$D/.claude/"
           cp "Start Review Studio.cmd" "Start Review Studio.command" start-review-studio.sh "pack/$D/"
           chmod +x "pack/$D/Start Review Studio.command" "pack/$D/start-review-studio.sh"
-          (cd pack && zip -qr ../prisma-scoping-review-studio.zip "$D")
+          (cd pack && zip -qr ../review-studio.zip "$D")
       - name: Replace the "latest" release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest prisma-scoping-review-studio.zip --latest             --title "Review Studio (latest)"             --notes "The app to run on your own computer, built from ${{ github.sha }}. Unzip it, install Node.js 20 or newer (https://nodejs.org) and double-click the launcher: Windows: Start Review Studio.cmd · Mac: Start Review Studio.command (the first time: right-click → Open) · Linux: start-review-studio.sh. It opens in Chrome or Edge at http://localhost:8770/web/."
+          gh release create latest review-studio.zip --latest             --title "Review Studio (latest)"             --notes "The app to run on your own computer, built from ${{ github.sha }}. Unzip it, install Node.js 20 or newer (https://nodejs.org) and double-click the launcher: Windows: Start Review Studio.cmd · Mac: Start Review Studio.command (the first time: right-click → Open) · Linux: start-review-studio.sh. It opens in Chrome or Edge at http://localhost:8770/web/."

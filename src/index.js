@@ -1,7 +1,7 @@
 /**
  * Public API of Review Studio's engine. The UI and tools import from here only; the folders below are
  * internal and may be reorganised.
- * @module prisma-studio
+ * @module review-studio
  */
 
 // domain: rules and formats

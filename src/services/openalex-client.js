@@ -31,7 +31,7 @@ export class OpenAlexClient {
       const pause = 250 - (this.monotonic() - this.#lastCall);
       if (pause > 0) await this.wait(pause);
       this.#lastCall = this.monotonic();
-      const res = await this.http.get(url, { "User-Agent": "prisma-studio" });
+      const res = await this.http.get(url, { "User-Agent": "review-studio" });
       if (res.status >= 200 && res.status < 300) return res.json();
       if (res.status === 429 && res.header("X-RateLimit-Remaining") === "0") {
         throw new OpenAlexError("OpenAlex daily budget used up — try again tomorrow, or set a free API key (see openalex.org).");

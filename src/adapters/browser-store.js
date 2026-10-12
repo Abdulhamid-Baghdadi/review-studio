@@ -4,7 +4,7 @@
  * @module adapters/browser-store
  */
 
-const DB = "prisma-studio", STORE = "reviews";
+const DB = "prisma-studio", STORE = "reviews";    // the old app name, kept: browsers keep the remembered reviews under it
 
 function open() {
   return new Promise((resolve, reject) => {

@@ -312,7 +312,7 @@ function renderTop() {
         ["🟣 Opens in Obsidian", "A review folder is an Obsidian vault as it is: the notes, links and the screening and charting tables (.base files) work there too."],
         ["🔒 Stays on your PC", "Everything is saved in a folder you choose. Nothing is uploaded and there is no account."],
       ].map(([t, tip]) => h("span", { class: "home-badge", title: tip }, t)),
-        h("a", { class: "home-badge download", href: "https://github.com/Robotat-tube/prisma-studio/releases/latest/download/prisma-scoping-review-studio.zip",
+        h("a", { class: "home-badge download", href: "https://github.com/Robotat-tube/review-studio/releases/latest/download/review-studio.zip",
           title: "The desktop version: a ZIP with launchers for Windows, Mac and Linux (needs Node.js). Or install it as an app from ⚙ Settings." }, "💾 Download desktop version")));
     return;
   }

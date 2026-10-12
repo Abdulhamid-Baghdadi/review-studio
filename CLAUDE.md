@@ -25,7 +25,7 @@ A browser app for scoping reviews (reported to PRISMA-ScR) and systematic review
 - Speed on the full review (5,683 notes): `node scripts/bench-open.js "<copy>"` reads it in ~0.6 s; in the browser's private storage it opens in ~2.0 s and a screening click takes ~40 ms. Still to confirm from a real disk folder in the user's Chrome (the app shows the time when opening; `window.openTiming`).
 - Outside changes: saving a record merges edits made on disk since it was read (Obsidian); the app re-reads the review when `review_state.json` changed (Claude via `bin/ai-assist.js`), on focus, every 15 s and before each action.
 - `bin/ai-assist.js --review` takes a name or a path; a name that fits the test copy and the vault original is refused with both paths.
-- Hosting: GitHub Pages from the public repo Robotat-tube/prisma-studio (https://robotat-tube.github.io/prisma-studio/), deployed by `.github/workflows/pages.yml` on every push to main. Pushing to main publishes the site.
+- Hosting: GitHub Pages from the public repo Robotat-tube/review-studio (https://robotat-tube.github.io/review-studio/), deployed by `.github/workflows/pages.yml` on every push to main. Pushing to main publishes the site.
 
 ## Writing code here
 

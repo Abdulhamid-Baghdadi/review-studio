@@ -1,7 +1,7 @@
 // Offline support. On install it stores every file of the app (listed in precache.json); afterwards each request
 // goes to the server first and falls back to the stored copy, so the app opens without a server or a network,
 // and edits to the app still show up as soon as the server is back. Review folders never pass through here.
-const CACHE = "prisma-studio";
+const CACHE = "prisma-studio";    // the old app name, kept so installed copies update their cache in place
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {

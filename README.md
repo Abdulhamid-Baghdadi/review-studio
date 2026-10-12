@@ -2,7 +2,7 @@
 
 **A workbench for scoping reviews and systematic reviews that runs in your browser and keeps every review in a folder on your own PC. Each review has a type: a scoping review is reported to PRISMA-ScR, a systematic review to PRISMA 2020. The methods follow JBI and Cochrane guidance.**
 
-**[▶ Open it in your browser](https://robotat-tube.github.io/prisma-studio/)** · **[💾 Download for Windows, Mac and Linux](https://github.com/Robotat-tube/prisma-studio/releases/latest/download/prisma-scoping-review-studio.zip)** · Chrome or Edge on a computer
+**[▶ Open it in your browser](https://robotat-tube.github.io/review-studio/)** · **[💾 Download for Windows, Mac and Linux](https://github.com/Robotat-tube/review-studio/releases/latest/download/review-studio.zip)** · Chrome or Edge on a computer
 
 Review Studio walks you through a scoping or systematic review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
 
@@ -35,7 +35,7 @@ Review Studio walks you through a scoping or systematic review from the first id
 
 ## Getting started
 
-1. Open **https://robotat-tube.github.io/prisma-studio/** in **Chrome or Edge** on a computer.
+1. Open **https://robotat-tube.github.io/review-studio/** in **Chrome or Edge** on a computer.
 2. You start on the **Homepage**: a one-minute animated walk through a review, and the **🎓 tour** of the screen.
 3. Pick a stage in the sidebar. Your work starts as a **draft** kept in the browser, so you can begin with your idea and research questions right away.
 4. When you want to keep it, press **💾 Save to a folder…** in the bar at the top, give the review a name and pick a place on your PC. From then on every change is written to that folder.
@@ -47,9 +47,9 @@ Handy: **☰** (or the **[** key) folds the sidebar away while you work; **⚙ S
 
 | | How | Good for |
 |---|---|---|
-| 🌐 **In the browser** | Open the [website](https://robotat-tube.github.io/prisma-studio/). | Trying it, everyday use. Always the newest version. |
+| 🌐 **In the browser** | Open the [website](https://robotat-tube.github.io/review-studio/). | Trying it, everyday use. Always the newest version. |
 | 📲 **As an app** | On the website: **⚙ Settings → ⬇ Install as an app** (or the install icon in the address bar). | Its own window and Start-menu icon; works offline; updates itself. |
-| 💾 **On your own computer** | [Download the ZIP](https://github.com/Robotat-tube/prisma-studio/releases/latest/download/prisma-scoping-review-studio.zip) and double-click the launcher (below). | Working without the website, keeping a fixed version, using Claude Code with the AI skills, or changing the code. |
+| 💾 **On your own computer** | [Download the ZIP](https://github.com/Robotat-tube/review-studio/releases/latest/download/review-studio.zip) and double-click the launcher (below). | Working without the website, keeping a fixed version, using Claude Code with the AI skills, or changing the code. |
 
 ### Running the download
 
@@ -135,7 +135,7 @@ How to use it: open the app's folder (the download, or a clone of this repositor
 - **The launcher says Node.js is needed.** Install it from https://nodejs.org (the LTS version) and start the launcher again.
 - **Port 8770 is already in use.** The app is probably already running: open http://localhost:8770/web/, or close the other launcher window.
 - **I don't see the newest version.** The app stores itself for offline use and updates on the next visit; reload the page once more.
-- **Something else?** [Open an issue](https://github.com/Robotat-tube/prisma-studio/issues).
+- **Something else?** [Open an issue](https://github.com/Robotat-tube/review-studio/issues).
 
 ## For developers
 
@@ -151,4 +151,4 @@ node scripts/bench-open.js "<copy of a … records folder>"   # how fast a revie
 node scripts/readme-screenshot.js   # docs/screenshot.png and docs/tour.png, with example data (needs npm run serve)
 ```
 
-Every push to `main` is tested, built and published on GitHub Pages, and the download ZIP on the [latest release](https://github.com/Robotat-tube/prisma-studio/releases/latest) is rebuilt (`.github/workflows/pages.yml`). Review data is never part of this repository.
+Every push to `main` is tested, built and published on GitHub Pages, and the download ZIP on the [latest release](https://github.com/Robotat-tube/review-studio/releases/latest) is rebuilt (`.github/workflows/pages.yml`). Review data is never part of this repository.
