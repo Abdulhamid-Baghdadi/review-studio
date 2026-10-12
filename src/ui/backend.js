@@ -77,7 +77,8 @@ export class Backend {
     const clock = { today: () => new Date().toLocaleDateString("sv"), now: () => new Date().toLocaleString("sv").slice(0, 16) };
     this.session = await ReviewSession.open(browserFolder(entry.handle), {
       clock, library, openalex: this.openalex, devMode: false, onProgress,
-      settings: { name: s.name || entry.name.replace(/ records$/, ""), recordsPath: s.recordsPath || `${entry.name}/08 - Records`, template: this.templates.record },
+      settings: { name: s.name || entry.name.replace(/ records$/, ""), recordsPath: s.recordsPath || `${entry.name}/08 - Records`, template: this.templates.record,
+        reviewer: s.reviewer || "" },
     });
     this.entry = entry.draft ? entry : await rememberReview(entry.handle, s);
     if (!(await this.session.repo.folder.exists("review_state.json"))) {      // a new review: its first files
@@ -281,6 +282,9 @@ export class Backend {
       case "appraisal_tool": return s.setAppraisalTool(a.tool);
       case "review_type": return s.setReviewType(a.type, amendment);
       case "save_synthesis": return s.saveSynthesis(a.fields ?? {});
+      case "record_history": return { raw: { rows: await s.decisionHistory(a.record_id) } };
+      case "verify_log": return { raw: await s.verifyDecisionLog() };
+      case "review_package": { const r = await s.reviewPackage(); return { message: r.message, download: r.path }; }
       case "checklist": return s.setChecklistItem(a.n, a.location ?? "", a.done ?? false);
       case "write_checklist": return s.writeChecklist();
       case "export": { const r = await s.export(a.kind); return { message: r.message, download: r.path }; }

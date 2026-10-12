@@ -14,6 +14,8 @@ import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmen
 import { checkScreening, drawSample, importSearch, importSecondReviewer, addPaper, writeReport, ReviewError } from "./review-commands.js";
 import { addKeptToLibrary, applyLibrarySync, emptyLibrary, planLibrarySync } from "./library.js";
 import { loadState, saveState } from "./review-state.js";
+import { HOW } from "../domain/decision-log.js";
+import { writePackage } from "./review-package.js";
 import { ReviewRepository } from "./review-repository.js";
 import * as actions from "./stage-actions.js";
 import { recordsWithoutFullText, scanForPdfs } from "./local-pdfs.js";
@@ -49,8 +51,12 @@ export class ReviewSession {
    */
   static async open(folder, deps) {
     const repo = await ReviewRepository.open(folder, deps.clock, deps.settings, { onProgress: deps.onProgress });
+    await repo.logDecisions();          // decisions changed elsewhere since the last row (or the first rows of a new log)
     return new ReviewSession(repo, await loadState(folder), deps);
   }
+
+  /** Who the reviewer is in the decision log: the initials from the review settings. */
+  get reviewer() { return this.repo.settings.reviewer || "reviewer"; }
 
   get now() { return this.repo.clock.now(); }
   get today() { return this.repo.clock.today(); }
@@ -61,6 +67,7 @@ export class ReviewSession {
   /** Re-reads the records from the folder (after changes made outside the session, e.g. in Obsidian). */
   async reload() {
     this.repo = await ReviewRepository.open(this.repo.folder, this.repo.clock, this.repo.settings);
+    await this.repo.logDecisions();
     this.st = await loadState(this.repo.folder);
   }
 
@@ -284,20 +291,24 @@ export class ReviewSession {
     if (notes !== undefined && notes !== null) props.notes = notes;
     this.repo.put({ ...r, props });
     await this.#afterScreeningChange();
+    await this.repo.logDecisions({ ids: new Set([recordId]), by: this.reviewer, how: HOW.hand });
     await this.save();
   }
 
   /** Confirms rule-based pre-sorted records as excluded (each with its pre-sort code, else `reason`). */
   async bulkDecide(ids, reason = "") {
     let n = 0;
+    const changed = new Set();
     for (const id of ids) {
       const r = this.repo.records.get(id);
       if (!r || r.props.ta_decision !== "pending") continue;
       this.repo.put({ ...r, props: { ...r.props, ta_decision: "exclude", ta_reason: r.props.presort || reason,
         notes: (r.props.notes || "") + " [pre-sorted by rule, confirmed by reviewer]" } });
+      changed.add(id);
       n++;
     }
     await this.#afterScreeningChange();
+    await this.repo.logDecisions({ ids: changed, by: this.reviewer, how: HOW.rule });
     event(this.st, "screening", `${n} rule-based pre-sorted records confirmed as excluded by the reviewer`, this.now);
     await this.save();
     return `${n} record(s) excluded.`;
@@ -308,6 +319,7 @@ export class ReviewSession {
     const ft = stage === "ft";
     const [dkey, rkey, ai] = ft ? ["ft_decision", "ft_reason", "ai_ft_"] : ["ta_decision", "ta_reason", "ai_"];
     let n = 0;
+    const changed = new Set();
     for (const it of items) {
       const r = this.repo.records.get(it.id);
       if (!r) continue;
@@ -319,9 +331,11 @@ export class ReviewSession {
       const what = ft ? "full-text " : "";
       f.notes = strip((f.notes || "") + (agreed ? ` [AI ${what}suggestion confirmed by reviewer]` : ` [reviewer changed AI ${what}suggestion]`));
       this.repo.put({ ...r, props: f });
+      changed.add(it.id);
       n++;
     }
     await this.#afterScreeningChange();
+    await this.repo.logDecisions({ ids: changed, by: this.reviewer, how: HOW.ai });
     event(this.st, "screening", `batch of ${n} AI-suggested ${ft ? "full-text" : "title/abstract"} decisions reviewed and confirmed by the reviewer`, this.now);
     await this.save();
     return `${n} decision(s) saved.`;
@@ -370,7 +384,7 @@ export class ReviewSession {
   }
 
   async importSecondReviewer({ fileName, text, stage }) {
-    const msg = await importSecondReviewer(this.repo, { fileName, text, stage }, this.library);
+    const msg = await importSecondReviewer(this.repo, { fileName, text, stage }, this.library, { by: "second reviewer (sheet)" });
     event(this.st, "reviewer", `${stage} sheet imported`, this.now);
     await this.save();
     return msg;
@@ -501,6 +515,28 @@ export class ReviewSession {
     const plan = planLibrarySync(this.repo, this.library);
     if (apply) await applyLibrarySync(this.library, this.repo, plan);
     return plan;
+  }
+
+  /** The logged decisions of one record, oldest first. */
+  decisionHistory(recordId) { return this.repo.decisionLog.history(recordId); }
+
+  /** Checks the decision log's hash chain. */
+  verifyDecisionLog() { return this.repo.decisionLog.verify(); }
+
+  /**
+   * Writes the review package (07 - Exports/Review package <date>/ and its ZIP), after refreshing the flow,
+   * the checklist and the protocol so that it holds their current versions.
+   */
+  async reviewPackage() {
+    await writeReport(this.repo, this.library);
+    await actions.writeChecklist(this.repo, this.st);
+    if (await this.repo.folder.exists(PROTOCOL_FILE)) await actions.writeProtocol(this.repo, this.st);
+    await this.save();
+    const p = await writePackage(this.repo, this.st);
+    event(this.st, "report", `review package made: ${p.files} files, decision log ${p.log.rows} rows (${p.log.intact ? "chain intact" : "chain broken at row " + p.log.brokenAt})`, this.now);
+    await this.save();
+    return { message: `Review package written to ${p.dir}: ${p.files} files with their SHA-256 in MANIFEST.md.` +
+      (p.log.intact ? "" : ` Warning: the decision log's chain is broken at row ${p.log.brokenAt}.`), path: p.zipPath };
   }
 
   /** Records sorted by id, for the UI. */

@@ -10,6 +10,7 @@ import { flowCounts } from "../domain/flow.js";
 import { makeEntry, parseExport } from "../domain/importers.js";
 import { DuplicateIndex, yearOf } from "../domain/matching.js";
 import { FILES, prismaFlowNote } from "../domain/notes.js";
+import { HOW } from "../domain/decision-log.js";
 import { compareCodePoints, formatPercent, normalizeNewlines, strip } from "../domain/text-rules.js";
 import { createRecord, mergeDuplicate, nextRecordId } from "../domain/records.js";
 import { drawSample as draw, samplePool, SECOND_REVIEWER_DIR, sheetName, sheetText } from "../domain/sampling.js";
@@ -146,19 +147,20 @@ export async function drawSample(repo, { stage, fraction = 0.2, seed, redo = fal
 }
 
 /** Imports the decisions of a filled-in second-reviewer sheet. */
-export async function importSecondReviewer(repo, { fileName, text, stage }, library) {
+export async function importSecondReviewer(repo, { fileName, text, stage }, library, { by = "second reviewer" } = {}) {
   const rows = csv.readRecords(normalizeNewlines(text).replace(/^﻿/, ""));
   let imported = 0;
-  const bad = [];
+  const bad = [], changed = new Set();
   for (const row of rows) {
     const id = strip(row.record_id ?? ""), decision = strip(row.decision ?? "").toLowerCase();
     if (!repo.records.has(id)) { bad.push(`${id}: unknown record`); continue; }
     if (!SECOND_REVIEWER_DECISIONS.includes(decision)) { bad.push(`${id}: decision "${decision}" not include / exclude / unsure`); continue; }
     const r = repo.records.get(id);
     repo.put({ ...r, props: { ...r.props, [`r2_${stage}_decision`]: decision, [`r2_${stage}_reason`]: strip(row.reason ?? "") } });
-    if (decision) imported++;
+    if (decision) { imported++; changed.add(id); }
   }
   await repo.save();
+  await repo.logDecisions({ ids: changed, by, how: HOW.sheet });
   await repo.log("import-r2", `${stage}: ${imported} second-reviewer decisions from ${fileName}`);
   const report = await writeReport(repo, library);
   return `${imported} decisions imported.${bad.map(b => `\n  ${b}`).join("")}\n${report}`;

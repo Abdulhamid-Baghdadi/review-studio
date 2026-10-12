@@ -127,9 +127,11 @@ async function reviewSettings() {
   const vault = el("input", { type: "text", value: s.vault ?? "", placeholder: "e.g. My research vault" });
   const path = el("input", { type: "text", value: (s.recordsPath ?? `${entry.name}/08 - Records`).replace(/\/08 - Records$/, ""), placeholder: entry.name });
   const lib = el("span", { className: "muted" }, s.library ? s.library.name : "none");
+  const initials = el("input", { type: "text", value: s.reviewer ?? "", placeholder: "e.g. AB", maxLength: 12 });
   const dialog = el("dialog", { className: "modal" },
     el("div", { className: "mh" }, "Review settings"),
     el("div", { className: "mb stack" },
+      el("label", { className: "field" }, el("span", {}, "Your initials (written with each of your decisions in the decision log)"), initials),
       el("label", { className: "field" }, el("span", {}, "Obsidian vault name (to open notes in Obsidian)"), vault),
       el("label", { className: "field" }, el("span", {}, "Path of this review folder inside the vault"), path),
       el("div", { className: "row" }, el("span", {}, "Library folder (publication notes): "), lib,
@@ -138,7 +140,7 @@ async function reviewSettings() {
     el("div", { className: "mf" },
       button("Cancel", () => dialog.close(), ""),
       button("Save", async () => {
-        Object.assign(s, { vault: vault.value.trim(), recordsPath: `${path.value.trim() || entry.name}/08 - Records` });
+        Object.assign(s, { reviewer: initials.value.trim(), vault: vault.value.trim(), recordsPath: `${path.value.trim() || entry.name}/08 - Records` });
         await backend.open(await rememberReview(entry.handle, s));
         dialog.close();
         location.reload();

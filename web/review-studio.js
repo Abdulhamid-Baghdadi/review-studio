@@ -368,14 +368,14 @@ const STORAGE = {
   protocol: [["review_state.json", "method sections"], ["08 - Screening guide.md", "exclusion reasons"], ["05 - Protocol.md", "generated note"]],
   registration: [["review_state.json", "lock, amendments"], ["00 - Review timeline.md", "readable: amendments"]],
   searches: [["07 - Searches.csv", "one row per search"], ["07 - Exports", "copies of the export files"], ["08 - Records", "one note per paper"]],
-  screening: [["08 - Records", "ta_ / ft_decision in each paper's note"], ["08 - Screening.base", "the same as an Obsidian table"]],
+  screening: [["08 - Records", "ta_ / ft_decision in each paper's note"], ["08 - Screening.base", "the same as an Obsidian table"], ["08 - Decision log.csv", "every change, with who and how"]],
   reviewer: [["09 - Second reviewer", "blind CSV sheets"], ["08 - Records", "sample_ / r2_ properties"]],
   snowballing: [["07 - Searches.csv", "one row per round"], ["08 - Records", "new papers"]],
   retrieval: [["08 - Records", "pdf_status, oa_url"], ["10 - Full texts", "attached PDFs"]],
   charting: [["08 - Records", "chart_ properties"], ["12 - Charting.base", "the same as an Obsidian table"], ["review_state.json", "the form"]],
   appraisal: [["08 - Records", "appraisal properties"], ["12 - Charting.base", "Appraisal view"]],
   synthesis: [["review_state.json", "what was done; the analysis files stay where you keep them"], ["00 - Review timeline.md", "readable: when it changed"]],
-  report: [["14 - PRISMA flow.md", "flow diagram"], ["@checklist", "checklist"], ["07 - Exports", "BibTeX, CSV"], ["@library", "included_in on publication notes"]],
+  report: [["14 - PRISMA flow.md", "flow diagram"], ["08 - Decision log.csv", "every decision change"], ["@checklist", "checklist"], ["07 - Exports", "BibTeX, CSV"], ["@library", "included_in on publication notes"]],
 };
 
 function savedIn(key) {
@@ -1137,6 +1137,18 @@ async function decide(decision, reason = "") {
   render();
 }
 
+/** "History" under a record: every logged change of its decisions (08 - Decision log.csv), loaded when opened. */
+function decisionHistory(id) {
+  const body = h("div", { class: "small muted" }, "Loading…");
+  return h("details", { class: "small", style: "margin-top:10px", ontoggle: async e => {
+    if (!e.target.open) return;
+    const { rows } = await api("record_history", { record_id: id }, { silent: true });
+    body.replaceChildren(rows.length ? h("table", { class: "tbl" }, h("tr", {}, ["When", "Stage", "Change", "Reason", "By", "How"].map(t => h("th", {}, t))),
+      rows.map(r => h("tr", {}, h("td", {}, r.when), h("td", {}, r.stage), h("td", {}, `${r.from} → ${r.to}`), h("td", {}, r.reason), h("td", {}, r.by || "—"), h("td", {}, r.how))))
+      : h("span", { class: "muted" }, "No decisions logged yet."));
+  } }, h("summary", { class: "muted" }, "History of this record's decisions"), body);
+}
+
 PAGES.screening = () => {
   const q = queue();
   if (!q.find(r => r.record_id === SC.id)) SC.id = q[0]?.record_id || null;
@@ -1198,6 +1210,7 @@ PAGES.screening = () => {
         h("button", { class: "exc" + (cur === "exclude" ? " on" : ""), onclick: () => { SC.excl = true; reasonRow.style.display = ""; } }, "✕ Exclude", h("kbd", {}, "E"))),
       reasonRow,
       h("div", { style: "margin-top:12px" }, notes),
+      decisionHistory(rec.record_id),
       h("div", { class: "row", style: "margin-top:12px;justify-content:space-between" },
         btn("← Previous", () => move(-1), "ghost"), h("span", { class: "kbdhint" }, "I include · U unsure · E exclude · 1–9 reason · ←/→ move"), btn("Next →", () => move(1), "ghost")));
   }
@@ -1539,6 +1552,14 @@ PAGES.report = () => {
           if (await confirmBox("Add to library", `Copy ${kept.length} included paper(s) to 98 - Publications? Do this when screening is final.`, "Add"))
             busy(e.target, () => api("add_to_library"));
         }, "primary"))) : null,
+    card("Traceability", "Every change of a screening decision is in 08 - Decision log.csv (when, who, how), chained with SHA-256 so that an edited row shows. The review package collects the protocol, searches, decisions, log, second-reviewer sheets, charting, flow, checklist and AI use, with a checksum per file, ready to deposit on OSF or Zenodo.",
+      h("div", { class: "row" },
+        btn("Check the decision log", async e => {
+          const v = await busy(e.currentTarget, () => api("verify_log", {}, { silent: true }));
+          if (v) toast(v.intact ? `Decision log: ${v.rows} rows, chain intact` : `Decision log: chain broken at row ${v.brokenAt} — a row was edited or removed`, v.intact ? "ok" : "err");
+        }, ""),
+        btn("Open the log", () => openNote("08 - Decision log.csv"), "ghost"),
+        btn("📦 Make review package", async e => { const j = await busy(e.currentTarget, () => api("review_package")); if (j?.download) download(j.download); }, "primary"))),
     h("div", { class: "grid2" },
       card("PRISMA flow", "Live from your records. The PRISMA flow note in Obsidian shows the same.", flowDiagram(S.flow),
         h("div", { class: "row end", style: "margin-top:8px" }, btn("Open note", () => openNote("14 - PRISMA flow.md"), "ghost"), btn("Refresh note", e => busy(e.currentTarget, () => api("report")), ""))),

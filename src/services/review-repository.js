@@ -6,6 +6,7 @@
 import * as csv from "../domain/csv.js";
 import * as frontmatter from "../domain/frontmatter.js";
 import { FILES, logHeader, logRow, screeningBase, screeningGuide } from "../domain/notes.js";
+import { DecisionLog } from "./decision-log.js";
 import { compareCodePoints } from "../domain/text-rules.js";
 import { RECORDS_DIR, recordText } from "../domain/records.js";
 import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "../domain/vocabulary.js";
@@ -41,6 +42,15 @@ export class ReviewRepository {
     this.settings = settings;
     this.name = settings.name;
     this.link = `[[${settings.name}]]`;
+    this.decisionLog = new DecisionLog(folder);
+  }
+
+  /**
+   * Logs the screening decisions that changed since the log's last rows (08 - Decision log.csv).
+   * @param {{by?: string, how?: string, ids?: Set<string>}} [context] who changed `ids` in this action, and how
+   */
+  logDecisions(context = {}) {
+    return this.decisionLog.sync([...this.records.values()], { now: this.clock.now(), ...context });
   }
 
   /**

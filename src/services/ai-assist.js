@@ -212,7 +212,7 @@ export async function aiSecondReviewer(repo, st, decisions, { model, library }) 
   const text = "﻿" + csv.writeRows([head, ...rows]);
   await repo.folder.writeText(`${SECOND_REVIEWER_DIR}/${name}`, text);
   const stage = sheet.slice(0, 2);
-  const message = await importSecondReviewer(repo, { fileName: name, text, stage }, library);
+  const message = await importSecondReviewer(repo, { fileName: name, text, stage }, library, { by: `AI (${model})` });
   const fresh = await loadState(repo.folder);
   (fresh.reviewer_ai ??= {})[stage] = { model, when: repo.clock.now(), sheet: name };
   touch(fresh, "reviewer", repo.clock.now());
