@@ -10,7 +10,7 @@ import * as csv from "../domain/csv.js";
 import { aiMode } from "../domain/ai-steps.js";
 import { isIncluded } from "../domain/progress.js";
 import { compareCodePoints, normalizeNewlines, strip } from "../domain/text-rules.js";
-import { event, FULLTEXT_DIR, touch } from "../domain/stages.js";
+import { event, FULLTEXT_DIR, reviewType, touch } from "../domain/stages.js";
 import { SECOND_REVIEWER_DIR } from "../domain/sampling.js";
 import { importSecondReviewer, ReviewError } from "./review-commands.js";
 import { loadState, saveState } from "./review-state.js";
@@ -70,12 +70,13 @@ export async function latestSheet(folder) {
 /**
  * What the AI needs for a step: criteria, and the records still to do (at most `limit`).
  * @param {import("./review-repository.js").ReviewRepository} repo @param {object} st
- * @param {"screening"|"fulltext"|"reviewer"|"retrieval"|"charting"} step
+ * @param {"screening"|"fulltext"|"reviewer"|"retrieval"|"charting"|"appraisal"} step
  * @param {{limit?: number, rel?: (path: string) => string}} [options] rel turns a review path into the path shown
  */
 export async function aiContext(repo, st, step, { limit = 40, rel = p => p } = {}) {
   const mode = requireMode(st, step);
-  const out = { review: repo.name, step, mode, folder: rel("") };
+  const type = reviewType(st);
+  const out = { review: repo.name, review_type: type.label, reported_to: type.guideline, step, mode, folder: rel("") };
   const records = [...repo.records.values()];
   const hasPdf = async r => repo.folder.exists(pdfPath(r));
   if (step === "screening") {
@@ -106,13 +107,54 @@ export async function aiContext(repo, st, step, { limit = 40, rel = p => p } = {
     const keys = fields.map(f => `chart_${f.name}`);
     const filled = (r, k) => strip(String(r.props[k] ?? ""));
     const todo = records.filter(r => isIncluded(r.props) && !keys.every(k => filled(r, k)) && r.props.chart_checked_by !== "reviewer");
-    Object.assign(out, { questions: (await criteria(repo, st, rel)).questions, fields, remaining: todo.length, records: [] });
+    Object.assign(out, { task: type.key === "systematic" ? "data extraction" : "data charting",
+      questions: (await criteria(repo, st, rel)).questions, fields, remaining: todo.length, records: [] });
     for (const r of todo.slice(0, limit)) {
       out.records.push({ id: r.props.record_id, title: r.props.title, pdf: (await hasPdf(r)) ? rel(pdfPath(r)) : "",
         filled: Object.fromEntries(keys.filter(k => filled(r, k)).map(k => [k.slice(6), r.props[k]])) });
     }
+  } else if (step === "appraisal") {
+    const tool = strip(st.charting.appraisal_tool ?? "");
+    if (!tool) throw new ReviewError(`no appraisal tool chosen yet: the reviewer names it in Review Studio (${type.stages.find(s => s.key === "appraisal").title}, Approach).`);
+    const todo = records.filter(r => isIncluded(r.props) && !strip(String(r.props.appraisal ?? "")) && r.props.appraisal_by !== "reviewer");
+    Object.assign(out, { task: type.words.appraisal, tool, ratings: [...type.appraisalRatings], questions: (await criteria(repo, st, rel)).questions,
+      remaining: todo.length, records: [] });
+    for (const r of todo.slice(0, limit)) {
+      out.records.push({ id: r.props.record_id, title: r.props.title, year: get(r.props, "year"), study_type: r.props.chart_study_type ?? "",
+        pdf: (await hasPdf(r)) ? rel(pdfPath(r)) : "" });
+    }
   }
   return out;
+}
+
+/**
+ * Suggests appraisal (or risk-of-bias) ratings for included records without one; each stays "suggested by AI"
+ * (`appraisal_by: AI`) until the reviewer confirms or changes it. Never overwrites a rating.
+ * @param {{id: string, rating: string, note: string}[]} items @returns {Promise<string[]>} report lines
+ */
+export async function aiAppraise(repo, st, items, { model }) {
+  requireMode(st, "appraisal");
+  const allowed = reviewType(st).appraisalRatings;
+  const lines = [];
+  let n = 0;
+  for (const it of items) {
+    const r = repo.records.get(it.id);
+    const rating = strip(String(it.rating ?? "")).toLowerCase();
+    if (!r || !isIncluded(r.props)) { lines.push(`  skipped ${it.id}: not an included record`); continue; }
+    if (r.props.appraisal_by === "reviewer" || strip(String(r.props.appraisal ?? ""))) { lines.push(`  skipped ${it.id}: already rated`); continue; }
+    if (!allowed.includes(rating)) { lines.push(`  skipped ${it.id}: rating must be one of ${allowed.join(", ")}`); continue; }
+    if (!strip(String(it.note ?? ""))) { lines.push(`  skipped ${it.id}: give the reasons with page locators in "note"`); continue; }
+    repo.put({ ...r, props: { ...r.props, appraisal: rating, appraisal_note: `${strip(String(it.note))} [AI (${model})]`, appraisal_by: "AI" } });
+    n++;
+    lines.push(`${it.id}: ${rating}`);
+  }
+  if (n) {
+    await repo.save();
+    touch(st, "appraisal", repo.clock.now());
+    event(st, "appraisal", `AI (${model}) suggested ratings for ${n} record(s); to be confirmed by the reviewer`, repo.clock.now());
+    await saveState(repo, st);
+  }
+  return lines;
 }
 
 /**

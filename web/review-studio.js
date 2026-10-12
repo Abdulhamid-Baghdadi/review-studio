@@ -503,22 +503,26 @@ function openHelp(key) {
  * The worked example's value for a field, as light-grey text in an empty field ("e.g. …"); "" when the example has none.
  * `name` is matched to the example's label, ignoring case and "_" (e.g. "main question", "study_type", "eligibility").
  */
+/** The worked example for the review's type: a real scoping run, or an illustrative systematic review. */
+const sysExample = () => S?.review_type?.key === "systematic" && H?.examples_systematic;
+const examples = () => (sysExample() ? H.examples_systematic : H?.examples) ?? {};
+
 function exampleFor(stageKey, name, part) {
   const norm = t => String(t).toLowerCase().replace(/[_\s]+/g, " ").trim();
-  const item = (H?.examples?.[stageKey]?.items || []).find(([label]) => norm(label) === norm(name) || norm(name).startsWith(norm(label)));
+  const item = (examples()[stageKey]?.items || []).find(([label]) => norm(label) === norm(name) || norm(name).startsWith(norm(label)));
   if (!item) return "";
   const value = part === undefined ? item[1] : String(item[1]).split(" · ")[part];
   return value ? `e.g. ${value}` : "";
 }
 
 function openExample(key) {
-  const ex = H.examples[key] || {}, s = stage(key);
+  const ex = examples()[key] || {}, s = stage(key);
   drawer("Example · " + s.title.replace(/^\d+ · /, ""),
-    h("div", { class: "callout", style: "margin:8px 0 14px" }, h("b", {}, "Worked example: "), H.example_topic),
+    h("div", { class: "callout", style: "margin:8px 0 14px" }, h("b", {}, "Worked example: "), sysExample() ? H.example_topic_systematic : H.example_topic),
     ex.items ? h("table", { class: "tbl" }, ex.items.map(([k, v]) => h("tr", {}, h("td", { style: "width:34%;color:var(--muted);font-weight:600" }, k), h("td", {}, v)))) : null,
     ex.code ? h("div", { class: "code", style: "margin-top:10px", html: hlQuery(ex.code) }) : null,
     ex.lesson ? h("div", { class: "callout ok", style: "margin-top:14px" }, h("b", {}, "Lesson: "), ex.lesson) : null,
-    h("p", { class: "small muted", style: "margin-top:16px" }, "Real values from a run of this tool on 6 Oct 2026; screening decisions were illustrative."),
+    h("p", { class: "small muted", style: "margin-top:16px" }, sysExample() ? H.example_note_systematic : "Real values from a run of this tool on 6 Oct 2026; screening decisions were illustrative."),
     h("div", { class: "row" }, btn("? Back to help", () => openHelp(key), "sm")));
 }
 
@@ -1491,11 +1495,18 @@ PAGES.appraisal = () => {
       : "Choose a tool that suits the study designs. If you skip appraisal, use 'Skip' above and give the reason.",
       h("div", { class: "row", style: "flex-wrap:nowrap" }, tool, btn("Save", () => api("appraisal_tool", { tool: tool.value }), ""),
         btn("Add appraisal columns", () => api("prepare_charting", { appraisal: true }), "primary"))),
-    card("Ratings", `${inc.length} included source(s)`, inc.length ? h("table", { class: "tbl" }, h("tr", {}, ["Source", "Rating", "Note"].map(t => h("th", {}, t))),
-      inc.map(r => h("tr", {}, h("td", { style: "width:40%" }, h("b", {}, r.record_id), " ", r.title),
-        h("td", { style: "width:180px" }, h("select", { onchange: e => api("set_record", { record_id: r.record_id, fields: { appraisal: e.target.value } }, { render: false, silent: true }) },
-          (sys ? ["", "low", "some concerns", "high", "unclear"] : ["", "high", "moderate", "low", "unclear"]).map(v => h("option", { value: v, selected: (r.appraisal || "") === v }, v || "—")))),
-        h("td", {}, h("input", { type: "text", value: r.appraisal_note || "", onchange: e => api("set_record", { record_id: r.record_id, fields: { appraisal_note: e.target.value } }, { render: false, silent: true }) })))))
+    card(sys ? "Risk-of-bias judgements" : "Ratings", `${inc.length} included ${sys ? "stud" + (inc.length === 1 ? "y" : "ies") : "source(s)"}` +
+        (inc.some(r => r.appraisal_by === "AI") ? ` · ${inc.filter(r => r.appraisal_by === "AI").length} suggested by AI, to confirm` : ""),
+      inc.length ? h("table", { class: "tbl" }, h("tr", {}, [sys ? "Study" : "Source", sys ? "Overall risk of bias" : "Rating", "Reasons (with page locators)", ""].map(t => h("th", {}, t))),
+      inc.map(r => {
+        const mine = { appraisal_by: "reviewer" };      // any change by the reviewer makes the rating theirs
+        return h("tr", {}, h("td", { style: "width:34%" }, h("b", {}, r.record_id), " ", r.title),
+          h("td", { style: "width:170px" }, h("select", { onchange: e => api("set_record", { record_id: r.record_id, fields: { appraisal: e.target.value, ...mine } }, { silent: true }) },
+            ["", ...S.review_type.appraisalRatings].map(v => h("option", { value: v, selected: (r.appraisal || "") === v }, v || "—")))),
+          h("td", {}, h("input", { type: "text", value: r.appraisal_note || "", onchange: e => api("set_record", { record_id: r.record_id, fields: { appraisal_note: e.target.value, ...mine } }, { silent: true }) })),
+          h("td", { style: "width:120px" }, r.appraisal_by === "AI" ? h("div", { class: "row" }, pill("AI", "warn"),
+            btn("Confirm", () => api("set_record", { record_id: r.record_id, fields: mine }), "sm")) : null));
+      }))
       : h("div", { class: "empty" }, "No included sources yet.")));
 };
 

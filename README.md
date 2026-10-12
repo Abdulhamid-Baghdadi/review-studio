@@ -115,7 +115,8 @@ Each stage that can use help has an **🤖 AI assistance** card where you choose
 - **pre-screen** titles and abstracts, or full texts, and suggest a decision with a reason;
 - **fetch full texts** (open access first) and attach the PDFs;
 - act as a **blind second reviewer** on the sample;
-- **prefill the charting form** from the PDFs, with page locators.
+- **prefill the charting form** (data extraction in a systematic review) from the PDFs, with page locators;
+- **suggest appraisal or risk-of-bias ratings** with the tool you chose (e.g. RoB 2), with reasons and page locators.
 
 Claude only ever *suggests*: you confirm or change every suggestion in Review Studio, each AI action is logged with the model and date, and the protocol's "Use of AI assistance" section is written for you.
 

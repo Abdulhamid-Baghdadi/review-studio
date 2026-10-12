@@ -8,6 +8,8 @@
  *   node bin/ai-assist.js --review "…" r2 DECISIONS.json --model "…"
  *   node bin/ai-assist.js --review "…" attach R0012 PATH.pdf --model "…"
  *   node bin/ai-assist.js --review "…" chart VALUES.json --model "…"
+ *   node bin/ai-assist.js --review "…" context appraisal [--limit N]
+ *   node bin/ai-assist.js --review "…" appraise RATINGS.json --model "…"
  *
  * Run it from the folder that holds the review (e.g. the Obsidian vault): paths are shown relative to it,
  * and "99 - Templates" and "98 - Publications" there are used when present.
@@ -20,7 +22,7 @@ import { nodeFolder } from "../src/adapters/node-folder.js";
 import { emptyLibrary, openLibrary } from "../src/services/library.js";
 import { ReviewRepository } from "../src/services/review-repository.js";
 import { loadState } from "../src/services/review-state.js";
-import { aiAttach, aiChart, aiContext, aiSecondReviewer, aiSuggest } from "../src/services/ai-assist.js";
+import { aiAppraise, aiAttach, aiChart, aiContext, aiSecondReviewer, aiSuggest } from "../src/services/ai-assist.js";
 import { ReviewError } from "../src/services/review-commands.js";
 
 const root = process.cwd();
@@ -94,7 +96,8 @@ async function main() {
   } else if (cmd === "r2") console.log(await aiSecondReviewer(repo, st, readJson(rest[0]), { model: needModel(), library }));
   else if (cmd === "attach") console.log(await aiAttach(repo, st, rest[0], new Uint8Array(readFileSync(rest[1])), { model: needModel() }));
   else if (cmd === "chart") console.log((await aiChart(repo, st, readJson(rest[0]), { model: needModel() })).join("\n"));
-  else fail("command: context | suggest | r2 | attach | chart");
+  else if (cmd === "appraise") console.log((await aiAppraise(repo, st, readJson(rest[0]), { model: needModel() })).join("\n"));
+  else fail("command: context | suggest | r2 | attach | chart | appraise");
 }
 
 main().catch(e => (e instanceof ReviewError ? fail(e.message) : Promise.reject(e)));

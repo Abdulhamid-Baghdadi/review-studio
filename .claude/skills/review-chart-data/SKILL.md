@@ -1,9 +1,11 @@
 ---
 name: review-chart-data
-description: Prefill the data-charting form from the full texts of included papers in a scoping or systematic review (Review Studio) (Review Studio, stage 12). Use when the user asks to chart, extract data from, or fill the charting table for included papers.
+description: Prefill the data-charting form (scoping review) or data-extraction form (systematic review) from the full texts of included papers in a scoping or systematic review (Review Studio) (Review Studio, stage 12). Use when the user asks to chart, extract data from, or fill the charting table for included papers.
 ---
 
-# Prefill data charting
+# Prefill data charting or data extraction
+
+In a scoping review this stage is **data charting**; in a systematic review it is **data extraction** (outcomes and other variables). The `context` output names the review type and the `task`; use its word with the reviewer. The steps are the same.
 
 You fill empty charting fields for included papers, from the full text, with page locators. Each paper you touch stays `checked_by: AI` until the reviewer checks it in Review Studio ("Checked — next"). You never overwrite a value already there, and you never touch a paper the reviewer has checked. `ai-assist.js` enforces both rules.
 

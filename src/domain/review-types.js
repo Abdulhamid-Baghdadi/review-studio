@@ -147,6 +147,8 @@ const SCOPING = freeze({
   evidence: freeze({ questions: "4", registration: "5", criteria: "6", sources: "7", strings: "8", screening: "9", dataItems: "11",
     appraisalMethods: "12", flow: "14", charting: "15", appraisalData: "16" }),
   words: freeze({ unit: "source of evidence", units: "sources of evidence", chart: "chart", charting: "charting", charted: "charted", appraisal: "critical appraisal" }),
+  /** the overall rating per source on the appraisal stage (methodological quality) */
+  appraisalRatings: freeze(["high", "moderate", "low", "unclear"]),
 });
 
 /** Systematic review, reported to PRISMA 2020; methods from the Cochrane Handbook or the JBI Manual. */
@@ -177,6 +179,8 @@ const SYSTEMATIC = freeze({
   evidence: freeze({ questions: "4", registration: "24a", criteria: "5", sources: "6", strings: "7", screening: "8", dataItems: "10b",
     appraisalMethods: "11", flow: "16a", charting: "17", appraisalData: "18", synthesis: "13d", certainty: "15" }),
   words: freeze({ unit: "study", units: "studies", chart: "extract", charting: "data extraction", charted: "extracted", appraisal: "risk of bias" }),
+  /** the overall risk-of-bias judgement per study (RoB 2 wording; "unclear" when it cannot be judged) */
+  appraisalRatings: freeze(["low", "some concerns", "high", "unclear"]),
 });
 
 export const REVIEW_TYPES = freeze({ scoping: SCOPING, systematic: SYSTEMATIC });

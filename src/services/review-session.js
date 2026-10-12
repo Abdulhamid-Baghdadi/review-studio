@@ -342,7 +342,7 @@ export class ReviewSession {
   /** Edits the fields a reviewer may set directly: charting values, notes, appraisal, PDF status, open-access link. */
   async setRecord(recordId, fields) {
     const r = this.repo.records.get(recordId);
-    const allowed = Object.entries(fields).filter(([k]) => k.startsWith("chart_") || ["notes", "appraisal", "appraisal_note", "pdf_status", "oa_url"].includes(k));
+    const allowed = Object.entries(fields).filter(([k]) => k.startsWith("chart_") || ["notes", "appraisal", "appraisal_note", "appraisal_by", "pdf_status", "oa_url"].includes(k));
     this.repo.put({ ...r, props: { ...r.props, ...Object.fromEntries(allowed) } });
     await this.repo.save();
     if (Object.keys(fields).some(k => k.startsWith("chart_"))) touch(this.st, "charting", this.now);

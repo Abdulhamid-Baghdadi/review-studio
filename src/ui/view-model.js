@@ -9,7 +9,7 @@ import {
 
 const RECORD_FIELDS = ["record_id", "title", "authors", "year", "journal", "doi", "url", "sources", "language",
   "presort", "presort_reason", "ai_decision", "ai_reason", "ai_why", "ai_ft_decision", "ai_ft_reason", "ai_ft_why",
-  "publication", "ta_decision", "ta_reason", "ft_decision", "ft_reason", "pdf_status", "oa_url", "pdf", "notes",
+  "appraisal", "appraisal_note", "appraisal_by", "publication", "ta_decision", "ta_reason", "ft_decision", "ft_reason", "pdf_status", "oa_url", "pdf", "notes",
   "screened_on", "sample_ta", "r2_ta_decision", "r2_ta_reason", "sample_ft", "r2_ft_decision", "r2_ft_reason",
   "appraisal", "appraisal_note"];
 
@@ -98,8 +98,8 @@ export async function snapshot(session, { review, reviews, vault }) {
   const keep = k => Object.fromEntries(k.map(key => [key, st[key]]));
   return {
     review, reviews, dev_mode: session.devMode, vault, folder: folder.name,
-    review_type: (({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts }) =>
-      ({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts }))(stages.reviewType(st)),
+    review_type: (({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts, appraisalRatings }) =>
+      ({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts, appraisalRatings }))(stages.reviewType(st)),
     review_types: Object.values(stages.REVIEW_TYPES).map(t => ({ key: t.key, label: t.label, guideline: t.guideline })),
     stages: stages.reviewType(st).stages.map(s => ({ key: s.key, title: s.title, optional: s.optional, desc: s.description, ...st.stages[s.key] })),
     state: { ...keep(["idea", "questions", "concepts", "queries", "pilots", "protocol_text", "protocol_meta", "supervisor_review",

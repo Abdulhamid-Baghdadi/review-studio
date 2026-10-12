@@ -28,7 +28,7 @@ test("snapshot has everything the page reads", async () => {
   }
   assert.equal(s.stages.length, 15);
   assert.equal(s.checklist_items.length, 22);
-  assert.deepEqual(Object.keys(s.ai.modes), ["screening", "reviewer", "retrieval", "charting"]);
+  assert.deepEqual(Object.keys(s.ai.modes), ["screening", "reviewer", "retrieval", "charting", "appraisal"]);
 });
 
 test("backend: import, decide, preview, amendment answer, errors", async () => {

@@ -47,6 +47,16 @@ export const AI_STEPS = Object.freeze({
     checks: ["Check every value against the page locator in the PDF.",
       "Press 'Checked — next' only after checking the whole paper."],
   },
+  appraisal: {
+    skill: "review-appraise-sources",
+    modes: [
+      ["off", "Off", "You rate every included source yourself."],
+      ["suggest", "AI suggests", "The AI reads each full text with the tool you chose and suggests a rating with reasons and page locators; each stays 'suggested by AI' until you confirm or change it."],
+    ],
+    checks: ["Read the reasons and locators of every suggested rating in the PDF.",
+      "Confirm or change each rating; an AI rating is never the final judgement.",
+      "Report that an AI suggested ratings, with model and date, and that the reviewer judged each one."],
+  },
 });
 
 /** The AI mode a review chose for a step ("off" by default). */

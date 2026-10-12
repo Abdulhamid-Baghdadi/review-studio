@@ -1226,5 +1226,240 @@
     ]
    ]
   }
+ },
+ "example_topic_systematic": "Does showing a repairability score when people shop for electronics make them choose more repairable products?",
+ "example_note_systematic": "An illustrative example: the numbers show what each stage records, not results of a real review.",
+ "examples_systematic": {
+  "idea": {
+   "items": [
+    [
+     "Note",
+     "France and the EU now require repairability scores on phones and laptops. Do these labels actually change what people buy, and by how much?"
+    ]
+   ]
+  },
+  "questions": {
+   "items": [
+    [
+     "Population",
+     "Adult consumers choosing a smartphone, laptop or tablet (online or in store)"
+    ],
+    [
+     "Intervention or exposure",
+     "A repairability score or index shown at the point of choice"
+    ],
+    [
+     "Comparator",
+     "The same choice without the score (or with an energy label only)"
+    ],
+    [
+     "Outcomes",
+     "Choice of the more repairable product (main) · willingness to pay · stated purchase intention"
+    ],
+    [
+     "Main question",
+     "In consumers choosing consumer electronics, does showing a repairability score, compared with no score, increase the choice of more repairable products?"
+    ],
+    [
+     "Sub-questions",
+     "Does the effect differ between online and in-store choices? · Does it differ between score formats (letter grade vs 0–10)? · Is it sustained after the first purchase?"
+    ]
+   ]
+  },
+  "concepts": {
+   "items": [
+    [
+     "Label",
+     "repairab* · reparab* · \"repair score*\" · \"repair index\" · \"ecodesign label*\""
+    ],
+    [
+     "Behaviour",
+     "choice* · purchas* · \"willingness to pay\" · WTP · \"buying decision*\""
+    ],
+    [
+     "Design",
+     "random* · experiment* · \"choice experiment*\" · \"conjoint\" · trial*"
+    ]
+   ],
+   "lesson": "The design block keeps the search to studies that can estimate an effect; surveys of attitudes alone do not answer a PICO question."
+  },
+  "queries": {
+   "code": "TITLE-ABS-KEY((repairab* OR reparab* OR \"repair score*\" OR \"repair index\") AND (choice* OR purchas* OR \"willingness to pay\" OR WTP) AND (random* OR experiment* OR \"choice experiment*\" OR conjoint OR trial*))",
+   "lesson": "Search trial registers too (e.g. AEA RCT Registry, OSF) for studies without a journal article: PRISMA 2020 item 6 asks for every source."
+  },
+  "pilot": {
+   "items": [
+    [
+     "Three concepts",
+     "e.g. 412 hits · test set 5 of 5"
+    ],
+    [
+     "Without 'Design'",
+     "e.g. 1,960 hits · test set 5 of 5"
+    ]
+   ],
+   "lesson": "Keep the design block when it loses no test-set paper."
+  },
+  "protocol": {
+   "items": [
+    [
+     "Eligibility",
+     "Include: randomised or controlled experiments (lab, online, field) comparing a repairability score with no score. Exclude: surveys of attitudes without a comparison; non-electronic products."
+    ],
+    [
+     "Charting",
+     "Two reviewers extract outcome data independently with a piloted form; disagreements resolved by discussion."
+    ],
+    [
+     "Appraisal",
+     "RoB 2 for randomised experiments; ROBINS-I for non-randomised comparisons."
+    ],
+    [
+     "Synthesis",
+     "Random-effects meta-analysis of the risk difference in choosing the more repairable product, if at least three studies are similar enough; otherwise SWiM."
+    ],
+    [
+     "Certainty",
+     "GRADE per outcome; funnel plot only if 10 or more studies."
+    ]
+   ]
+  },
+  "registration": {
+   "items": [
+    [
+     "Registered",
+     "e.g. OSF Registries, before the searches"
+    ],
+    [
+     "Amendment (example)",
+     "'Added willingness to pay as a secondary outcome after the pilot'"
+    ]
+   ]
+  },
+  "searches": {
+   "items": [
+    [
+     "Sources",
+     "Scopus, Web of Science, EconLit, AEA RCT Registry, reference lists"
+    ],
+    [
+     "Result",
+     "e.g. 612 records → 455 unique after deduplication"
+    ]
+   ]
+  },
+  "screening": {
+   "items": [
+    [
+     "Title/abstract",
+     "e.g. 455 screened · 38 sought for full text"
+    ],
+    [
+     "Typical exclusion",
+     "Attitude survey without a comparison group (wrong design)"
+    ]
+   ]
+  },
+  "reviewer": {
+   "items": [
+    [
+     "Second reviewer",
+     "All 455 records screened independently by two people"
+    ],
+    [
+     "Result",
+     "e.g. κ = 0.78 at title/abstract; disagreements resolved by discussion"
+    ]
+   ],
+   "lesson": "In a systematic review, both reviewers screening every record is the standard; a sample needs a reason in the methods."
+  },
+  "snowballing": {
+   "items": [
+    [
+     "Round 1",
+     "Backward and forward citations of the included studies; e.g. 2 new studies"
+    ]
+   ]
+  },
+  "retrieval": {
+   "items": [
+    [
+     "Reports sought",
+     "e.g. 38"
+    ],
+    [
+     "Not retrieved",
+     "e.g. 1 conference abstract; the authors were contacted"
+    ]
+   ]
+  },
+  "charting": {
+   "items": [
+    [
+     "study_type",
+     "online discrete choice experiment, randomised between label conditions"
+    ],
+    [
+     "product_domain",
+     "smartphones"
+    ],
+    [
+     "method",
+     "score shown as a 0–10 index next to price and storage"
+    ],
+    [
+     "key_findings",
+     "share choosing the more repairable phone per arm, with n per arm"
+    ],
+    [
+     "locators",
+     "Table 3, p. 9"
+    ]
+   ]
+  },
+  "appraisal": {
+   "items": [
+    [
+     "Tool",
+     "RoB 2 (randomised experiments)"
+    ],
+    [
+     "Rating (example)",
+     "Some concerns: outcome is a stated choice, not a real purchase"
+    ]
+   ]
+  },
+  "synthesis": {
+   "items": [
+    [
+     "Approach",
+     "Random-effects meta-analysis of risk differences (e.g. 6 studies); the rest summarised with SWiM"
+    ],
+    [
+     "Software",
+     "R with the metafor package"
+    ],
+    [
+     "Heterogeneity and sensitivity",
+     "I² and τ²; subgroups online vs in store; leaving out high risk-of-bias studies"
+    ],
+    [
+     "Certainty of the evidence",
+     "GRADE: e.g. moderate for choice (downgraded for stated rather than real purchases)"
+    ]
+   ]
+  },
+  "report": {
+   "items": [
+    [
+     "Flow",
+     "e.g. 612 identified → 455 screened → 38 sought → 37 assessed → 9 studies included"
+    ],
+    [
+     "Checklist",
+     "PRISMA 2020 items ticked with their location; abstract checked with PRISMA 2020 for Abstracts"
+    ]
+   ]
+  }
  }
 }
