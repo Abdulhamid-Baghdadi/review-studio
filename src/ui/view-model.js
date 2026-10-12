@@ -98,9 +98,12 @@ export async function snapshot(session, { review, reviews, vault }) {
   const keep = k => Object.fromEntries(k.map(key => [key, st[key]]));
   return {
     review, reviews, dev_mode: session.devMode, vault, folder: folder.name,
-    stages: stages.STAGES.map(s => ({ key: s.key, title: s.title, optional: s.optional, desc: s.description, ...st.stages[s.key] })),
-    state: keep(["idea", "questions", "concepts", "queries", "pilots", "protocol_text", "protocol_meta", "supervisor_review",
-      "concepts_history", "protocol", "amendments", "snowballing", "charting", "checklist"]),
+    review_type: (({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts }) =>
+      ({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts }))(stages.reviewType(st)),
+    review_types: Object.values(stages.REVIEW_TYPES).map(t => ({ key: t.key, label: t.label, guideline: t.guideline })),
+    stages: stages.reviewType(st).stages.map(s => ({ key: s.key, title: s.title, optional: s.optional, desc: s.description, ...st.stages[s.key] })),
+    state: { ...keep(["idea", "questions", "concepts", "queries", "pilots", "protocol_text", "protocol_meta", "supervisor_review",
+      "concepts_history", "protocol", "amendments", "snowballing", "charting", "synthesis"]), checklist: stages.checklistOf(st) },
     events: st.events.slice(-200).reverse(),
     queries: Object.fromEntries(st.queries.databases.map(db => [db, buildQuery(st, db)])),
     manual: Object.keys(st.queries.manual),
@@ -126,8 +129,8 @@ export async function snapshot(session, { review, reviews, vault }) {
       stem, doi: normalizeDoi(p.doi), test: (Array.isArray(p.test_in) ? p.test_in : []).includes(repo.link) })),
     lock_checks: await session.lockChecks(),
     checklist_auto: Object.fromEntries(Object.entries(await stageActions.checklistAuto(repo, st)).map(([k, v]) => [String(k), v])),
-    checklist_items: stages.CHECKLIST.map(([n, item, desc]) => ({ n, item, desc })),
-    protocol_sections: stages.PROTOCOL_SECTIONS.map(([key, title]) => ({ key, title })),
+    checklist_items: stages.reviewType(st).checklist.map(it => ({ ...it })),
+    protocol_sections: stages.reviewType(st).protocolSections.map(([key, title]) => ({ key, title })),
     record_files: Object.fromEntries(records.map(r => [r.id, r.file])),
     sheets: (await listing("09 - Second reviewer")).filter(n => n.endsWith(".csv")),
     "07 - Exports": await listing("07 - Exports"),

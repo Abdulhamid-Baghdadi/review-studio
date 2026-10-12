@@ -1,5 +1,5 @@
 #!/bin/bash
-# Starts PRISMA Scoping Review Studio on this Mac and opens it in Chrome (or Edge). Close this window to stop it.
+# Starts Review Studio on this Mac and opens it in Chrome (or Edge). Close this window to stop it.
 # Double-click it in Finder. The first time, macOS may ask: right-click the file → Open → Open.
 cd "$(dirname "$0")" || exit 1
 
@@ -23,5 +23,5 @@ URL="http://localhost:8770/web/"
   else open "$URL"; fi
 ) &
 
-echo "PRISMA Scoping Review Studio runs at $URL  (close this window to stop it)"
+echo "Review Studio runs at $URL  (close this window to stop it)"
 node scripts/serve.js 8770

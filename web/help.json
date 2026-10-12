@@ -121,6 +121,21 @@
   "priem2022": {
    "text": "Priem, J., Piwowar, H., & Orr, R. (2022). OpenAlex: A fully-open index of scholarly works, authors, venues, institutions, and concepts. arXiv:2205.01833.",
    "doi": "10.48550/arXiv.2205.01833"
+  },
+  "higgins2023": {
+   "text": "Higgins, J. P. T., Thomas, J., Chandler, J., et al. (Eds.) (2023). Cochrane Handbook for Systematic Reviews of Interventions, version 6.4. Cochrane."
+  },
+  "sterne2019": {
+   "text": "Sterne, J. A. C., Savović, J., Page, M. J., et al. (2019). RoB 2: a revised tool for assessing risk of bias in randomised trials. BMJ, 366, l4898."
+  },
+  "sterne2016": {
+   "text": "Sterne, J. A., Hernán, M. A., Reeves, B. C., et al. (2016). ROBINS-I: a tool for assessing risk of bias in non-randomised studies of interventions. BMJ, 355, i4919."
+  },
+  "guyatt2008": {
+   "text": "Guyatt, G. H., Oxman, A. D., Vist, G. E., et al. (2008). GRADE: an emerging consensus on rating quality of evidence and strength of recommendations. BMJ, 336(7650), 924–926."
+  },
+  "campbell2020": {
+   "text": "Campbell, M., McKenzie, J. E., Sowden, A., et al. (2020). Synthesis without meta-analysis (SWiM) in systematic reviews: reporting guideline. BMJ, 368, l6890."
   }
  },
  "terms": {
@@ -140,7 +155,7 @@
    ]
   },
   "PRISMA-ScR": {
-   "definition": "The 22-item reporting checklist for scoping reviews. It tells you what to report, not how to conduct the review.",
+   "definition": "PRISMA extension for Scoping Reviews (Tricco et al., 2018): a reporting checklist of 20 essential and 2 optional items (12 and 16, critical appraisal). It tells you what to report, not how to conduct the review; for conduct follow JBI guidance (Peters et al.) or Arksey & O'Malley.",
    "refs": [
     "tricco2018"
    ]
@@ -257,7 +272,7 @@
    ]
   },
   "Critical appraisal": {
-   "definition": "Assessing the methodological quality / risk of bias of each included study.",
+   "definition": "Assessing the methodological quality or risk of bias of each included source of evidence. Optional in scoping reviews (PRISMA-ScR items 12 and 16) and usually not done; required in systematic reviews.",
    "refs": [
     "munn2018",
     "hong2018"
@@ -274,6 +289,44 @@
    "definition": "A free, open index of scholarly works used here for pilot counts, snowballing and open-access links.",
    "refs": [
     "priem2022"
+   ]
+  },
+  "PRISMA 2020": {
+   "definition": "The 27-item reporting guideline for systematic reviews (42 rows with sub-items), with its own flow diagram and an abstract checklist. It tells you what to report, not how to conduct the review; for conduct follow the Cochrane Handbook or the JBI Manual.",
+   "refs": [
+    "page2021"
+   ]
+  },
+  "PICO": {
+   "definition": "Population – Intervention (or exposure) – Comparator – Outcomes: the usual framework for a systematic-review question about effects.",
+   "refs": [
+    "higgins2023"
+   ]
+  },
+  "Data extraction": {
+   "definition": "Systematic-review term: recording outcomes and other variables from each included study in a piloted extraction form, usually by two reviewers.",
+   "refs": [
+    "higgins2023"
+   ]
+  },
+  "Risk of bias": {
+   "definition": "Whether flaws in a study's design, conduct or analysis may have biased its results; assessed per study with a tool such as RoB 2 or ROBINS-I. Required in a systematic review.",
+   "refs": [
+    "sterne2019",
+    "sterne2016"
+   ]
+  },
+  "Meta-analysis": {
+   "definition": "Statistical pooling of the results of several studies into one summary estimate, with its precision and heterogeneity. Optional: when studies cannot be pooled, a structured narrative synthesis (SWiM) is reported instead.",
+   "refs": [
+    "higgins2023",
+    "campbell2020"
+   ]
+  },
+  "GRADE": {
+   "definition": "A system for rating the certainty of a body of evidence per outcome (high, moderate, low, very low).",
+   "refs": [
+    "guyatt2008"
    ]
   }
  },
@@ -521,7 +574,7 @@
      ]
     ],
     [
-     "Report amendments with reasons (PRISMA 2020 24c).",
+     "Report amendments with reasons (PRISMA-ScR 5) — the detail is borrowed from PRISMA 2020 item 24c.",
      "report",
      [
       "page2021"
@@ -609,7 +662,7 @@
      ]
     ],
     [
-     "Report any AI/automation used (PRISMA 2020 item 8).",
+     "Report any AI/automation used (PRISMA-ScR 9) — wording borrowed from PRISMA 2020 item 8.",
      "report",
      [
       "page2021"
@@ -634,7 +687,7 @@
    ],
    "rules": [
     [
-     "Report how many screened and whether independently (PRISMA 2020 item 8).",
+     "Report how many screened and whether independently (PRISMA-ScR 9).",
      "report",
      [
       "page2021"
@@ -711,7 +764,7 @@
    ],
    "rules": [
     [
-     "Report reports sought and not retrieved (PRISMA 2020 flow).",
+     "Report reports sought and not retrieved (PRISMA-ScR 14) — box from the PRISMA 2020 flow diagram.",
      "report",
      [
       "page2021"
@@ -1012,5 +1065,166 @@
    ]
   }
  },
- "example_topic": "How is the repairability of smartphones, laptops and tablets assessed, and are the methods validated?"
+ "example_topic": "How is the repairability of smartphones, laptops and tablets assessed, and are the methods validated?",
+ "stages_systematic": {
+  "questions": {
+   "what": "Frame the review question with PICO.",
+   "how": [
+    "Population, Intervention or exposure, Comparator, Outcomes.",
+    "Name the main outcome first.",
+    "Save a new version when the question changes."
+   ],
+   "terms": [
+    "Systematic review",
+    "PICO"
+   ],
+   "rules": [
+    [
+     "Report the objectives and questions (PRISMA 2020 item 4).",
+     "report",
+     [
+      "page2021"
+     ]
+    ],
+    [
+     "Use PICO for questions about effects.",
+     "guidance",
+     [
+      "higgins2023"
+     ]
+    ]
+   ]
+  },
+  "charting": {
+   "what": "Extract the data of each included study.",
+   "how": [
+    "Pilot the extraction form on a few studies.",
+    "Extract outcomes and other variables, with page locators.",
+    "Two reviewers extract independently where possible."
+   ],
+   "terms": [
+    "Data extraction"
+   ],
+   "rules": [
+    [
+     "Report the data collection process (PRISMA 2020 item 9).",
+     "report",
+     [
+      "page2021"
+     ]
+    ],
+    [
+     "Report all data items sought (PRISMA 2020 item 10).",
+     "report",
+     [
+      "page2021"
+     ]
+    ],
+    [
+     "Extract in duplicate, at least for outcome data.",
+     "guidance",
+     [
+      "higgins2023"
+     ]
+    ]
+   ]
+  },
+  "appraisal": {
+   "what": "Assess the risk of bias of each included study.",
+   "how": [
+    "Pick a tool for the designs: RoB 2 for randomised trials, ROBINS-I for non-randomised studies.",
+    "Rate each study and give the reasons.",
+    "Two reviewers assess independently where possible."
+   ],
+   "terms": [
+    "Risk of bias"
+   ],
+   "rules": [
+    [
+     "Report the methods (PRISMA 2020 item 11) and the results (PRISMA 2020 item 18).",
+     "report",
+     [
+      "page2021"
+     ]
+    ],
+    [
+     "Required in a systematic review.",
+     "guidance",
+     [
+      "higgins2023"
+     ]
+    ]
+   ]
+  },
+  "synthesis": {
+   "what": "Record how the results were combined and how certain the evidence is.",
+   "how": [
+    "Decide per outcome: meta-analysis or a structured narrative synthesis.",
+    "Run the analysis in R, RevMan or Stata and record the method and the results file here.",
+    "Assess reporting bias and rate the certainty per outcome (GRADE)."
+   ],
+   "terms": [
+    "Meta-analysis",
+    "GRADE"
+   ],
+   "rules": [
+    [
+     "Report the synthesis methods (PRISMA 2020 item 13) and results (PRISMA 2020 item 20).",
+     "report",
+     [
+      "page2021"
+     ]
+    ],
+    [
+     "Report reporting-bias and certainty methods (PRISMA 2020 items 14–15).",
+     "report",
+     [
+      "page2021"
+     ]
+    ],
+    [
+     "Without meta-analysis, report the synthesis with SWiM.",
+     "guidance",
+     [
+      "campbell2020"
+     ]
+    ],
+    [
+     "Rate certainty with GRADE.",
+     "convention",
+     [
+      "guyatt2008"
+     ]
+    ]
+   ]
+  },
+  "report": {
+   "what": "Write up the review and check it against PRISMA 2020.",
+   "how": [
+    "Tick each PRISMA 2020 item and give its location.",
+    "Use the PRISMA flow diagram for the study selection.",
+    "Report the abstract with PRISMA 2020 for Abstracts."
+   ],
+   "terms": [
+    "PRISMA 2020",
+    "PRISMA flow diagram"
+   ],
+   "rules": [
+    [
+     "Report the study selection with a flow diagram (PRISMA 2020 item 16a).",
+     "report",
+     [
+      "page2021"
+     ]
+    ],
+    [
+     "Submit the PRISMA 2020 checklist.",
+     "report",
+     [
+      "page2021"
+     ]
+    ]
+   ]
+  }
+ }
 }

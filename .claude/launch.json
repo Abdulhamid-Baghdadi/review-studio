@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "PRISMA Studio",
+      "name": "Review Studio",
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/serve.js", "8770"],
       "port": 8770,

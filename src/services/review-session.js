@@ -10,7 +10,7 @@ import { FILES, screeningGuide } from "../domain/notes.js";
 import { PROTOCOL_FILE } from "../domain/protocol.js";
 import { buildQuery } from "../domain/queries.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
-import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameValue, saveQuestions, setStatus, touch } from "../domain/stages.js";
+import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameValue, saveQuestions, setReviewType, setStatus, touch } from "../domain/stages.js";
 import { checkScreening, drawSample, importSearch, importSecondReviewer, addPaper, writeReport, ReviewError } from "./review-commands.js";
 import { addKeptToLibrary, applyLibrarySync, emptyLibrary, planLibrarySync } from "./library.js";
 import { loadState, saveState } from "./review-state.js";
@@ -450,6 +450,23 @@ export class ReviewSession {
     this.st.charting.appraisal_tool = tool;
     touch(this.st, "appraisal", this.now);
     event(this.st, "appraisal", `approach: ${tool}`, this.now);
+    await this.save();
+  }
+
+  /** Scoping (PRISMA-ScR) or systematic (PRISMA 2020); after locking this is an amendment. */
+  async setReviewType(type, amendment = "") {
+    if (setReviewType(this.st, type, { reason: amendment, devMode: this.devMode, now: this.now })) {
+      await actions.writeChecklist(this.repo, this.st);
+      await this.save();
+    }
+  }
+
+  /** What was done in the synthesis stage of a systematic review (recorded only; the analysis runs elsewhere). */
+  async saveSynthesis(fields) {
+    const keys = ["approach", "software", "results_file", "heterogeneity", "reporting_bias", "certainty", "notes"];
+    this.st.synthesis = Object.fromEntries(keys.map(k => [k, strip(String(fields?.[k] ?? this.st.synthesis?.[k] ?? ""))]));
+    touch(this.st, "synthesis", this.now);
+    event(this.st, "synthesis", "synthesis record updated", this.now);
     await this.save();
   }
 

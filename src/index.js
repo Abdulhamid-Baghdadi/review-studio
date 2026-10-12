@@ -1,5 +1,5 @@
 /**
- * Public API of PRISMA Studio's engine. The UI and tools import from here only; the folders below are
+ * Public API of Review Studio's engine. The UI and tools import from here only; the folders below are
  * internal and may be reorganised.
  * @module prisma-studio
  */

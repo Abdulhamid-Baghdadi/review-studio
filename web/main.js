@@ -1,4 +1,4 @@
-// Start of PRISMA Studio in the browser: checks the browser, loads help texts, templates and pdf.js, shows
+// Start of Review Studio in the browser: checks the browser, loads help texts, templates and pdf.js, shows
 // the start screen (recent reviews, open a folder, new review), then loads the Review Studio page.
 import * as pdfjs from "pdfjs";
 import { Backend } from "../src/ui/backend.js";
@@ -81,7 +81,7 @@ async function openReview(entry) {
 /** How long opening took, shown for 20 s (click to close) and kept as window.openTiming. */
 function showOpenTiming(t) {
   window.openTiming = t;
-  console.info("PRISMA Studio open timing", t);
+  console.info("Review Studio open timing", t);
   if (!t.notes) return;                         // nothing worth timing (the draft, a new review)
   const note = document.createElement("div");
   note.className = "toast";

@@ -279,6 +279,8 @@ export class Backend {
         return s.addToLibrary(this.templates.publication);
       case "prepare_charting": return s.prepareCharting(Boolean(a.appraisal));
       case "appraisal_tool": return s.setAppraisalTool(a.tool);
+      case "review_type": return s.setReviewType(a.type, amendment);
+      case "save_synthesis": return s.saveSynthesis(a.fields ?? {});
       case "checklist": return s.setChecklistItem(a.n, a.location ?? "", a.done ?? false);
       case "write_checklist": return s.writeChecklist();
       case "export": { const r = await s.export(a.kind); return { message: r.message, download: r.path }; }

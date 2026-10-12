@@ -1,6 +1,6 @@
 # Architecture
 
-PRISMA Studio is a browser app whose data is a folder on the user's PC. The code is split into layers so that the review rules can be tested without a browser, run unchanged in Node and the browser, and always write the same review-folder format.
+Review Studio is a browser app whose data is a folder on the user's PC. The code is split into layers so that the review rules can be tested without a browser, run unchanged in Node and the browser, and always write the same review-folder format.
 
 ```
             ┌──────────────── ui ────────────────┐

@@ -271,7 +271,8 @@ function pilotChart(pilots) {
 }
 
 // ================================================================ chrome: sidebar, topbar, metrics
-const PHASES = [["Planning", 0, 6], ["Conducting", 7, 13], ["Reporting", 14, 14]];
+/** Planning up to registration, then conducting, then the report (the last stage). */
+const phases = () => [["Planning", 0, 6], ["Conducting", 7, S.stages.length - 2], ["Reporting", S.stages.length - 1, S.stages.length - 1]];
 const stage = k => S.stages.find(s => s.key === k);
 const HOME = "home";                                  // the introduction page above the stages (not a stage itself)
 
@@ -289,9 +290,9 @@ function renderSidebar() {
   sel.replaceChildren(...S.reviews.map(r => h("option", { value: r, selected: r === REVIEW }, label(r))),
     h("option", { value: "__open__" }, "📂 Open folder…"));
   const nav = $("#stepper");
-  nav.replaceChildren(h("div", { class: `step home ${CUR === HOME ? "active" : ""}`, onclick: () => go(HOME), title: "What PRISMA Scoping Review Studio is and how it works" },
+  nav.replaceChildren(h("div", { class: `step home ${CUR === HOME ? "active" : ""}`, onclick: () => go(HOME), title: "What Review Studio is and how it works" },
     h("span", { class: "dot" }, "⌂"), "Homepage"));
-  PHASES.forEach(([name, a, b]) => {
+  phases().forEach(([name, a, b]) => {
     nav.append(h("div", { class: "phase" }, name));
     S.stages.slice(a, b + 1).forEach((s, i) => nav.append(h("div", {
       class: `step ${s.status} ${s.key === CUR ? "active" : ""}`, onclick: () => go(s.key), title: s.optional ? `${s.desc} (optional)` : s.desc,
@@ -304,8 +305,8 @@ function renderSidebar() {
 function renderTop() {
   if (CUR === HOME) {
     $("#topbar").replaceChildren(
-      h("div", { class: "titlerow" }, h("h1", {}, "Welcome to PRISMA Scoping Review Studio")),
-      h("p", { class: "desc" }, "How a scoping review goes in PRISMA Scoping Review Studio, in one minute."),
+      h("div", { class: "titlerow" }, h("h1", {}, "Welcome to Review Studio")),
+      h("p", { class: "desc" }, "How a review goes in Review Studio, in one minute (shown for a scoping review; a systematic review adds risk of bias and a synthesis stage)."),
       h("div", { class: "home-badges" }, [
         ["📝 Plain Markdown", "Every record is a Markdown note with properties; the searches are a CSV table. Any text editor can read them."],
         ["🟣 Opens in Obsidian", "A review folder is an Obsidian vault as it is: the notes, links and the screening and charting tables (.base files) work there too."],
@@ -316,10 +317,10 @@ function renderTop() {
     return;
   }
   const s = stage(CUR), n = S.stages.indexOf(s);
-  const phase = PHASES.find(([, a, b]) => n >= a && n <= b)[0];
+  const phase = phases().find(([, a, b]) => n >= a && n <= b)[0];
   const locked = S.state.protocol.locked;
   $("#topbar").replaceChildren(
-    h("div", { class: "crumbs" }, `${REVIEW} · ${phase} · stage ${n} of ${S.stages.length - 1}`),
+    h("div", { class: "crumbs" }, `${REVIEW} · ${S.review_type.label}, reported to ${S.review_type.guideline} · ${phase} · stage ${n} of ${S.stages.length - 1}`),
     h("div", { class: "titlerow" },
       h("h1", {}, s.title.replace(/^\d+ · /, "")),
       pill(s.status.replace("-", " "), statusKind(s.status)),
@@ -373,13 +374,14 @@ const STORAGE = {
   retrieval: [["08 - Records", "pdf_status, oa_url"], ["10 - Full texts", "attached PDFs"]],
   charting: [["08 - Records", "chart_ properties"], ["12 - Charting.base", "the same as an Obsidian table"], ["review_state.json", "the form"]],
   appraisal: [["08 - Records", "appraisal properties"], ["12 - Charting.base", "Appraisal view"]],
-  report: [["14 - PRISMA flow.md", "flow diagram"], ["14 - PRISMA-ScR checklist.md", "checklist"], ["07 - Exports", "BibTeX, CSV"], ["@library", "included_in on publication notes"]],
+  synthesis: [["review_state.json", "what was done; the analysis files stay where you keep them"], ["00 - Review timeline.md", "readable: when it changed"]],
+  report: [["14 - PRISMA flow.md", "flow diagram"], ["@checklist", "checklist"], ["07 - Exports", "BibTeX, CSV"], ["@library", "included_in on publication notes"]],
 };
 
 function savedIn(key) {
   const icon = p => p === "@library" ? "📚" : /\.(md)$/.test(p) ? "📝" : /\.base$/.test(p) ? "▦" : /\.(csv|json)$/.test(p) ? "🗎" : "📁";
   return h("div", { class: "savedin" }, h("span", { class: "small muted" }, "Saved in"),
-    (STORAGE[key] || []).map(([p, what]) => h("button", { class: "file", title: `${S.folder}/${p === "@library" ? "../98 - Publications" : p} — click to open`, onclick: () => openNote(p) },
+    (STORAGE[key] || []).map(([p, what]) => [p === "@checklist" ? S.review_type.checklistFile : p, what]).map(([p, what]) => h("button", { class: "file", title: `${S.folder}/${p === "@library" ? "../98 - Publications" : p} — click to open`, onclick: () => openNote(p) },
       icon(p), " ", p === "@library" ? "98 - Publications" : p, h("span", { class: "muted" }, " · " + what))));
 }
 
@@ -459,7 +461,7 @@ function nameFields(root) {
 function go(key) { CUR = key; store.set("stage", key); history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
 
 async function skipStage() {
-  const r = await promptText("Skip this stage", "Skipping is fine for optional stages, but the reason is reported in the timeline and the PRISMA-ScR checklist.", "e.g. optional in scoping reviews; not planned in the protocol", true);
+  const r = await promptText("Skip this stage", "Skipping is fine for optional stages, but the reason is reported in the timeline and the reporting checklist.", "e.g. optional in scoping reviews; not planned in the protocol", true);
   if (r) api("stage_status", { stage: CUR, status: "skipped", reason: r });
 }
 
@@ -483,7 +485,7 @@ function drawer(title, ...body) {
 }
 
 function openHelp(key) {
-  const x = H.stages[key], s = stage(key), num = {};
+  const x = (S.review_type?.key === "systematic" && H.stages_systematic?.[key]) || H.stages[key], s = stage(key), num = {};
   const rules = x.rules.map(([text, level, refs]) => h("div", { class: "rule" }, lvl(level), h("div", {}, withScr(text), refMarks(refs, num))));
   const terms = x.terms.map(t => h("div", { class: "term" }, h("b", {}, t), H.terms[t].definition, refMarks(H.terms[t].refs, num)));
   drawer("Help · " + s.title.replace(/^\d+ · /, ""),
@@ -562,7 +564,7 @@ function openClaudeGuide() {
       "Summarise or compare included papers, or draft parts of the report from the charting table. Check every claim against the paper."])),
     sec("5 · Rules that keep the review sound", ul([
       "The reviewer decides. AI suggestions are never final decisions, and a confirmed batch is recorded as yours with a note per record.",
-      "Report AI use in the methods (PRISMA 2020 item 8): which steps, which model, how its output was checked. The protocol's 'Use of AI assistance' section is written for you.",
+      "Report AI use in the methods (PRISMA-ScR item 9, selection of sources; PRISMA 2020 item 8 asks for automation tools explicitly): which steps, which model, how its output was checked. The protocol's 'Use of AI assistance' section is written for you.",
       "An AI second reviewer is not a second person. Say so; if you can, use a human for the second-reviewer sample.",
       "Never let AI solve CAPTCHAs, use shadow libraries or share logins when fetching PDFs."])),
     sec("6 · Other AI assistants", h("p", { style: "margin:0" },
@@ -601,41 +603,47 @@ function openKeys() {
 }
 
 
-// ---------- PRISMA-ScR item references: "PRISMA-ScR 3" → clickable chip, plus the full checklist
-const SCR_PARTS = [["Title & abstract", 1, 2], ["Introduction", 3, 4], ["Methods — in the protocol", 5, 13], ["Results", 14, 18], ["Discussion", 19, 21], ["Funding", 22, 22]];
-
+// ---------- Checklist item references: "PRISMA-ScR 3" or "PRISMA 2020 item 16a" → clickable chip, plus the full checklist
 function scrChip(n) {
-  const it = S.checklist_items.find(x => x.n === n);
-  return h("button", { class: "scr", title: it ? `PRISMA-ScR item ${n}: ${it.item} — ${it.desc}` : `PRISMA-ScR item ${n}`,
-    onclick: e => { e.preventDefault(); e.stopPropagation(); openChecklist(n); } }, `ScR ${n}`);
+  n = String(n);
+  const g = S.review_type.guideline;
+  const it = S.checklist_items.find(x => x.n === n) ?? S.checklist_items.find(x => x.n === n + "a");    // "13" → 13a–f
+  return h("button", { class: "scr", title: it ? `${g} item ${it.n}: ${it.item} — ${it.desc}` : `${g} item ${n}`,
+    onclick: e => { e.preventDefault(); e.stopPropagation(); openChecklist(it?.n ?? n); } }, `${g === "PRISMA-ScR" ? "ScR" : "P2020"} ${n}`);
 }
 
-// Turns text such as "Rationale (PRISMA-ScR 3)" or "(PRISMA-ScR items 10–11)" into text + clickable chips
+// Turns text such as "Rationale (PRISMA-ScR 3)", "(PRISMA-ScR items 10–11)" or "(PRISMA 2020 item 16a)" into text + clickable
+// chips; a reference to the other guideline than the review's own stays plain text
 function withScr(text) {
-  const m = String(text).match(/^(.*?)\s*\((?:PRISMA-ScR(?: items?)?)\s*([\d,\s–-]+)\)\s*(.*)$/);
-  if (!m) return [text];
+  const m = String(text).match(/^(.*?)\s*\((PRISMA-ScR|PRISMA 2020)(?: items?)?\s*([\da-f,\s–-]+)\)\s*(.*)$/);
+  if (!m || m[2] !== S.review_type.guideline) return [text];
   const nums = [];
-  m[2].split(/,\s*/).forEach(part => {
-    const r = part.split(/[–-]/).map(Number);
-    for (let i = r[0]; i <= (r[1] || r[0]); i++) nums.push(i);
+  m[3].split(/,\s*/).forEach(part => {
+    const r = part.trim().split(/[–-]/);
+    if (r.length === 2 && /^\d+$/.test(r[0]) && /^\d+$/.test(r[1])) for (let i = +r[0]; i <= +r[1]; i++) nums.push(String(i));
+    else nums.push(r[0]);
   });
-  return [m[1], " ", ...nums.map(scrChip), m[3] ? " " + m[3] : ""];
+  return [m[1], " ", ...nums.map(scrChip), m[4] ? " " + m[4] : ""];
 }
 
 function openChecklist(focus) {
-  const auto = S.checklist_auto, cl = S.state.checklist;
+  const auto = S.checklist_auto, cl = S.state.checklist, rt = S.review_type, items = S.checklist_items;
+  const at = n => items.findIndex(it => it.n === n);
+  const intro = rt.key === "systematic"
+    ? `PRISMA 2020 (${rt.guidelineCitation}): 27 items, 42 with their sub-items, for reporting a systematic review. Report the abstract with the PRISMA 2020 for Abstracts checklist. Tick items on the Report stage.`
+    : `PRISMA-ScR (${rt.guidelineCitation}): 20 essential items and 2 optional ones (12 and 16, critical appraisal) for reporting a scoping review. Items 5–13 are written in the protocol; the rest come with the final paper. Tick items on the Report stage.`;
   const body = h("div", {},
-    h("p", { class: "muted small", style: "margin-top:0" }, "The 22 items a scoping-review paper must report (Tricco et al. 2018, Annals of Internal Medicine). Items 5–13 are written in the protocol; the rest come with the final paper. Tick items on the Report stage."),
-    SCR_PARTS.map(([part, a, b]) => h("div", {},
+    h("p", { class: "muted small", style: "margin-top:0" }, intro),
+    rt.checklistParts.map(([part, a, b]) => h("div", {},
       h("h4", { style: "margin:14px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)" }, part),
-      S.checklist_items.filter(it => it.n >= a && it.n <= b).map(it => {
+      items.slice(at(a), at(b) + 1).map(it => {
         const done = cl[String(it.n)]?.done, ev = auto[String(it.n)];
         return h("div", { id: "scr" + it.n, class: "scr-row" + (it.n === focus ? " focus" : "") },
           h("span", { class: "scr-n" }, it.n),
           h("div", {}, h("b", {}, it.item), h("div", { class: "small muted" }, it.desc), ev ? h("div", { style: "margin-top:3px" }, pill(ev, "info")) : null),
-          done ? pill("✓ reported", "ok") : null);
+          it.optional ? pill("optional", "info") : null, done ? pill("✓ reported", "ok") : null);
       }))));
-  modal({ title: "PRISMA-ScR checklist", wide: true, body, buttons: [{ label: "Go to Report stage", value: () => go("report") }, { label: "Close", primary: true, value: null }] });
+  modal({ title: `${rt.guideline} checklist`, wide: true, body, buttons: [{ label: "Go to Report stage", value: () => go("report") }, { label: "Close", primary: true, value: null }] });
   if (focus) setTimeout(() => document.getElementById("scr" + focus)?.scrollIntoView({ block: "center" }), 60);
 }
 
@@ -681,7 +689,7 @@ const DEMO = [
       el.append(h("div", { class: "demo-lbl" }, "▦ Data charting"), ...cells.map(([k, c]) => h("div", { class: "demo-row" }, h("span", { class: "muted" }, k), c)));
       const vals = ["Expert scoring", "EN 45554", "Smartphones", "1–10"]; let i = 0;
       return setInterval(() => { if (i < cells.length) cells[i][1].textContent = vals[i++]; }, 650); } },
-  { key: "report", you: "Tick the PRISMA-ScR items and export the tables and BibTeX for the paper.", ai: null, label: "Report", caption: "The PRISMA flow diagram and checklist are made from your decisions.",
+  { key: "report", you: "Tick the reporting checklist items and export the tables and BibTeX for the paper.", ai: null, label: "Report", caption: "The PRISMA flow diagram and checklist are made from your decisions.",
     draw: el => { const box = (t, n) => h("div", { class: "demo-flow" }, t, h("b", {}, n));
       const bs = [box("Identified", 412), box("Screened", 318), box("Full text", 64), box("Included", 27)];
       bs.forEach(b => b.style.opacity = 0); el.append(h("div", { class: "demo-lbl" }, "📊 PRISMA flow"), h("div", { class: "demo-flows" }, bs));
@@ -754,8 +762,8 @@ PAGES.idea = () => {
 };
 
 PAGES.questions = () => {
-  const q = S.state.questions;
-  const d = D.questions ??= { population: q.population, concept: q.concept, context: q.context, main: q.main, sub: [...q.sub], why: "" };
+  const q = S.state.questions, rt = S.review_type, Q = rt.question;
+  const d = D.questions ??= { population: q.population, concept: q.concept, context: q.context, outcome: q.outcome ?? "", main: q.main, sub: [...q.sub], why: "" };
   const bind = k => e => d[k] = e.target.value;
   const subs = h("div", { class: "stack" });
   const drawSubs = () => subs.replaceChildren(...d.sub.map((s, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
@@ -764,11 +772,26 @@ PAGES.questions = () => {
   drawSubs();
   const pcc = (k, label, hint, color) => h("div", { class: "card", style: `border-top:3px solid ${color};margin:0` },
     h("h3", {}, label), h("p", { class: "sub" }, hint), autosize(h("textarea", { rows: 2, value: d[k], placeholder: exampleFor("questions", label), oninput: bind(k) })));
+  const hints = rt.key === "systematic"
+    ? { population: "Who or what is studied, with the conditions that define it", concept: "The intervention or exposure being evaluated", context: "What it is compared with (another intervention, usual care, none)", outcome: "The outcomes measured, with the main outcome first" }
+    : { population: "What is studied? (products, systems, people…)", concept: "The core phenomenon, method or intervention", context: "Setting, domain, period, publication types" };
+  const typeCard = card("Review type", `${rt.label}: reported to ${rt.guideline} (${rt.guidelineCitation}); methods: ${rt.methods}.`,
+    segmented(S.review_types.map(t => [t.key, `${t.label} · ${t.guideline}`]), rt.key, async v => {
+      if (v === rt.key) return;
+      const other = S.review_types.find(t => t.key === v);
+      const msg = `Switch to a ${other.label.toLowerCase()} reported to ${other.guideline}? The stages, the question framework and the checklist change; nothing you entered is deleted.`;
+      if (S.state.protocol.locked && !S.dev_mode) {
+        const why = await promptText("Change the review type", msg + " The protocol is locked, so this is an amendment: give the reason.", "reason for the amendment");
+        if (why) api("review_type", { type: v, amendment: why }).then(() => delete D.questions);
+      } else if (await confirmBox("Change the review type", msg, "Switch")) api("review_type", { type: v }).then(() => delete D.questions);
+    }));
   return h("div", {},
-    h("div", { class: "grid3", style: "margin-bottom:16px" },
-      pcc("population", "Population", "What is studied? (products, systems, people…)", "#4f46e5"),
-      pcc("concept", "Concept", "The core phenomenon, method or intervention", "#0891b2"),
-      pcc("context", "Context", "Setting, domain, period, publication types", "#16a34a")),
+    typeCard,
+    h("div", { class: Q.outcome ? "grid4" : "grid3", style: "margin-bottom:16px" },
+      pcc("population", Q.population, hints.population, "#4f46e5"),
+      pcc("concept", Q.concept, hints.concept, "#0891b2"),
+      pcc("context", Q.context, hints.context, "#16a34a"),
+      Q.outcome ? pcc("outcome", Q.outcome, hints.outcome, "#d97706") : null),
     card("Review questions", null,
       field("Main question", autosize(h("textarea", { rows: 2, value: d.main, placeholder: exampleFor("questions", "Main question"), oninput: bind("main") }))),
       h("div", { style: "margin-top:12px" }, h("span", { class: "small muted", style: "font-weight:600" }, "Sub-questions"), subs),
@@ -779,7 +802,7 @@ PAGES.questions = () => {
     q.history.length ? card("Earlier versions", `${q.history.length} version(s), newest first`,
       [...q.history].reverse().map(v => h("details", { style: "padding:6px 0;border-bottom:1px solid var(--border)" },
         h("summary", {}, h("b", {}, v.when), " — ", v.why || "no reason given"),
-        h("div", { class: "small", style: "padding:6px 0 0 14px" }, h("div", {}, "Main: ", v.main || "—"), h("div", { class: "muted" }, `P: ${v.population || "—"} · C: ${v.concept || "—"} · C: ${v.context || "—"}`))))) : null);
+        h("div", { class: "small", style: "padding:6px 0 0 14px" }, h("div", {}, "Main: ", v.main || "—"), h("div", { class: "muted" }, `${Q.population}: ${v.population || "—"} · ${Q.concept}: ${v.concept || "—"} · ${Q.context}: ${v.context || "—"}` + (Q.outcome ? ` · ${Q.outcome}: ${v.outcome || "—"}` : "")))))) : null);
 };
 
 PAGES.concepts = () => {
@@ -1074,7 +1097,7 @@ PAGES.searches = () => {
             if (!add.title.value || !add.via.value) return toast("Title and 'found via' are required.", "err");
             busy(e.currentTarget, () => api("add_paper", { title: add.title.value, year: add.year.value, authors: add.authors.value, doi: add.doi.value, via: add.via.value }));
           }, "primary"))))),
-    card("Searches and other sources", `${S.searches.length} run(s) logged — this is the table reported under PRISMA-ScR items 7–8.`,
+    card("Searches and other sources", `${S.searches.length} run(s) logged — this is the table reported under ${S.review_type.refs.sources}.`,
       S.searches.length ? h("div", { class: "scroll" }, h("table", { class: "tbl" },
         h("tr", {}, ["ID", "Source", "Date", "08 - Records", "New", "Dupl.", "Query"].map(t => h("th", {}, t))),
         S.searches.map(s => h("tr", {}, h("td", {}, s.id), h("td", {}, s.database, " ", pill(s.kind, s.kind === "database" ? "accent" : "")), h("td", { class: "small" }, s.date),
@@ -1453,25 +1476,45 @@ PAGES.charting = () => {
           h("span", { class: "dec-dot " + (kind(r) === "me" ? "include" : r.pdf_status === "found" ? "unsure" : "") }), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
       card(null, null, form)),
     h("details", { class: "card", style: "margin-top:16px" },
-      h("summary", { style: "font-weight:700;color:var(--text)" }, "Charting form (fields)", h("span", { class: "muted small", style: "font-weight:400" }, " — the data items (PRISMA-ScR 11); changing them after locking is an amendment")),
+      h("summary", { style: "font-weight:700;color:var(--text)" }, "Charting form (fields)", h("span", { class: "muted small", style: "font-weight:400" }, ` — the data items (${S.review_type.refs.dataItems}); changing them after locking is an amendment`)),
       h("div", { style: "margin-top:10px" }, fl), h("div", { class: "row end", style: "margin-top:10px" },
         btn("Save form", e => busy(e.currentTarget, () => api("save_fields", { fields }).then(() => delete D.fields)), ""),
         btn("Add columns to included records", e => busy(e.currentTarget, () => api("prepare_charting", {})), "primary"))));
 };
 
 PAGES.appraisal = () => {
-  const tool = h("input", { type: "text", value: S.state.charting.appraisal_tool || "", placeholder: "e.g. MMAT 2018" });
+  const sys = S.review_type.key === "systematic";
+  const tool = h("input", { type: "text", value: S.state.charting.appraisal_tool || "", placeholder: sys ? "e.g. RoB 2, ROBINS-I, JBI checklist" : "e.g. MMAT 2018" });
   const inc = S.records.filter(r => r.ft_decision === "include");
   return h("div", {},
-    card("Approach", "Choose a tool that suits the study designs. If you skip appraisal, use 'Skip' above and give the reason.",
+    card("Approach", sys ? "Choose a risk-of-bias tool that suits the study designs (RoB 2 for randomised trials, ROBINS-I for non-randomised studies). Required in a systematic review."
+      : "Choose a tool that suits the study designs. If you skip appraisal, use 'Skip' above and give the reason.",
       h("div", { class: "row", style: "flex-wrap:nowrap" }, tool, btn("Save", () => api("appraisal_tool", { tool: tool.value }), ""),
         btn("Add appraisal columns", () => api("prepare_charting", { appraisal: true }), "primary"))),
     card("Ratings", `${inc.length} included source(s)`, inc.length ? h("table", { class: "tbl" }, h("tr", {}, ["Source", "Rating", "Note"].map(t => h("th", {}, t))),
       inc.map(r => h("tr", {}, h("td", { style: "width:40%" }, h("b", {}, r.record_id), " ", r.title),
         h("td", { style: "width:180px" }, h("select", { onchange: e => api("set_record", { record_id: r.record_id, fields: { appraisal: e.target.value } }, { render: false, silent: true }) },
-          ["", "high", "moderate", "low", "unclear"].map(v => h("option", { value: v, selected: (r.appraisal || "") === v }, v || "—")))),
+          (sys ? ["", "low", "some concerns", "high", "unclear"] : ["", "high", "moderate", "low", "unclear"]).map(v => h("option", { value: v, selected: (r.appraisal || "") === v }, v || "—")))),
         h("td", {}, h("input", { type: "text", value: r.appraisal_note || "", onchange: e => api("set_record", { record_id: r.record_id, fields: { appraisal_note: e.target.value } }, { render: false, silent: true }) })))))
       : h("div", { class: "empty" }, "No included sources yet.")));
+};
+
+PAGES.synthesis = () => {
+  const sy = D.synthesis ??= { ...(S.state.synthesis ?? {}) };
+  const area = (k, label, hint, rows = 2) => field(label, autosize(h("textarea", { rows, value: sy[k] || "", placeholder: hint, oninput: e => sy[k] = e.target.value })));
+  const line = (k, label, hint) => field(label, h("input", { type: "text", value: sy[k] || "", placeholder: hint, oninput: e => sy[k] = e.target.value }));
+  return h("div", {},
+    h("div", { class: "callout" }, "Record what you did; the analysis itself runs in R, RevMan, Stata or similar. These answers feed PRISMA 2020 items 13–15 and 20–22."),
+    card("Synthesis", "PRISMA 2020 items 12–13 (methods) and 20 (results).",
+      area("approach", "Approach", "e.g. random-effects meta-analysis of mean differences; narrative synthesis (SWiM) where studies could not be pooled", 3),
+      line("software", "Software", "e.g. R 4.4, metafor 4.6"),
+      line("results_file", "Results file", "e.g. Analysis/forest plots.pdf, or a link to the analysis code"),
+      area("heterogeneity", "Heterogeneity and sensitivity", "e.g. I², τ²; subgroups by setting; leave-one-out")),
+    card("Reporting bias and certainty", "PRISMA 2020 items 14–15 (methods) and 21–22 (results).",
+      area("reporting_bias", "Reporting bias", "e.g. funnel plot and Egger's test for outcomes with ≥ 10 studies"),
+      area("certainty", "Certainty of the evidence", "e.g. GRADE per outcome, summary-of-findings table"),
+      area("notes", "Notes", "Anything else a reader needs to reproduce the synthesis", 2)),
+    h("div", { class: "row end" }, btn("Save", e => busy(e.currentTarget, () => api("save_synthesis", { fields: sy }).then(() => delete D.synthesis)), "primary")));
 };
 
 PAGES.report = () => {
@@ -1498,18 +1541,20 @@ PAGES.report = () => {
             btn("Preview", async e => { const j = await busy(e.currentTarget, () => api("sync", { apply: false }, { silent: true })); if (j) modal({ title: "Sync preview", body: h("pre", { class: "code" }, j.message || "Nothing to change.") }); }, ""),
             btn("Apply", async e => { if (await confirmBox("Apply sync?", "This writes included_in / candidate_in to the publication notes.", "Apply")) busy(e.target, () => api("sync", { apply: true })); }, "primary"))),
         card("Checklist progress", null, (() => {
-          const n = Object.values(S.state.checklist).filter(c => c.done).length;
-          return h("div", {}, h("div", { class: "big", style: "font-size:28px;font-weight:700" }, `${n} / 22`), bar(n / 22), h("div", { class: "small muted", style: "margin-top:4px" }, "PRISMA-ScR items marked as reported"));
+          const required = S.checklist_items.filter(it => !it.optional);
+          const n = required.filter(it => S.state.checklist[it.n]?.done).length;
+          return h("div", {}, h("div", { class: "big", style: "font-size:28px;font-weight:700" }, `${n} / ${required.length}`), bar(n / required.length),
+            h("div", { class: "small muted", style: "margin-top:4px" }, `${S.review_type.guideline} items marked as reported` + (required.length < S.checklist_items.length ? " (optional items not counted)" : "")));
         })()))),
-    card("PRISMA-ScR checklist", "Tick each item and note where it is reported. 'Evidence' is what the tool can see in the vault.",
+    card(`${S.review_type.guideline} checklist`, "Tick each item and note where it is reported. 'Evidence' is what the tool can see in the vault.",
       h("table", { class: "tbl" }, h("tr", {}, ["#", "Item", "Evidence in the vault", "Location in manuscript", "Reported"].map(t => h("th", {}, t))),
         S.checklist_items.map(it => {
-          const c = S.state.checklist[String(it.n)] || {};
+          const c = S.state.checklist[it.n] || {};
           const loc = h("input", { type: "text", value: c.location || "", placeholder: "e.g. Methods 2.1" });
           const ok = h("input", { type: "checkbox", checked: !!c.done });
           const save = () => api("checklist", { n: it.n, location: loc.value, done: ok.checked }, { render: false, silent: true });
           loc.addEventListener("change", save); ok.addEventListener("change", save);
-          return h("tr", {}, h("td", { class: "num" }, it.n), h("td", {}, h("b", {}, it.item), h("div", { class: "small muted" }, it.desc)),
+          return h("tr", {}, h("td", { class: "num" }, it.n), h("td", {}, h("b", {}, it.item), it.optional ? [" ", pill("optional", "info")] : null, h("div", { class: "small muted" }, it.desc)),
             h("td", { class: "small" }, auto[String(it.n)] ? pill(auto[String(it.n)], "info") : h("span", { class: "muted" }, "—")),
             h("td", { style: "width:200px" }, loc), h("td", { style: "text-align:center" }, h("label", { class: "check" }, ok)));
         }))));
@@ -1649,7 +1694,7 @@ setInterval(checkOutside, 15000);
 // A short, plain explanation of what the app is for, one highlighted part of the screen at a time.
 // Offered once on the first visit; the button on the Homepage replays it.
 const TOUR = [
-  { title: "Welcome to PRISMA Scoping Review Studio 👋",
+  { title: "Welcome to Review Studio 👋",
     text: "This app guides you through a scoping review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
   { target: "#stepper", title: "The 15 stages",
     text: "Your review in order: planning (questions, search terms, protocol), conducting (searching, screening, full texts, charting) and reporting. Stages marked AI are where Claude can help, if you want. Click any stage to open it." },
@@ -1658,14 +1703,14 @@ const TOUR = [
   { target: "#draftBar", title: "Your files stay on your PC",
     text: "You start in a draft kept in this browser. Save it to a folder when you want to keep it: the review becomes plain notes, tables and PDFs on your PC. Nothing is uploaded." },
   { target: ".toolbar", title: "Tools for every stage",
-    text: "The timeline of everything you did, the PRISMA-ScR checklist and, if you want it, AI help from Claude, which only ever suggests. The glossary and keyboard shortcuts are under ⚙ Settings." },
+    text: "The timeline of everything you did, the reporting checklist (PRISMA-ScR or PRISMA 2020) and, if you want it, AI help from Claude, which only ever suggests. The glossary and keyboard shortcuts are under ⚙ Settings." },
   { title: "Ready? Start with your idea ✍️",
     text: "Write down what you want to find out and why. It's fine to be vague: the next stage makes it precise. You can replay this tour from the Homepage." },
 ];
 
 function offerTour() {
   const card = h("div", { class: "tour-offer", role: "dialog", "aria-label": "App tour" },
-    h("div", { class: "tour-offer-text" }, h("b", {}, "New here?"), " Take the 1-minute tour to see what PRISMA Scoping Review Studio does."),
+    h("div", { class: "tour-offer-text" }, h("b", {}, "New here?"), " Take the 1-minute tour to see what Review Studio does."),
     h("div", { class: "row" },
       btn("🎓 Start tour", () => { card.remove(); startTour(); }, "sm primary"),
       btn("Not now", () => { card.remove(); store.set("toured", "skipped"); }, "sm ghost")));

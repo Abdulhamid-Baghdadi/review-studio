@@ -1,17 +1,17 @@
 ---
 name: review-second-reviewer
-description: Act as the independent (blind) second reviewer on the screening sample of a scoping review (PRISMA Studio) (Review Studio, stage 9), when the review chose "AI as second reviewer". Use when the user asks the AI to fill the second-reviewer sheet or compute agreement with an AI reviewer.
+description: Act as the independent (blind) second reviewer on the screening sample of a scoping or systematic review (Review Studio) (Review Studio, stage 9), when the review chose "AI as second reviewer". Use when the user asks the AI to fill the second-reviewer sheet or compute agreement with an AI reviewer.
 ---
 
 # Blind second reviewer
 
 You screen the random sample independently. Blindness is the whole point of this step. You see only the blind sheet and the criteria, never the first reviewer's decisions. So do not open record notes, `Screening.base`, the PRISMA flow, or the timeline for this review while you work.
 
-All reading and writing goes through `bin/ai-assist.js` (PRISMA Studio). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself.
+All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself.
 
 ## Steps
 
-Run the commands from the PRISMA Studio folder (the project open in Claude Code).
+Run the commands from the Review Studio folder (the project open in Claude Code).
 
 1. **Get the sheet:**
    ```

@@ -5,27 +5,20 @@
  * @module domain/stages
  */
 import { strip } from "./text-rules.js";
+import { ALL_PROTOCOL_SECTIONS, ALL_STAGE_KEYS, DEFAULT_REVIEW_TYPE, REVIEW_TYPES, reviewType } from "./review-types.js";
 
-/** @typedef {{key: string, title: string, optional: boolean, description: string}} Stage */
+export { REVIEW_TYPES, reviewType };
 
-/** @type {readonly Stage[]} */
-export const STAGES = Object.freeze([
-  ["idea", "0 · Idea", true, "Write down, with dates, what you want to find out and why; how the idea changes."],
-  ["questions", "1 · Research questions", false, "Population–Concept–Context and the review questions; every version is kept."],
-  ["concepts", "2 · Concepts and terms", false, "One block per concept with all synonyms and spellings; blocks are combined with AND."],
-  ["queries", "3 · Search strings", false, "Search strings generated per database from the concept table; edit by hand if needed."],
-  ["pilot", "4 · Pilot and validation", true, "Trial runs: hit count and how many test-set papers the string retrieves."],
-  ["protocol", "5 · Protocol", false, "The protocol text, generated from stages 1–4 plus the method sections."],
-  ["registration", "6 · Registration", true, "Freeze the protocol (git commit and/or OSF) before searching."],
-  ["searches", "7 · Database searches", false, "Import every final database export with the exact string and date."],
-  ["screening", "8 · Screening", false, "Title/abstract, then full text, in Screening.base."],
-  ["reviewer", "9 · Second reviewer", true, "Independent screening of a ≥ 20 % sample; Cohen's κ."],
-  ["retrieval", "10 · Full-text retrieval", false, "Find, attach or mark as not retrieved the full texts to assess."],
-  ["snowballing", "11 · Snowballing", true, "Citation rounds from the full-text includes; new records go through screening and retrieval again, until a round adds no new included study."],
-  ["charting", "12 · Data charting", false, "Fill the charting form for every included source, with page locators."],
-  ["appraisal", "13 · Critical appraisal", true, "Optional in scoping reviews; appraise each included source."],
-  ["report", "14 · Report", false, "PRISMA flow, PRISMA-ScR checklist, exports for writing."],
-].map(([key, title, optional, description]) => Object.freeze({ key, title, optional, description })));
+/** @typedef {import("./review-types.js").Stage} Stage */
+
+/** The stages of a scoping review (the default type); `stagesOf(st)` gives a review's own stages. */
+export const STAGES = REVIEW_TYPES.scoping.stages;
+
+/** A review's stages, in order, for its review type. */
+export const stagesOf = st => reviewType(st).stages;
+
+/** One stage of a review, by key. */
+export const stageOf = (st, key) => reviewType(st).stages.find(s => s.key === key) ?? STAGE[key];
 
 /** @type {Readonly<Record<string, Stage>>} */
 export const STAGE = Object.freeze(Object.fromEntries(STAGES.map(s => [s.key, s])));
@@ -45,43 +38,14 @@ export const DEFAULT_FIELDS = Object.freeze([
   { name: "locators", description: "Page / section / table locators for the values above" },
 ].map(Object.freeze));
 
-/** @type {readonly [string, string][]} section key, heading */
-export const PROTOCOL_SECTIONS = Object.freeze([
-  ["rationale", "Background and rationale (PRISMA-ScR 3)"],
-  ["eligibility", "Eligibility criteria with rationale (PRISMA-ScR 6)"],
-  ["sources", "Information sources (PRISMA-ScR 7)"],
-  ["selection", "Selection of sources of evidence (PRISMA-ScR 9)"],
-  ["charting", "Data charting process (PRISMA-ScR 10)"],
-  ["appraisal", "Critical appraisal (PRISMA-ScR 12)"],
-  ["synthesis", "Synthesis of results (PRISMA-ScR 13)"],
-  ["timeline", "Timeline and team"],
-]);
+/** @type {readonly [string, string][]} section key, heading — of a scoping review; `reviewType(st).protocolSections` per review */
+export const PROTOCOL_SECTIONS = REVIEW_TYPES.scoping.protocolSections;
 
-/** @type {readonly [number, string, string][]} PRISMA-ScR item, name, what to report */
-export const CHECKLIST = Object.freeze([
-  [1, "Title", "Identify the report as a scoping review."],
-  [2, "Structured summary", "Background, objectives, eligibility, sources, charting, results, conclusions."],
-  [3, "Rationale", "Why the review is needed."],
-  [4, "Objectives", "Questions and objectives (PCC elements)."],
-  [5, "Protocol and registration", "Whether a protocol exists, where, registration number."],
-  [6, "Eligibility criteria", "Characteristics used as criteria, with rationale."],
-  [7, "Information sources", "Databases, dates of coverage, other sources, date last searched."],
-  [8, "Search", "Full electronic search strategy for at least one database."],
-  [9, "Selection of sources of evidence", "Screening and selection process."],
-  [10, "Data charting process", "Methods of charting, calibration, who charted."],
-  [11, "Data items", "All variables for which data were sought."],
-  [12, "Critical appraisal", "Methods of appraisal, if done."],
-  [13, "Synthesis of results", "Methods of handling and summarising the data."],
-  [14, "Selection of sources of evidence", "Numbers screened / assessed / included, with flow diagram."],
-  [15, "Characteristics of sources", "Characteristics of each source charted."],
-  [16, "Critical appraisal within sources", "Appraisal data, if done."],
-  [17, "Results of individual sources", "Relevant data charted per source."],
-  [18, "Synthesis of results", "Summary of charted results related to the objectives."],
-  [19, "Summary of evidence", "Main results, links to the questions."],
-  [20, "Limitations", "Limitations of the scoping review process."],
-  [21, "Conclusions", "General interpretation and implications."],
-  [22, "Funding", "Sources of funding and role of funders."],
-]);
+/** The PRISMA-ScR checklist; `reviewType(st).checklist` gives a review's own checklist. */
+export const CHECKLIST = REVIEW_TYPES.scoping.checklist;
+
+/** A review's checklist ticks ({item: {location, done}}), kept per review type. */
+export const checklistOf = st => (st[reviewType(st).checklistKey] ??= {});
 
 /** A deep copy of plain data (state values are JSON). */
 const copy = v => (v === undefined ? v : JSON.parse(JSON.stringify(v)));
@@ -99,16 +63,17 @@ export function sameValue(a, b) {
 }
 
 /** A new review's state. */
-export function defaultState() {
+export function defaultState(type = DEFAULT_REVIEW_TYPE) {
   return {
     version: 1,
-    stages: Object.fromEntries(STAGES.map(s => [s.key, { status: "not-started", reason: "", updated: "" }])),
+    review_type: type,
+    stages: Object.fromEntries(ALL_STAGE_KEYS.map(key => [key, { status: "not-started", reason: "", updated: "" }])),
     idea: [],
-    questions: { population: "", concept: "", context: "", main: "", sub: [], history: [] },
+    questions: { population: "", concept: "", context: "", outcome: "", main: "", sub: [], history: [] },
     concepts: [],
     queries: { databases: [...DEFAULT_DATABASES], manual: {} },
     pilots: [],
-    protocol_text: Object.fromEntries(PROTOCOL_SECTIONS.map(([k]) => [k, ""])),
+    protocol_text: Object.fromEntries(ALL_PROTOCOL_SECTIONS.map(k => [k, ""])),
     protocol_meta: {},
     supervisor_review: {},
     concepts_history: [],
@@ -117,6 +82,8 @@ export function defaultState() {
     snowballing: { rounds: [] },
     charting: { fields: DEFAULT_FIELDS.map(f => ({ ...f })), appraisal_tool: "" },
     checklist: {},
+    checklist_prisma2020: {},
+    synthesis: { approach: "", software: "", results_file: "", heterogeneity: "", reporting_bias: "", certainty: "", notes: "" },
     ai: {},
     events: [],
   };
@@ -130,7 +97,8 @@ export function restoreState(saved) {
     if (isObject(v) && isObject(st[k])) Object.assign(st[k], v);
     else st[k] = v;
   }
-  for (const s of STAGES) st.stages[s.key] ??= { status: "not-started", reason: "", updated: "" };
+  if (!REVIEW_TYPES[st.review_type]) st.review_type = DEFAULT_REVIEW_TYPE;    // reviews made before review types: scoping
+  for (const key of ALL_STAGE_KEYS) st.stages[key] ??= { status: "not-started", reason: "", updated: "" };
   return st;
 }
 
@@ -147,7 +115,8 @@ export function touch(st, stage, now) {
 
 /** Sets a stage's status by hand; skipping needs a reason and is only allowed for optional stages. */
 export function setStatus(st, stage, status, reason, now) {
-  if (status === "skipped" && !STAGE[stage].optional) throw new Error(`${STAGE[stage].title} is required and cannot be skipped.`);
+  const s = stageOf(st, stage);
+  if (status === "skipped" && !s.optional) throw new Error(`${s.title} is required and cannot be skipped.`);
   if (status === "skipped" && !strip(reason ?? "")) throw new Error("A reason is required to skip a stage.");
   st.stages[stage] = { status, reason: strip(reason ?? ""), updated: now };
   if (status === "in-progress") st.stages[stage].reopened = true;    // no automatic "done" until marked again
@@ -191,9 +160,10 @@ export function addIdea(st, text, now) {
 }
 
 /** Saves a new version of the review questions; the old version is kept with the reason for the change. */
-export function saveQuestions(st, { population, concept, context, main, sub, why, amendment = "" }, { devMode = false, now }) {
+export function saveQuestions(st, { population, concept, context, outcome, main, sub, why, amendment = "" }, { devMode = false, now }) {
   const q = st.questions;
-  const next = { population: strip(population), concept: strip(concept), context: strip(context), main: strip(main), sub: sub.map(strip).filter(Boolean) };
+  const next = { population: strip(population), concept: strip(concept), context: strip(context), outcome: strip(outcome ?? q.outcome ?? ""), main: strip(main), sub: sub.map(strip).filter(Boolean) };
+  if (!reviewType(st).question.outcome && !next.outcome) delete next.outcome;    // PCC has no outcome: keep scoping histories as they were
   const old = Object.fromEntries(Object.keys(next).map(k => [k, q[k]]));
   if (sameValue(next, old)) return false;
   if (needsAmendment(st, devMode)) amend(st, "questions", amendment || why, now);
@@ -202,5 +172,19 @@ export function saveQuestions(st, { population, concept, context, main, sub, why
   Object.assign(q, next);
   touch(st, "questions", now);
   event(st, "questions", `questions revised — ${strip(why) || "no reason given"}`, now);
+  return true;
+}
+
+/**
+ * Changes the review type (scoping or systematic); after locking this is an amendment.
+ * @returns {boolean} whether anything changed
+ */
+export function setReviewType(st, type, { reason = "", devMode = false, now }) {
+  if (!REVIEW_TYPES[type]) throw new Error(`Unknown review type: ${type}`);
+  if (st.review_type === type) return false;
+  if (needsAmendment(st, devMode)) amend(st, "review type", reason, now);
+  else devNote(st, "review type", devMode, now);
+  st.review_type = type;
+  event(st, "questions", `review type: ${REVIEW_TYPES[type].label} (reported to ${REVIEW_TYPES[type].guideline})`, now);
   return true;
 }

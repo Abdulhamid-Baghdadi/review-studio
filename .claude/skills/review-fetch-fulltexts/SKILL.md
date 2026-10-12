@@ -1,6 +1,6 @@
 ---
 name: review-fetch-fulltexts
-description: Find and attach the full-text PDFs for records awaiting full-text screening in a scoping review (PRISMA Studio) (Review Studio, stage 10). Use when the user asks to collect, download, or fetch the PDFs or full texts for a review.
+description: Find and attach the full-text PDFs for records awaiting full-text screening in a scoping or systematic review (Review Studio) (Review Studio, stage 10). Use when the user asks to collect, download, or fetch the PDFs or full texts for a review.
 ---
 
 # Fetch full texts
@@ -11,7 +11,7 @@ Your job is to get the full text of every record in the retrieval queue and atta
 
 ## Steps
 
-Run the commands from the PRISMA Studio folder (the project open in Claude Code).
+Run the commands from the Review Studio folder (the project open in Claude Code).
 
 1. **Get the queue:**
    ```

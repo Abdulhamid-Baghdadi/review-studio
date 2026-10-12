@@ -1,17 +1,17 @@
 ---
 name: review-screen-abstracts
-description: Suggest title/abstract screening decisions for a scoping review (PRISMA Studio) (Review Studio, stage 8). Use when the user asks to pre-screen, suggest decisions, or help with title/abstract screening of a review. The reviewer confirms every suggestion; this skill never decides.
+description: Suggest title/abstract screening decisions for a scoping or systematic review (Review Studio) (Review Studio, stage 8). Use when the user asks to pre-screen, suggest decisions, or help with title/abstract screening of a review. The reviewer confirms every suggestion; this skill never decides.
 ---
 
 # Suggest title/abstract decisions
 
 You suggest; the reviewer decides. You write only `ai_decision`, `ai_reason` and `ai_why` on records that are still `pending`. The reviewer then confirms or changes each suggestion in Review Studio (Screening → **Suggested** queue), and only that writes `ta_decision`.
 
-All reading and writing goes through `bin/ai-assist.js` (PRISMA Studio). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes, `review_state.json` or the screening guide yourself.
+All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes, `review_state.json` or the screening guide yourself.
 
 ## Steps
 
-1. **Get the batch.** Run this from the PRISMA Studio folder (the project open in Claude Code):
+1. **Get the batch.** Run this from the Review Studio folder (the project open in Claude Code):
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context screening --limit 40
    ```

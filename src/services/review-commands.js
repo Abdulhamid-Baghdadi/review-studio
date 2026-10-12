@@ -16,6 +16,8 @@ import { drawSample as draw, samplePool, SECOND_REVIEWER_DIR, sheetName, sheetTe
 import { checkRecord } from "../domain/screening.js";
 import { SECOND_REVIEWER_DECISIONS } from "../domain/vocabulary.js";
 import { emptyLibrary, testSet } from "./library.js";
+import { loadState } from "./review-state.js";
+import { reviewType } from "../domain/review-types.js";
 
 /** A command that cannot run; the message is meant for the reviewer. */
 export class ReviewError extends Error {}
@@ -178,7 +180,7 @@ export async function writeReport(repo, library = emptyLibrary()) {
   const found = new Set(props.filter(p => p.publication).map(p => String(p.publication).replace(/^[[\]]+|[[\]]+$/g, "")));
   const missed = tests.filter(s => !found.has(s));
   await repo.folder.writeText(FILES.flow, prismaFlowNote({ reviewName: repo.name, reviewLink: repo.link, today: repo.clock.today(),
-    counts, searches, agreement, testSet: tests, missed, problems, generator: repo.settings.generator }));
+    counts, searches, agreement, testSet: tests, missed, problems, generator: repo.settings.generator, type: reviewType(await loadState(repo.folder)) }));
   return `PRISMA flow written: ${counts.unique} records, ${counts.taPending} awaiting title/abstract, ` +
     `${counts.ftPending} awaiting full text, ${counts.included} included, ${problems.length} problem(s).`;
 }

@@ -22,5 +22,5 @@ const html = (await readFile(index, "utf8"))
 if (html.includes("node_modules")) throw new Error("index.html still points into node_modules");
 await writeFile(index, html);
 await writeFile(join(DIST, "web", "precache.json"), JSON.stringify(await precacheList(DIST, ["vendor/pdf.mjs", "vendor/pdf.worker.mjs"])));
-await writeFile(join(DIST, "index.html"), '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=web/"><title>PRISMA Studio</title><a href="web/">PRISMA Studio</a>\n');
+await writeFile(join(DIST, "index.html"), '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=web/"><title>Review Studio</title><a href="web/">Review Studio</a>\n');
 console.log("dist/ ready: publish it as a static site (opens web/).");

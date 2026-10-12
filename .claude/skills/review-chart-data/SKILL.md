@@ -1,6 +1,6 @@
 ---
 name: review-chart-data
-description: Prefill the data-charting form from the full texts of included papers in a scoping review (PRISMA Studio) (Review Studio, stage 12). Use when the user asks to chart, extract data from, or fill the charting table for included papers.
+description: Prefill the data-charting form from the full texts of included papers in a scoping or systematic review (Review Studio) (Review Studio, stage 12). Use when the user asks to chart, extract data from, or fill the charting table for included papers.
 ---
 
 # Prefill data charting
@@ -11,7 +11,7 @@ You fill empty charting fields for included papers, from the full text, with pag
 
 ## Steps
 
-Run the commands from the PRISMA Studio folder (the project open in Claude Code).
+Run the commands from the Review Studio folder (the project open in Claude Code).
 
 1. **Get the next papers:**
    ```

@@ -1,17 +1,17 @@
 ---
 name: review-screen-fulltexts
-description: Suggest full-text screening decisions for a scoping review (PRISMA Studio) (Review Studio, stage 8, Full text tab) by reading each retrieved PDF against the eligibility criteria. Use when the user asks to pre-screen, suggest decisions for, or help with full-text screening of a review. The reviewer confirms every suggestion; this skill never decides.
+description: Suggest full-text screening decisions for a scoping or systematic review (Review Studio) (Review Studio, stage 8, Full text tab) by reading each retrieved PDF against the eligibility criteria. Use when the user asks to pre-screen, suggest decisions for, or help with full-text screening of a review. The reviewer confirms every suggestion; this skill never decides.
 ---
 
 # Suggest full-text decisions
 
 You suggest; the reviewer decides. For records that passed title/abstract screening and have a PDF attached, you read the full text and write only `ai_ft_decision`, `ai_ft_reason` and `ai_ft_why`. The reviewer then confirms or changes each suggestion in Review Studio (Screening → Full text tab → **Suggested** queue), and only that writes `ft_decision`.
 
-All reading and writing goes through `bin/ai-assist.js` (PRISMA Studio). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes or `review_state.json` yourself.
+All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes or `review_state.json` yourself.
 
 ## Steps
 
-1. **Get the batch.** Run this from the PRISMA Studio folder (the project open in Claude Code):
+1. **Get the batch.** Run this from the Review Studio folder (the project open in Claude Code):
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context fulltext --limit 5
    ```

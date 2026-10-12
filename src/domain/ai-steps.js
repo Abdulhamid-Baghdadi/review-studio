@@ -17,7 +17,7 @@ export const AI_STEPS = Object.freeze({
     ],
     checks: ["Open the abstract (or PDF, at full text) of every suggested exclusion you are unsure about.",
       "Change any suggestion you disagree with before confirming the batch.",
-      "Report the AI assistance in the methods (PRISMA 2020 item 8)."],
+      "Report the AI assistance in the methods (PRISMA-ScR 9; PRISMA 2020 item 8 names automation tools explicitly)."],
   },
   reviewer: {
     skill: "review-second-reviewer",

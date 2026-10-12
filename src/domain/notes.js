@@ -4,6 +4,7 @@
  * Pure text builders: the services decide when to write them.
  * @module domain/notes
  */
+import { REVIEW_TYPES } from "./review-types.js";
 import * as frontmatter from "./frontmatter.js";
 import { formatFixed, formatPercent } from "./text-rules.js";
 import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "./vocabulary.js";
@@ -20,11 +21,11 @@ import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "./vocabulary.js";
 
 /** @type {Generator} */
 export const APP_GENERATOR = Object.freeze({
-  path: "PRISMA Studio",
-  rerun: "*Report* in PRISMA Studio",
-  commands: "Use PRISMA Studio. After a screening session open *Report* to refresh [[14 - PRISMA flow]].",
-  logBy: "PRISMA Studio",
-  stagesBy: "PRISMA Studio",
+  path: "Review Studio",
+  rerun: "*Report* in Review Studio",
+  commands: "Use Review Studio. After a screening session open *Report* to refresh [[14 - PRISMA flow]].",
+  logBy: "Review Studio",
+  stagesBy: "Review Studio",
 });
 
 export const FILES = Object.freeze({
@@ -136,7 +137,8 @@ const stem = file => file.split("/").pop().replace(/\.md$/, "");
  * @param {{record: import("./records.js").ReviewRecord, text: string}[]} p.problems
  * @param {Generator} [p.generator]
  */
-export function prismaFlowNote({ reviewName, reviewLink, today, counts: c, searches, agreement, testSet, missed, problems, generator = APP_GENERATOR }) {
+export function prismaFlowNote({ reviewName, reviewLink, today, counts: c, searches, agreement, testSet, missed, problems, generator = APP_GENERATOR, type = REVIEW_TYPES.scoping }) {
+  const included = type.key === "systematic" ? "Studies included" : "Sources included";
   const br = rows => rows.map(s => `<br/>${s.database} (n = ${s.records})`).join("");
   const mermaid = `\`\`\`mermaid
 flowchart TD
@@ -148,7 +150,7 @@ flowchart TD
     R --> RN["Reports not retrieved (n = ${c.notRetrieved})"]
     R --> E["Reports assessed for eligibility (n = ${c.assessed})<br/>awaiting decision: ${c.ftPending}"]
     E --> EX["Reports excluded (n = ${c.ftExcluded})${c.ftReasons.map(([k, v]) => `<br/>${k}: ${v}`).join("")}"]
-    E --> I["Sources included (n = ${c.included})"]
+    E --> I["${included} (n = ${c.included})"]
 \`\`\``;
   const agreeRows = agreement.map(a => `| ${a.label} | ${a.sampled} | ${a.pairs.length} | ` +
     `${a.observed === null ? "" : formatPercent(a.observed)} | ${a.kappa === null ? "" : formatFixed(a.kappa, 2)} |`);
@@ -166,7 +168,7 @@ flowchart TD
     `| — awaiting decision | ${c.taPending} |`, `| Records excluded | ${c.taExcluded} |`,
     `| Reports sought (include + unsure) | ${c.sought} |`, `| Reports not retrieved | ${c.notRetrieved} |`,
     `| Reports assessed (full text) | ${c.assessed} |`, `| — awaiting decision | ${c.ftPending} |`,
-    `| Reports excluded | ${c.ftExcluded} |`, `| Sources included | ${c.included} |`, "",
+    `| Reports excluded | ${c.ftExcluded} |`, `| ${included} | ${c.included} |`, "",
     "## Exclusion reasons\n", "| Stage | Reason | Count |", "|---|---|---:|",
     ...c.taReasons.map(([k, v]) => `| Title/abstract | ${k} | ${v} |`),
     ...c.ftReasons.map(([k, v]) => `| Full text | ${k} | ${v} |`),

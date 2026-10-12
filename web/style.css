@@ -68,13 +68,14 @@ a { color: var(--accent); }
 .card .sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .row.end { justify-content: flex-end; }
 .stack > * + * { margin-top: 10px; }
 .muted { color: var(--muted); }
 .small { font-size: 12.5px; }
 .hr { height: 1px; background: var(--border); margin: 14px 0; }
-@media (max-width: 1100px) { .grid2, .grid3 { grid-template-columns: 1fr; } .metrics { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 1100px) { .grid2, .grid3, .grid4 { grid-template-columns: 1fr; } .metrics { grid-template-columns: repeat(4, 1fr); } }
 
 /* ---------- controls ---------- */
 .btn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--border); background: var(--surface); padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 550; transition: background .12s, border-color .12s, transform .05s; white-space: nowrap; }

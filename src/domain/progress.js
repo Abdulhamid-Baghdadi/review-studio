@@ -4,7 +4,7 @@
  * @module domain/progress
  */
 import { strip } from "./text-rules.js";
-import { CHECKLIST, event } from "./stages.js";
+import { checklistOf, event, reviewType } from "./stages.js";
 
 export const isIncluded = props => props.ft_decision === "include";
 
@@ -42,7 +42,8 @@ export function workComplete(st, records) {
       out.appraisal = `all ${total} included sources appraised`;
     }
   }
-  if (CHECKLIST.every(([n]) => (st.checklist[String(n)] ?? {}).done)) out.report = "all PRISMA-ScR checklist items ticked";
+  const type = reviewType(st), ticks = checklistOf(st);
+  if (type.checklist.every(it => it.optional || (ticks[it.n] ?? {}).done)) out.report = `all ${type.guideline} checklist items ticked`;
   return out;
 }
 
