@@ -1,5 +1,5 @@
 /**
- * The optional publication library (e.g. "98 - Publications"): publication notes the reviewer keeps
+ * The optional publication library (e.g. "00 - Library", formerly "98 - Publications"): publication notes the reviewer keeps
  * across projects. Used to link new records to known papers, for the search's test set, and to mark which
  * publications a review considered and included (`candidate_in`, `included_in`).
  * @module services/library

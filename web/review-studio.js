@@ -116,6 +116,8 @@ const confirmBox = (title, message, ok = "Continue", danger = false) => modal({
 });
 
 // ================================================================ small components
+/** The library folder chosen in Settings (e.g. "00 - Library"). */
+const libraryName = () => S.library_name || "your library folder";
 const pill = (text, kind = "") => h("span", { class: "pill " + kind }, text);
 const field = (label, input, hint) => h("label", { class: "field" }, h("span", {}, label), input, hint ? h("div", { class: "small muted", style: "margin-top:3px" }, hint) : null);
 const card = (title, sub, ...kids) => h("div", { class: "card" }, title ? h("h3", {}, title) : null, sub ? h("p", { class: "sub" }, sub) : null, ...kids);
@@ -358,7 +360,7 @@ function aiCard(key) {
         h("ul", {}, step.checks.map(c => h("li", {}, c))))) : null);
 }
 
-// Where each stage writes its data (paths relative to the review folder; @library = 98 - Publications)
+// Where each stage writes its data (paths relative to the review folder; @library = the library folder chosen in Settings, e.g. 00 - Library)
 const STORAGE = {
   idea: [["review_state.json", "data"], ["00 - Review timeline.md", "readable: idea log"]],
   questions: [["review_state.json", "data, with every version"], ["03 - Search strategy.md", "readable"]],
@@ -381,8 +383,8 @@ const STORAGE = {
 function savedIn(key) {
   const icon = p => p === "@library" ? "📚" : /\.(md)$/.test(p) ? "📝" : /\.base$/.test(p) ? "▦" : /\.(csv|json)$/.test(p) ? "🗎" : "📁";
   return h("div", { class: "savedin" }, h("span", { class: "small muted" }, "Saved in"),
-    (STORAGE[key] || []).map(([p, what]) => [p === "@checklist" ? S.review_type.checklistFile : p, what]).map(([p, what]) => h("button", { class: "file", title: `${S.folder}/${p === "@library" ? "../98 - Publications" : p} — click to open`, onclick: () => openNote(p) },
-      icon(p), " ", p === "@library" ? "98 - Publications" : p, h("span", { class: "muted" }, " · " + what))));
+    (STORAGE[key] || []).map(([p, what]) => [p === "@checklist" ? S.review_type.checklistFile : p, what]).map(([p, what]) => h("button", { class: "file", title: `${S.folder}/${p === "@library" ? "../" + libraryName() : p} — click to open`, onclick: () => openNote(p) },
+      icon(p), " ", p === "@library" ? libraryName() : p, h("span", { class: "muted" }, " · " + what))));
 }
 
 function renderMetrics() {
@@ -1640,11 +1642,11 @@ PAGES.report = () => {
   const auto = S.checklist_auto;
   const kept = S.records.filter(r => r.ft_decision === "include");
   return h("div", {},
-    kept.length ? card("Your library", "When the review is finished, copy the papers you kept to 98 - Publications. Everything else stays in this review's folder.",
+    kept.length ? card("Your library", `When the review is finished, copy the papers you kept to ${libraryName()}. Everything else stays in this review's folder.`,
       h("div", { class: "row" }, h("span", { class: "small muted", style: "flex:1" },
         `${kept.length} included paper(s); ${kept.filter(r => r.publication).length} already linked to a library note. Each gets a publication note from the template (or, if it is already in your library, this review is added to its 'included_in') and a copy of its PDF.`),
         btn("📚 Add kept papers to library", async e => {
-          if (await confirmBox("Add to library", `Copy ${kept.length} included paper(s) to 98 - Publications? Do this when screening is final.`, "Add"))
+          if (await confirmBox("Add to library", `Copy ${kept.length} included paper(s) to ${libraryName()}? Do this when screening is final.`, "Add"))
             busy(e.target, () => api("add_to_library"));
         }, "primary"))) : null,
     card("Traceability", "Every change of a screening decision is in 08 - Decision log.csv (when, who, how), chained with SHA-256 so that an edited row shows. The review package collects the protocol, searches, decisions, log, second-reviewer sheets, charting, flow, checklist and AI use, with a checksum per file, ready to deposit on OSF or Zenodo.",
@@ -1671,7 +1673,7 @@ PAGES.report = () => {
               h("li", {}, "Zotero → Review Studio: right-click a collection → Export Collection… → Better BibTeX, and import that .bib at stage 7. The citation keys are kept on the records."),
               h("li", {}, "Review Studio → Zotero: click “Included for Zotero (RIS)”, then in Zotero use File → Import… and pick the file from this review's 07 - Exports folder (not your Downloads), so the full texts in 10 - Full texts are attached."),
               h("li", {}, "Imported papers are tagged review:<name>, included and record:R…; the BibTeX export uses the same citation keys.")))),
-        card("Sync with the library", "Marks included papers in 98 - Publications (included_in). Preview first.",
+        card("Sync with the library", `Marks included papers in ${libraryName()} (included_in). Preview first.`,
           h("div", { class: "row" },
             btn("Preview", async e => { const j = await busy(e.currentTarget, () => api("sync", { apply: false }, { silent: true })); if (j) modal({ title: "Sync preview", body: h("pre", { class: "code" }, j.message || "Nothing to change.") }); }, ""),
             btn("Apply", async e => { if (await confirmBox("Apply sync?", "This writes included_in / candidate_in to the publication notes.", "Apply")) busy(e.target, () => api("sync", { apply: true })); }, "primary"))),

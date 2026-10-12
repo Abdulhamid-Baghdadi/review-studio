@@ -98,7 +98,7 @@ export async function snapshot(session, { review, reviews, vault }) {
   const listing = async dir => ((await folder.exists(dir)) ? (await folder.list(dir)) : []);
   const keep = k => Object.fromEntries(k.map(key => [key, st[key]]));
   return {
-    review, reviews, dev_mode: session.devMode, vault, folder: folder.name,
+    review, reviews, dev_mode: session.devMode, vault, folder: folder.name, library_name: library.folder?.name ?? "",
     review_type: (({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts, appraisalRatings }) =>
       ({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts, appraisalRatings }))(stages.reviewType(st)),
     review_types: Object.values(stages.REVIEW_TYPES).map(t => ({ key: t.key, label: t.label, guideline: t.guideline })),
