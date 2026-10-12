@@ -24,6 +24,9 @@ export { AI_STEPS, aiMode, aiPrompt, setAiMode } from "./domain/ai-steps.js";
 export { buildQuery, cleanTerms, openalexQuery } from "./domain/queries.js";
 export { lockChecks, protocolMarkdown } from "./domain/protocol.js";
 export { chartingProgress, workComplete } from "./domain/progress.js";
+export { analyseOutcome, effectSize, MEASURES, OUTCOME_TYPES, pool } from "./domain/meta-analysis.js";
+export { CERTAINTY, GRADE_DOMAINS } from "./domain/grade.js";
+export { columnLabel, effectText, fmt, fmtP, forestSvg, funnelSvg, resultSentence, SYNTHESIS_DIR } from "./domain/synthesis-notes.js";
 
 // services: use cases
 export { ReviewRepository } from "./services/review-repository.js";
@@ -37,6 +40,7 @@ export { addKeptToLibrary } from "./services/library.js";
 export { OpenAlexClient, OpenAlexError } from "./services/openalex-client.js";
 export { AmendmentRequired, ReviewSession } from "./services/review-session.js";
 export { listPdfs, recordsWithoutFullText, scanForPdfs } from "./services/local-pdfs.js";
+export { studyLabels, synthesisResults } from "./services/synthesis.js";
 export { aiAttach, aiChart, aiContext, AiNotAllowed, aiSecondReviewer, aiSuggest } from "./services/ai-assist.js";
 export { matchPdfs, summarizePdf } from "./domain/pdf-matching.js";
 

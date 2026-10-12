@@ -18,6 +18,7 @@ import { HOW } from "../domain/decision-log.js";
 import { writePackage } from "./review-package.js";
 import { ReviewRepository } from "./review-repository.js";
 import * as actions from "./stage-actions.js";
+import * as synthesis from "./synthesis.js";
 import { recordsWithoutFullText, scanForPdfs } from "./local-pdfs.js";
 
 /** A protected part of a locked protocol was changed without giving the reason for the amendment. */
@@ -478,10 +479,23 @@ export class ReviewSession {
   /** What was done in the synthesis stage of a systematic review (recorded only; the analysis runs elsewhere). */
   async saveSynthesis(fields) {
     const keys = ["approach", "software", "results_file", "heterogeneity", "reporting_bias", "certainty", "notes"];
-    this.st.synthesis = Object.fromEntries(keys.map(k => [k, strip(String(fields?.[k] ?? this.st.synthesis?.[k] ?? ""))]));
+    this.st.synthesis = { ...this.st.synthesis, ...Object.fromEntries(keys.map(k => [k, strip(String(fields?.[k] ?? this.st.synthesis?.[k] ?? ""))])) };
     touch(this.st, "synthesis", this.now);
     event(this.st, "synthesis", "synthesis record updated", this.now);
     await this.save();
+  }
+
+  /** Adds or updates an outcome of the meta-analysis and rewrites 14 - Synthesis. */
+  async saveOutcome(outcome) {
+    const id = await synthesis.saveOutcome(this.repo, this.st, outcome, this.now);
+    await this.save();
+    return { message: "Outcome saved; notes, plots and R script written to 14 - Synthesis.", id };
+  }
+
+  async deleteOutcome(id) {
+    const name = await synthesis.deleteOutcome(this.repo, this.st, id, this.now);
+    await this.save();
+    return name ? `Removed "${name}" from the synthesis (its files in 14 - Synthesis are kept).` : "";
   }
 
   async setChecklistItem(n, location = "", done = false) {

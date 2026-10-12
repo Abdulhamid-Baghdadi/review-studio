@@ -4,7 +4,8 @@
  * @module ui/view-model
  */
 import {
-  AI_STEPS, aiMode, aiPrompt, buildQuery, chartingProgress, checkScreening, cohensKappa, normalizeDoi, stageActions, stages, testSet,
+  AI_STEPS, aiMode, aiPrompt, buildQuery, chartingProgress, checkScreening, cohensKappa, columnLabel, effectText, GRADE_DOMAINS, MEASURES, OUTCOME_TYPES, fmt, fmtP, forestSvg, funnelSvg,
+  normalizeDoi, resultSentence, stageActions, stages, studyLabels, synthesisResults, testSet,
 } from "../index.js";
 
 const RECORD_FIELDS = ["record_id", "title", "authors", "year", "journal", "doi", "url", "sources", "language",
@@ -134,5 +135,26 @@ export async function snapshot(session, { review, reviews, vault }) {
     record_files: Object.fromEntries(records.map(r => [r.id, r.file])),
     sheets: (await listing("09 - Second reviewer")).filter(n => n.endsWith(".csv")),
     "07 - Exports": await listing("07 - Exports"),
+    synthesis_results: synthesisView(session),
+    synthesis_options: { types: OUTCOME_TYPES, measures: MEASURES, domains: GRADE_DOMAINS,
+      columns: Object.fromEntries(Object.values(OUTCOME_TYPES).flatMap(t => t.columns).map(c => [c, columnLabel(c)])) },
   };
+}
+
+/** Each outcome's meta-analysis and GRADE as the synthesis page shows them (systematic reviews only). */
+export function synthesisView({ repo, st }) {
+  if (stages.reviewType(st).key !== "systematic" || !st.synthesis?.outcomes?.length) return [];
+  const labels = studyLabels(repo);
+  return synthesisResults(repo, st).map(({ outcome, analysis, grade }) => ({
+    id: outcome.id,
+    sentence: resultSentence(outcome, analysis),
+    pooled: analysis.pooled && (({ k, i2, tau2, q, df, pQ, test }) => ({ k, i2: fmt(i2, 0), tau2: fmt(tau2, 3), q: fmt(q), df, pQ: fmtP(pQ), test }))(analysis.pooled),
+    studies: analysis.studies.map(s => ({ record_id: s.row.record_id, label: labels.get(s.row.record_id) ?? s.row.record_id, skip: s.skip ?? "",
+      effect: s.skip ? "" : effectText(outcome.measure, s.yi, s.yi - 1.959963984540054 * Math.sqrt(s.vi), s.yi + 1.959963984540054 * Math.sqrt(s.vi)),
+      weight: s.skip ? "" : fmt(s.weight, 1) })),
+    egger: analysis.egger && { p: fmtP(analysis.egger.p), k: analysis.used.length },
+    forest: forestSvg(outcome, analysis, labels),
+    funnel: funnelSvg(outcome, analysis),
+    grade,
+  }));
 }

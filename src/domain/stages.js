@@ -83,7 +83,7 @@ export function defaultState(type = DEFAULT_REVIEW_TYPE) {
     charting: { fields: DEFAULT_FIELDS.map(f => ({ ...f })), appraisal_tool: "" },
     checklist: {},
     checklist_prisma2020: {},
-    synthesis: { approach: "", software: "", results_file: "", heterogeneity: "", reporting_bias: "", certainty: "", notes: "" },
+    synthesis: { approach: "", software: "", results_file: "", heterogeneity: "", reporting_bias: "", certainty: "", notes: "", outcomes: [] },
     ai: {},
     events: [],
   };
