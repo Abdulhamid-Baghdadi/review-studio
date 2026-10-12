@@ -59,9 +59,12 @@ test("csv: reading and writing", () => {
 
 test("importers: RIS, BibTeX and CSV", () => {
   const ris = "TY  - JOUR\nTI  - Modular design\nAU  - Liu, Z.\nPY  - 2024\nDO  - 10.1/AB\nER  - \n";
-  assert.deepEqual(parseExport("x.ris", ris)[0], { title: "Modular design", authors: "Liu, Z.", year: 2024, journal: "", doi: "10.1/ab", url: "", abstract: "", language: "", keywords: "" });
-  const bib = "@article{k, title = {A {B} c}, author = {Liu, Z. and Zhong, P.}, year = 2020}";
-  assert.equal(parseExport("x.bib", bib)[0].authors, "Liu, Z.; Zhong, P.");
+  assert.deepEqual(parseExport("x.ris", ris)[0], { title: "Modular design", authors: "Liu, Z.", year: 2024, journal: "", doi: "10.1/ab", url: "", abstract: "", language: "", keywords: "", citekey: "" });
+  const bib = "@article{liuModular2020, title = {A {B} c}, author = {Liu, Z. and Zhong, P.}, year = 2020, keywords = {a, b}}";
+  const e = parseExport("x.bib", bib)[0];
+  assert.equal(e.authors, "Liu, Z.; Zhong, P.");
+  assert.equal(e.citekey, "liuModular2020", "Better BibTeX citation keys are kept");
+  assert.equal(e.keywords, "a; b");
   assert.equal(parseExport("x.csv", "Title,Year\nT,2001\n")[0].year, 2001);
 });
 

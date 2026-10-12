@@ -12,13 +12,15 @@ import { collapseWhitespace, splitLines, strip } from "./text-rules.js";
  * @property {string} title @property {string} authors "Surname, I.; …" @property {number|""} year
  * @property {string} journal @property {string} doi @property {string} url @property {string} abstract
  * @property {string} language @property {string} keywords
+ * @property {string} citekey  citation key from the export (BibTeX entry key, e.g. Better BibTeX in Zotero), or ""
  */
 
 /** @returns {Entry} */
-export function makeEntry({ title = "", authors = "", year = "", journal = "", doi = "", url = "", abstract = "", language = "", keywords = "" } = {}) {
+export function makeEntry({ title = "", authors = "", year = "", journal = "", doi = "", url = "", abstract = "", language = "", keywords = "", citekey = "" } = {}) {
   return {
     title: strip(collapseWhitespace(title)), authors: strip(authors), year: yearOf(year), journal: strip(journal),
     doi: normalizeDoi(doi), url: strip(url), abstract: strip(abstract), language: strip(language), keywords: strip(keywords),
+    citekey: strip(citekey),
   };
 }
 
@@ -83,10 +85,13 @@ export function parseBibtex(text) {
     if (["comment", "string", "preamble"].includes(m[1].toLowerCase())) continue;
     let end = m.index + m[0].length;
     for (let depth = 1; end < text.length && depth; end++) depth += text[end] === "{" ? 1 : text[end] === "}" ? -1 : 0;
-    const f = bibFields(text.slice(m.index + m[0].length, end - 1));
+    const body = text.slice(m.index + m[0].length, end - 1);
+    const f = bibFields(body);
+    const key = body.includes(",") ? body.slice(0, body.indexOf(",")) : "";
     out.push(makeEntry({
       title: f.title, authors: (f.author ?? "").split(" and ").map(strip).join("; "), year: f.year,
       journal: f.journal || f.booktitle, doi: f.doi, url: f.url, abstract: f.abstract,
+      keywords: (f.keywords ?? "").split(/\s*[,;]\s*/).filter(Boolean).join("; "), citekey: /^[^\s{}=]+$/.test(strip(key)) ? key : "",
     }));
   }
   return out;

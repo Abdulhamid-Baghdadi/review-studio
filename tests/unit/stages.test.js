@@ -6,7 +6,7 @@ import { aiMode, aiPrompt, setAiMode } from "../../src/domain/ai-steps.js";
 import { buildQuery, cleanTerms, openalexWord } from "../../src/domain/queries.js";
 import { integrityProblems, lockChecks, protocolMarkdown } from "../../src/domain/protocol.js";
 import { autoDone, chartingProgress, workComplete } from "../../src/domain/progress.js";
-import { bibtex, timelineNote } from "../../src/domain/stage-notes.js";
+import { bibtex, citekeyOf, timelineNote, zoteroRis } from "../../src/domain/stage-notes.js";
 import { abstractFromIndex, workToEntry } from "../../src/domain/openalex.js";
 import { fileTitle, nextIndex, shortAuthors } from "../../src/domain/publications.js";
 import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "../../src/domain/vocabulary.js";
@@ -98,6 +98,18 @@ test("notes: timeline and BibTeX", () => {
   assert.match(timelineNote({ reviewName: "R", reviewLink: "[[R]]", st, today: "2026-01-15" }), /\| 2026-01-15 10:00 \| 0 · Idea \| a \/ b \|/);
   assert.equal(bibtex([{ record_id: "R0001", authors: "Liu, Z.; Zhong, P.", year: 2024, title: "T", journal: "", doi: "10.1/x" }]),
     "@article{Liu2024R0001,\n  title = {T},\n  author = {Liu, Z. and Zhong, P.},\n  year = {2024},\n  doi = {10.1/x}\n}\n");
+  assert.match(bibtex([{ record_id: "R0002", citekey: "liuDeep2024", authors: "Liu, Z.", year: 2024, title: "T", abstract: "A b.", keywords: "x; y" }]),
+    /^@article\{liuDeep2024,[\s\S]*abstract = \{A b\.\},\n  keywords = \{x, y\}/);
+});
+
+test("RIS for Zotero: citation key, tags and linked full text", () => {
+  const ris = zoteroRis([{ record_id: "R0001", citekey: "liu2024", authors: "Liu, Z.; Zhong, P.", year: 2024, title: "T", doi: "10.1/x",
+    abstract: "Line one\nline two", keywords: "k1", pdf: "[[R0001 - T.pdf]]", pdf_status: "found" }], "My review");
+  for (const line of ["TY  - JOUR", "ID  - liu2024", "AU  - Liu, Z.", "AU  - Zhong, P.", "AB  - Line one line two", "KW  - k1",
+    "KW  - review:My review", "KW  - included", "KW  - record:R0001", "L1  - ../10 - Full texts/R0001 - T.pdf", "ER  - "])
+    assert.ok(ris.split("\r\n").includes(line), line);
+  assert.ok(!zoteroRis([{ record_id: "R0002", title: "T", pdf: "[[x.pdf]]", pdf_status: "not-retrieved" }], "R").includes("L1"));
+  assert.equal(citekeyOf({ record_id: "R0003", year: 2020, authors: "" }), "anon2020R0003");
 });
 
 test("OpenAlex works and publication names", () => {

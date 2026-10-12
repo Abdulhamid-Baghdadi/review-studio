@@ -43,7 +43,7 @@ export function createRecord({ id, entry: e, reviewLink, sourceId, publication, 
     type: "review-record", review: reviewLink, record_id: id,
     title: e.title, authors: e.authors, year: e.year, journal: e.journal,
     doi: e.doi, url: e.url || (e.doi ? `https://doi.org/${e.doi}` : ""),
-    language: e.language ?? "",
+    language: e.language ?? "", citekey: e.citekey ?? "",
     sources: [sourceId], publication: publication ? `[[${publication}]]` : "",
     ta_decision: "pending", ta_reason: "", ft_decision: "", ft_reason: "", pdf_status: "",
     screener: "", screened_on: "", notes: "",
@@ -68,7 +68,7 @@ export function createRecord({ id, entry: e, reviewLink, sourceId, publication, 
 export function mergeDuplicate(record, e, sourceId) {
   const props = { ...record.props };
   if (!(props.sources ?? []).includes(sourceId)) props.sources = [...(props.sources || []), sourceId];
-  for (const k of ["doi", "journal", "url"]) if (!props[k] && e[k]) props[k] = e[k];
+  for (const k of ["doi", "journal", "url", "citekey"]) if (!props[k] && e[k]) props[k] = e[k];
   const body = e.abstract && record.body.includes(NO_ABSTRACT) ? record.body.replaceAll(NO_ABSTRACT, () => e.abstract) : record.body;
   return { ...record, props, body };
 }

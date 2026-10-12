@@ -7,7 +7,7 @@ import { writeRows } from "./csv.js";
 import * as frontmatter from "./frontmatter.js";
 import { buildQuery } from "./queries.js";
 import { chars, strip } from "./text-rules.js";
-import { checklistOf, isLocked, reviewType, stageOf, STATUS_ICON } from "./stages.js";
+import { checklistOf, FULLTEXT_DIR, isLocked, reviewType, stageOf, STATUS_ICON } from "./stages.js";
 
 export const STAGE_FILES = Object.freeze({
   timeline: "00 - Review timeline.md",
@@ -126,13 +126,42 @@ export function chartingCsv(st, includedProps) {
   return "﻿" + writeRows([["record_id", "authors", "year", "title", "journal", "doi", ...keys], ...rows]);
 }
 
-/** The included records as BibTeX (@article entries keyed Surname + year + record id). */
+const authorList = f => String(f.authors ?? "").split(";").map(a => a.trim()).filter(Boolean);
+
+/** A record's citation key: its `citekey` (e.g. from Better BibTeX in Zotero), else Surname + year + record id. */
+export function citekeyOf(f) {
+  if (f.citekey) return String(f.citekey);
+  const first = (authorList(f)[0] ?? "anon").split(",")[0].trim().split(/\s+/).at(-1) ?? "";
+  return `${first}${f.year}${f.record_id}`.replace(/[^\p{L}\p{N}_]/gu, "");
+}
+
+/**
+ * The included records as BibTeX (@article entries keyed by {@link citekeyOf}).
+ * @param {object[]} includedProps record properties, optionally with `abstract` and `keywords`
+ */
 export function bibtex(includedProps) {
   return includedProps.map(f => {
-    const authors = String(f.authors ?? "");
-    const first = authors ? ((authors.split(";")[0] || "anon").split(",")[0].trim().split(/\s+/).at(-1) ?? "") : "anon";
-    const key = `${first}${f.year}${f.record_id}`.replace(/[^\p{L}\p{N}_]/gu, "");
-    const fields = { title: f.title, author: authors.split(";").map(a => a.trim()).filter(Boolean).join(" and "), year: f.year, journal: f.journal, doi: f.doi };
-    return `@article{${key},\n` + Object.entries(fields).filter(([, v]) => v).map(([k, v]) => `  ${k} = {${v}}`).join(",\n") + "\n}\n";
+    const fields = { title: f.title, author: authorList(f).join(" and "), year: f.year, journal: f.journal, doi: f.doi,
+      abstract: f.abstract, keywords: String(f.keywords ?? "").split(";").map(k => k.trim()).filter(Boolean).join(", ") };
+    return `@article{${citekeyOf(f)},\n` + Object.entries(fields).filter(([, v]) => v).map(([k, v]) => `  ${k} = {${v}}`).join(",\n") + "\n}\n";
   }).join("\n");
+}
+
+/**
+ * The included records as RIS for Zotero: tagged with the review and record id, and with the full text
+ * linked relative to 07 - Exports so Zotero attaches it when this file is imported from the review folder.
+ * @param {object[]} includedProps record properties, optionally with `abstract` and `keywords`
+ * @param {string} reviewName
+ */
+export function zoteroRis(includedProps, reviewName) {
+  return includedProps.map(f => {
+    const lines = [["TY", "JOUR"], ["ID", citekeyOf(f)], ["TI", f.title], ...authorList(f).map(a => ["AU", a]),
+      ["PY", f.year], ["T2", f.journal], ["DO", f.doi], ["UR", f.url], ["AB", String(f.abstract ?? "").replace(/\s*\n\s*/g, " ")],
+      ...String(f.keywords ?? "").split(";").map(k => ["KW", k.trim()]),
+      ["KW", `review:${reviewName}`], ["KW", "included"], ["KW", `record:${f.record_id}`]];
+    const pdf = /^\[\[(.+\.pdf)\]\]$/i.exec(String(f.pdf ?? ""))?.[1];
+    if (pdf && f.pdf_status === "found") lines.push(["L1", `../${FULLTEXT_DIR}/${pdf}`]);
+    lines.push(["N1", `Citation Key: ${citekeyOf(f)}`]);
+    return lines.filter(([, v]) => v !== undefined && v !== "").map(([t, v]) => `${t}  - ${v}`).join("\r\n") + "\r\nER  - \r\n";
+  }).join("\r\n");
 }

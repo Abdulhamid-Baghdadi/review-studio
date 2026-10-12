@@ -12,7 +12,8 @@ import { frozenProtocolName, integrityProblems, lockChecks, protocolMarkdown, PR
 import { openalexQuery } from "../domain/queries.js";
 import { chars, compareCodePoints, strip } from "../domain/text-rules.js";
 import { checklistOf, event, FULLTEXT_DIR, isLocked, reviewType, touch } from "../domain/stages.js";
-import { bibtex, chartingBase, chartingCsv, checklistEvidence, checklistNote, STAGE_FILES } from "../domain/stage-notes.js";
+import { NO_ABSTRACT } from "../domain/vocabulary.js";
+import { bibtex, zoteroRis, chartingBase, chartingCsv, checklistEvidence, checklistNote, STAGE_FILES } from "../domain/stage-notes.js";
 import { FILES } from "../domain/notes.js";
 import { APP_GENERATOR } from "../domain/notes.js";
 import { addEntries, decodeExport, ReviewError } from "./review-commands.js";
@@ -258,12 +259,34 @@ export async function exportCharting(repo, st) {
   return path;
 }
 
+/** A record's properties with the abstract and keywords from its note body (for reference managers). */
+function withAbstract(r) {
+  const section = name => {
+    const at = r.body.indexOf(`## ${name}`);
+    if (at < 0) return "";
+    const rest = r.body.slice(at + name.length + 3);
+    return strip(rest.slice(0, rest.search(/\n#{1,2} |$/)));
+  };
+  const abstract = section("Abstract");
+  return { ...r.props, abstract: abstract === NO_ABSTRACT ? "" : abstract,
+    keywords: section("Keywords").split(/\s*;\s*/).filter(Boolean).join("; ") };
+}
+
 /** The included records as BibTeX in 07 - Exports. @returns {Promise<string>} path */
 export async function exportBibtex(repo, st) {
   const path = `${FILES.exports}/included ${repo.clock.today()}.bib`;
-  const records = includedRecords(repo).map(r => r.props);
+  const records = includedRecords(repo).map(withAbstract);
   await repo.folder.writeText(path, bibtex(records));
   event(st, "report", `BibTeX of ${records.length} included sources exported (${path.split("/").pop()})`, repo.clock.now());
+  return path;
+}
+
+/** The included records as RIS for Zotero (tags, citation keys, linked full texts) in 07 - Exports. @returns {Promise<string>} path */
+export async function exportZotero(repo, st) {
+  const path = `${FILES.exports}/included for Zotero ${repo.clock.today()}.ris`;
+  const records = includedRecords(repo).map(withAbstract);
+  await repo.folder.writeText(path, zoteroRis(records, repo.name));
+  event(st, "report", `RIS for Zotero of ${records.length} included sources exported (${path.split("/").pop()})`, repo.clock.now());
   return path;
 }
 

@@ -496,9 +496,11 @@ export class ReviewSession {
     return "Checklist note written.";
   }
 
-  /** @param {"bib"|"csv"} kind @returns {Promise<{message: string, path: string}>} */
+  /** @param {"bib"|"ris"|"csv"} kind @returns {Promise<{message: string, path: string}>} */
   async export(kind) {
-    const path = kind === "bib" ? await actions.exportBibtex(this.repo, this.st) : await actions.exportCharting(this.repo, this.st);
+    const path = kind === "bib" ? await actions.exportBibtex(this.repo, this.st)
+      : kind === "ris" ? await actions.exportZotero(this.repo, this.st)
+      : await actions.exportCharting(this.repo, this.st);
     await this.save();
     return { message: `Exported ${path.split("/").pop()}`, path };
   }
