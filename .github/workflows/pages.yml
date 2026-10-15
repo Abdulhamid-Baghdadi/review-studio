@@ -1,6 +1,6 @@
 # Builds the static site (npm run build -> dist/) after the tests pass and publishes it on GitHub Pages.
 # Also packs the app as a ZIP for running it locally (launchers for Windows, Mac and Linux) and attaches it
-# to the "latest" release: https://github.com/Robotat-tube/review-studio/releases/latest
+# to the "latest" release: https://github.com/Abdulhamid-Baghdadi/review-studio/releases/latest
 name: Pages
 
 on:
@@ -36,7 +36,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.repository == 'Robotat-tube/review-studio'   # copies (e.g. UA-SMARTLab) only test and build
+    if: github.repository == 'Abdulhamid-Baghdadi/review-studio'   # copies (e.g. UA-SMARTLab) only test and build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -47,7 +47,7 @@ jobs:
 
   download:
     needs: build
-    if: github.repository == 'Robotat-tube/review-studio'
+    if: github.repository == 'Abdulhamid-Baghdadi/review-studio'
     runs-on: ubuntu-latest
     permissions:
       contents: write
