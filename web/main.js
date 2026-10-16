@@ -19,22 +19,23 @@ const remember = (k, v) => { try { localStorage.setItem(k, v); } catch { /* priv
 
 // ------------------------------------------------------------------ start screen chrome: the stages, light / dark
 
-const PHASES = [["Planning", 0, 6], ["Conducting", 7, 13], ["Reporting", 14, 14]];
 function startSteps() {
   const nav = $("#startSteps"), box = $("#startStage");
-  PHASES.forEach(([name, a, b]) => {
-    nav.append(el("div", { className: "phase" }, name));
-    stages.STAGES.slice(a, b + 1).forEach(s => {
-      const step = el("div", { className: "step", title: s.description },
-        el("span", { className: "dot" }), s.title.replace(/^\d+ · /, ""), null);
-      step.onclick = () => {                    // a preview of what the stage is for
-        nav.querySelectorAll(".step.active").forEach(x => x.classList.remove("active"));
-        step.classList.add("active");
-        box.replaceChildren(el("b", {}, s.title), el("span", { className: "muted" }, s.description));
-        box.hidden = false;
-      };
-      nav.append(step);
-    });
+  let phase = null;
+  stages.REVIEW_TYPES.scoping.steps.forEach((st, i) => {
+    if (st.phase !== phase) nav.append(el("div", { className: "phase" }, phase = st.phase));
+    const step = el("div", { className: "step", title: st.hint },
+      el("span", { className: "dot" }, String(i + 1)),
+      el("span", { className: "lbl" }, el("span", { className: "t" }, st.title), el("span", { className: "hint" }, st.hint)));
+    step.onclick = () => {                    // a preview of what the step is for
+      nav.querySelectorAll(".step.active").forEach(x => x.classList.remove("active"));
+      step.classList.add("active");
+      const parts = st.tabs.map(t => [t.label, stages.STAGE[t.stage].description]).filter(([, d], k, all) => all.findIndex(x => x[1] === d) === k);
+      box.replaceChildren(el("b", {}, `${i + 1} · ${st.title}`),
+        ...parts.map(([label, d]) => el("span", { className: "muted" }, st.tabs.length > 1 ? `${label}: ${d}` : d)));
+      box.hidden = false;
+    };
+    nav.append(step);
   });
   $("#startTheme").onclick = () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";

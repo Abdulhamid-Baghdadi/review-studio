@@ -1,6 +1,6 @@
 ---
 name: review-chart-data
-description: Prefill the data-charting form (scoping review) or data-extraction form (systematic review) from the full texts of included papers in a scoping or systematic review (Review Studio) (Review Studio, stage 12). Use when the user asks to chart, extract data from, or fill the charting table for included papers.
+description: Prefill the data-charting form (scoping review) or data-extraction form (systematic review) from the full texts of included papers in a scoping or systematic review (Review Studio) (Review Studio, step Chart the data / Extract data). Use when the user asks to chart, extract data from, or fill the charting table for included papers.
 ---
 
 # Prefill data charting or data extraction
@@ -19,7 +19,7 @@ Run the commands from the Review Studio folder (the project open in Claude Code)
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context charting --limit 5
    ```
-   - If AI assistance is **off**, stop and tell the user where to switch it on (Review Studio, stage 12).
+   - If AI assistance is **off**, stop and tell the user where to switch it on (Review Studio, step Chart the data / Extract data).
    - The output has the review questions, the charting `fields` (name + description, which often fixes the allowed values), and per paper its `pdf` path and the fields already `filled`.
 
 2. **Read each PDF** (use the pdf skill or a PDF reader; read the whole paper, not only the abstract). For every empty field:

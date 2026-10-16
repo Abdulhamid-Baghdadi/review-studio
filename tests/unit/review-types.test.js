@@ -76,3 +76,16 @@ test("changing the review type after locking is an amendment", () => {
   assert.equal(st.amendments.at(-1).what, "review type");
   assert.throws(() => setReviewType(st, "umbrella", { now }), /Unknown/);
 });
+
+test("the page's steps: every stage of a review type sits in exactly one step", () => {
+  for (const type of Object.values(REVIEW_TYPES)) {
+    const shown = [...new Set(type.steps.flatMap(s => s.tabs.map(t => t.stage)))];
+    assert.deepEqual([...shown].sort(), type.stages.map(s => s.key).sort(), type.key);
+    const owners = shown.map(k => type.steps.filter(s => s.tabs.some(t => t.stage === k)).length);
+    assert.ok(owners.every(n => n === 1), `${type.key}: a stage in two steps`);
+    assert.ok(type.steps.every(s => s.title && s.hint && s.phase && s.tabs.length), type.key);
+  }
+  assert.equal(REVIEW_TYPES.scoping.steps.length, 9);
+  assert.equal(REVIEW_TYPES.systematic.steps.length, 10);
+  assert.equal(REVIEW_TYPES.systematic.steps.find(s => s.key === "quality").title, "Risk of bias");
+});

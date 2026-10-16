@@ -103,6 +103,7 @@ export async function snapshot(session, { review, reviews, vault }) {
       ({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts, appraisalRatings }))(stages.reviewType(st)),
     review_types: Object.values(stages.REVIEW_TYPES).map(t => ({ key: t.key, label: t.label, guideline: t.guideline })),
     stages: stages.reviewType(st).stages.map(s => ({ key: s.key, title: s.title, optional: s.optional, desc: s.description, ...st.stages[s.key] })),
+    steps: stages.reviewType(st).steps,
     state: { ...keep(["idea", "questions", "concepts", "queries", "pilots", "protocol_text", "protocol_meta", "supervisor_review",
       "concepts_history", "protocol", "amendments", "snowballing", "charting", "synthesis"]), checklist: stages.checklistOf(st) },
     events: st.events.slice(-200).reverse(),

@@ -13,37 +13,74 @@ const stage = ([key, title, optional, description]) => Object.freeze({ key, titl
 const item = ([n, item, desc, optional = false]) => Object.freeze({ n: String(n), item, desc, optional });
 
 const SCOPING_STAGES = [
-  ["idea", "0 · Idea", true, "Write down, with dates, what you want to find out and why; how the idea changes."],
-  ["questions", "1 · Research questions", false, "Population–Concept–Context and the review questions; every version is kept."],
-  ["concepts", "2 · Concepts and terms", false, "One block per concept with all synonyms and spellings; blocks are combined with AND."],
-  ["queries", "3 · Search strings", false, "Search strings generated per database from the concept table; edit by hand if needed."],
-  ["pilot", "4 · Pilot and validation", true, "Trial runs: hit count and how many test-set papers the string retrieves."],
-  ["protocol", "5 · Protocol", false, "The protocol text, generated from stages 1–4 plus the method sections."],
-  ["registration", "6 · Registration", true, "Freeze the protocol (git commit and/or OSF) before searching."],
-  ["searches", "7 · Database searches", false, "Import every final database export with the exact string and date."],
-  ["screening", "8 · Screening", false, "Title/abstract, then full text, in Screening.base."],
-  ["reviewer", "9 · Second reviewer", true, "Independent screening of a ≥ 20 % sample; Cohen's κ."],
-  ["retrieval", "10 · Full-text retrieval", false, "Find, attach or mark as not retrieved the full texts to assess."],
-  ["snowballing", "11 · Snowballing", true, "Citation rounds from the full-text includes; new records go through screening and retrieval again, until a round adds no new included study."],
-  ["charting", "12 · Data charting", false, "Fill the charting form for every included source, with page locators."],
-  ["appraisal", "13 · Critical appraisal", true, "Optional in scoping reviews; appraise each included source."],
-  ["report", "14 · Report", false, "PRISMA flow, PRISMA-ScR checklist, exports for writing."],
+  ["idea", "0 · Idea", true, "Jot down, with dates, what you want to find out and why, and how the idea changes. Vague is fine here."],
+  ["questions", "1 · Research questions", false, "Say exactly what you want to find out: who or what (Population), which topic (Concept), in which setting (Context). Every version is kept."],
+  ["concepts", "2 · Concepts and terms", false, "One block per idea in your question, with all its synonyms and spellings. A paper must match every block."],
+  ["queries", "3 · Search strings", false, "Your keywords turned into a ready-to-paste search for each database. Edit one by hand if needed."],
+  ["pilot", "4 · Pilot and validation", true, "Try the search before the real run: how many hits it gives, and whether it finds papers you already know are relevant."],
+  ["protocol", "5 · Protocol", false, "Your written plan: which papers count, and how you will search, select and summarise."],
+  ["registration", "6 · Registration", true, "Freeze your plan before the real searches, so later changes are visible (optionally registered on OSF)."],
+  ["searches", "7 · Database searches", false, "Run each search in its database, export the results and drop the file here. Duplicates are merged."],
+  ["screening", "8 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
+  ["reviewer", "9 · Second reviewer", true, "A second person (or Claude) screens a sample of at least 20 % without seeing your decisions; the app measures how well you agree (Cohen's κ)."],
+  ["retrieval", "10 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
+  ["snowballing", "11 · Snowballing", true, "Look through the references of (and citations to) your included papers for ones the search missed. Repeat until a round finds nothing new."],
+  ["charting", "12 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
+  ["appraisal", "13 · Critical appraisal", true, "Rate the quality of each included paper. Optional in scoping reviews."],
+  ["report", "14 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
 ];
 
 const SYSTEMATIC_CHANGES = {
-  questions: ["1 · Review question", false, "PICO (Population, Intervention or exposure, Comparator, Outcomes) and the review questions; every version is kept."],
-  registration: ["6 · Registration", true, "Strongly recommended for systematic reviews: register the protocol (PROSPERO for health topics, otherwise OSF) before searching."],
-  reviewer: ["9 · Second reviewer", false, "Independent screening by a second reviewer: all records is the standard; a sample must be justified. Cohen's κ."],
-  snowballing: ["11 · Snowballing", true, "Citation rounds from the full-text includes; new records go through screening and retrieval again, until a round adds no new included study."],
-  charting: ["12 · Data extraction", false, "Fill the extraction form for every included study (outcomes and other variables), with page locators."],
-  appraisal: ["13 · Risk of bias", false, "Assess the risk of bias of every included study with a suitable tool (e.g. RoB 2, ROBINS-I, a JBI checklist)."],
+  questions: ["1 · Review question", false, "Say exactly what you want to find out, as PICO: Population, Intervention or exposure, Comparator, Outcomes. Every version is kept."],
+  registration: ["6 · Registration", true, "Freeze your plan before the real searches. Strongly recommended for systematic reviews: register it (PROSPERO for health topics, otherwise OSF)."],
+  reviewer: ["9 · Second reviewer", false, "A second person screens without seeing your decisions: all records is the standard, a sample must be justified. The app measures agreement (Cohen's κ)."],
+  snowballing: ["11 · Snowballing", true, "Look through the references of (and citations to) your included papers for ones the search missed. Repeat until a round finds nothing new."],
+  charting: ["12 · Data extraction", false, "Fill in the same form for every included study (outcomes and other variables), with page numbers."],
+  appraisal: ["13 · Risk of bias", false, "Judge how trustworthy each included study is, with a suitable tool (e.g. RoB 2, ROBINS-I, a JBI checklist)."],
 };
 
 const SYSTEMATIC_STAGES = [
   ...SCOPING_STAGES.filter(([key]) => key !== "report").map(([key, ...rest]) => [key, ...(SYSTEMATIC_CHANGES[key] ?? rest)]),
-  ["synthesis", "14 · Synthesis and certainty", false, "Record how the results were synthesised (narrative or meta-analysis: method, software, results file), heterogeneity, reporting bias and the certainty of the evidence (e.g. GRADE)."],
-  ["report", "15 · Report", false, "PRISMA flow, PRISMA 2020 checklist, exports for writing."],
+  ["synthesis", "14 · Synthesis and certainty", false, "Combine the results (narrative or meta-analysis), check how much studies differ and how certain the evidence is (e.g. GRADE)."],
+  ["report", "15 · Report", false, "The PRISMA flow diagram, the PRISMA 2020 checklist and tables and references to export for your paper."],
 ];
+
+/**
+ * The steps the page shows: plain-language groups of stages. A step with more than one tab shows its stages as
+ * tabs; a tab with a `part` shows one part of its stage's page (the protocol page has the rules and the other
+ * method sections). Steps only change how the review is shown: statuses and files stay per stage.
+ * [key, title, hint, phase, tabs: [stage, tab label, part?][]]
+ */
+const SCOPING_STEPS = [
+  ["question", "Research question", "What you want to find out", "Plan", [["questions", "Question"], ["idea", "Idea notes"]]],
+  ["search", "Search strategy", "Keywords and database search strings", "Plan", [["concepts", "Keywords"], ["queries", "Search strings"], ["pilot", "Test the search"]]],
+  ["rules", "Inclusion rules", "Which papers are in, which are out", "Plan",
+    [["protocol", "Include / exclude rules", "rules"], ["protocol", "Other methods", "methods"], ["registration", "Lock & register"]]],
+  ["import", "Search & import", "Run the searches, load the results", "Find & select", [["searches", "Search & import"]]],
+  ["screen", "Screen papers", "Include or exclude each paper", "Find & select", [["screening", "Screen"], ["retrieval", "Get full texts"], ["reviewer", "Second reviewer"]]],
+  ["citations", "Citation search", "Follow references · optional", "Find & select", [["snowballing", "Citation search"]]],
+  ["extract", "Chart the data", "Fill in a form for each paper", "Analyse", [["charting", "Chart the data"]]],
+  ["quality", "Quality check", "Critical appraisal · optional", "Analyse", [["appraisal", "Quality check"]]],
+  ["report", "Report", "Flow diagram, checklist, exports", "Report", [["report", "Report"]]],
+];
+
+const SYSTEMATIC_STEP_CHANGES = {
+  question: ["Research question", "PICO: what you want to find out"],
+  extract: ["Extract data", "Fill in a form for each study", [["charting", "Extract data"]]],
+  quality: ["Risk of bias", "How trustworthy each study is", [["appraisal", "Risk of bias"]]],
+};
+
+const SYSTEMATIC_STEPS = [
+  ...SCOPING_STEPS.filter(([key]) => key !== "report").map(([key, title, hint, phase, tabs]) => {
+    const [t, h, tb] = SYSTEMATIC_STEP_CHANGES[key] ?? [];
+    return [key, t ?? title, h ?? hint, phase, tb ?? tabs];
+  }),
+  ["synthesis", "Synthesis", "Combine the results, rate the certainty", "Analyse", [["synthesis", "Synthesis"]]],
+  ["report", "Report", "Flow diagram, checklist, exports", "Report", [["report", "Report"]]],
+];
+
+const step = ([key, title, hint, phase, tabs]) => Object.freeze({ key, title, hint, phase,
+  tabs: Object.freeze(tabs.map(([stage, label, part = null]) => Object.freeze({ stage, label, part }))) });
 
 /** PRISMA-ScR (Tricco et al. 2018): 20 essential items and 2 optional ones (12 and 16). */
 const SCR_CHECKLIST = [
@@ -127,6 +164,7 @@ const SCOPING = freeze({
   guidelineCitation: "Tricco et al. 2018, Annals of Internal Medicine",
   methods: "JBI Manual for Evidence Synthesis (scoping reviews); Arksey & O'Malley 2005; Levac et al. 2010",
   stages: freeze(SCOPING_STAGES.map(stage)),
+  steps: freeze(SCOPING_STEPS.map(step)),
   checklist: freeze(SCR_CHECKLIST.map(item)),
   checklistKey: "checklist",
   checklistFile: "14 - PRISMA-ScR checklist.md",
@@ -159,6 +197,7 @@ const SYSTEMATIC = freeze({
   guidelineCitation: "Page et al. 2021, BMJ",
   methods: "Cochrane Handbook for Systematic Reviews of Interventions; JBI Manual for Evidence Synthesis",
   stages: freeze(SYSTEMATIC_STAGES.map(stage)),
+  steps: freeze(SYSTEMATIC_STEPS.map(step)),
   checklist: freeze(PRISMA2020_CHECKLIST.map(item)),
   checklistKey: "checklist_prisma2020",
   checklistFile: "15 - PRISMA 2020 checklist.md",

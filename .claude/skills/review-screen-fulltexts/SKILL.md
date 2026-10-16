@@ -1,6 +1,6 @@
 ---
 name: review-screen-fulltexts
-description: Suggest full-text screening decisions for a scoping or systematic review (Review Studio) (Review Studio, stage 8, Full text tab) by reading each retrieved PDF against the eligibility criteria. Use when the user asks to pre-screen, suggest decisions for, or help with full-text screening of a review. The reviewer confirms every suggestion; this skill never decides.
+description: Suggest full-text screening decisions for a scoping or systematic review (Review Studio) (Review Studio, step Screen papers, Screen tab, Full text) by reading each retrieved PDF against the eligibility criteria. Use when the user asks to pre-screen, suggest decisions for, or help with full-text screening of a review. The reviewer confirms every suggestion; this skill never decides.
 ---
 
 # Suggest full-text decisions
@@ -15,7 +15,7 @@ All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `-
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context fulltext --limit 5
    ```
-   - If it says full-text suggestions are **off**, stop. Tell the user that the reviewer can choose "AI suggests (+ full text)" in Review Studio (stage 8, AI assistance card).
+   - If it says full-text suggestions are **off**, stop. Tell the user that the reviewer can choose "AI suggests (+ full text)" in Review Studio (step Screen papers, AI assistance card).
    - The output has the review questions (PCC), the eligibility text, the full-text exclusion reasons (`ft_reasons`), `remaining`, `without_pdf` and up to 5 records with their `pdf` path.
    - Records without a PDF are not listed; retrieval comes first (skill `review-fetch-fulltexts`).
 

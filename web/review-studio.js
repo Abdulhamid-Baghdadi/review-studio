@@ -121,7 +121,7 @@ const libraryName = () => S.library_name || "your library folder";
 const pill = (text, kind = "") => h("span", { class: "pill " + kind }, text);
 const field = (label, input, hint) => h("label", { class: "field" }, h("span", {}, label), input, hint ? h("div", { class: "small muted", style: "margin-top:3px" }, hint) : null);
 const card = (title, sub, ...kids) => h("div", { class: "card" }, title ? h("h3", {}, title) : null, sub ? h("p", { class: "sub" }, sub) : null, ...kids);
-const btn = (label, onclick, cls = "") => h("button", { class: "btn " + cls, onclick }, label);
+const btn = (label, onclick, cls = "", title) => h("button", { class: "btn " + cls, onclick, title }, label);
 const iconBtn = (icon, label, onclick) => h("button", { class: "btn ghost icon", onclick, title: label, "aria-label": label }, icon);
 const bar = frac => h("div", { class: "bar" }, h("i", { style: `width:${Math.round((frac || 0) * 100)}%` }));
 const statusKind = s => ({ done: "ok", "in-progress": "accent", skipped: "", "not-started": "" }[s]);
@@ -273,16 +273,49 @@ function pilotChart(pilots) {
 }
 
 // ================================================================ chrome: sidebar, topbar, metrics
-/** Planning up to registration, then conducting, then the report (the last stage). */
-const phases = () => [["Planning", 0, 6], ["Conducting", 7, S.stages.length - 2], ["Reporting", S.stages.length - 1, S.stages.length - 1]];
+// The sidebar shows steps (src/domain/review-types.js): plain-language groups of stages. A step with more than
+// one tab shows its stages as tabs at the top of the page. Statuses, files and links (#questions) stay per stage.
 const stage = k => S.stages.find(s => s.key === k);
 const HOME = "home";                                  // the introduction page above the stages (not a stage itself)
+const PART = { protocol: store.get("part_protocol", "rules") };   // which part of a split stage page is shown
+const stepOf = key => S.steps.find(st => st.tabs.some(t => t.stage === key));
+const stepStages = st => [...new Set(st.tabs.map(t => t.stage))].map(stage).filter(Boolean);
+/** The tab on screen: the stage, and for a split page the part chosen. */
+const curTab = () => {
+  const tabs = stepOf(CUR)?.tabs.filter(t => t.stage === CUR) ?? [];
+  return tabs.find(t => t.part === (PART[CUR] ?? null)) ?? tabs[0];
+};
+/** Every tab of every step in order: what "Next" and "Back" walk through. */
+const tabSequence = () => S.steps.flatMap(st => st.tabs.map(t => ({ step: st, tab: t })));
 
-/** "AI" next to a stage where AI can help: grey while off, in the accent colour when the review switched it on. */
-function aiMark(key) {
-  if (!S.ai?.steps[key]) return null;
-  const on = (S.ai.modes[key] || "off") !== "off";
-  return h("span", { class: "ai-mark" + (on ? " on" : ""), title: on ? "AI assistance is on for this stage" : "AI can help here (off; switch it on in the stage's AI assistance card)" }, "AI");
+/** A step's status from its stages: done when every required stage is done or skipped. */
+function stepStatus(st) {
+  const ss = stepStages(st), req = ss.filter(s => !s.optional), count = req.length ? req : ss;
+  if (count.every(s => s.status === "skipped")) return "skipped";
+  if (count.every(s => s.status === "done" || s.status === "skipped")) return "done";
+  return ss.some(s => ["in-progress", "done"].includes(s.status)) ? "in-progress" : "not-started";
+}
+/** What the page calls a stage: its tab label, or its step's title when the step has one tab. */
+const stageName = key => { const st = stepOf(key); return st?.tabs.length > 1 ? st.tabs.find(t => t.stage === key).label : st?.title ?? stage(key)?.title; };
+const stepOptional = st => stepStages(st).every(s => s.optional);
+
+/** Opens a tab (a stage, and the part of a split page). */
+function goTab(t) {
+  if (t.part) { PART[t.stage] = t.part; store.set("part_" + t.stage, t.part); }
+  go(t.stage);
+}
+/** Opens a step on the tab last used there, or its first tab. */
+function goStep(st) {
+  const last = store.get("tab_" + st.key, "");
+  goTab(st.tabs.find(t => `${t.stage}:${t.part ?? ""}` === last) ?? st.tabs[0]);
+}
+
+/** "AI" next to a step where AI can help: grey while off, in the accent colour when the review switched it on. */
+function aiMark(keys) {
+  const steps = [keys].flat().filter(k => S.ai?.steps[k]);
+  if (!steps.length) return null;
+  const on = steps.some(k => (S.ai.modes[k] || "off") !== "off");
+  return h("span", { class: "ai-mark" + (on ? " on" : ""), title: on ? "AI assistance is on here" : "AI can help here (off; switch it on in the AI assistance card)" }, "AI");
 }
 
 function renderSidebar() {
@@ -291,24 +324,34 @@ function renderSidebar() {
   sel.title = /[\\/]/.test(REVIEW) ? REVIEW : "Review";
   sel.replaceChildren(...S.reviews.map(r => h("option", { value: r, selected: r === REVIEW }, label(r))),
     h("option", { value: "__open__" }, "📂 Open folder…"));
-  const nav = $("#stepper");
+  const nav = $("#stepper"), cur = CUR === HOME ? null : stepOf(CUR);
   nav.replaceChildren(h("div", { class: `step home ${CUR === HOME ? "active" : ""}`, onclick: () => go(HOME), title: "What Review Studio is and how it works" },
-    h("span", { class: "dot" }, "⌂"), "Homepage"));
-  phases().forEach(([name, a, b]) => {
-    nav.append(h("div", { class: "phase" }, name));
-    S.stages.slice(a, b + 1).forEach((s, i) => nav.append(h("div", {
-      class: `step ${s.status} ${s.key === CUR ? "active" : ""}`, onclick: () => go(s.key), title: s.optional ? `${s.desc} (optional)` : s.desc,
-    }, h("span", { class: "dot" }, s.status === "done" ? "✓" : s.status === "skipped" ? "–" : ""),
-      s.title.replace(/^\d+ · /, ""), aiMark(s.key))));
+    h("span", { class: "dot" }, "⌂"), h("span", { class: "lbl" }, h("span", { class: "t" }, "Homepage"))));
+  let phase = null;
+  S.steps.forEach((st, i) => {
+    if (st.phase !== phase) nav.append(h("div", { class: "phase" }, phase = st.phase));
+    const status = stepStatus(st), opt = stepOptional(st);
+    nav.append(h("div", {
+      class: `step ${status} ${st === cur ? "active" : ""}`, onclick: () => goStep(st),
+      title: st.tabs.length > 1 ? `${st.hint}: ${st.tabs.map(t => t.label).join(" · ")}` : st.hint,
+    }, h("span", { class: "dot" }, status === "done" ? "✓" : status === "skipped" ? "–" : String(i + 1)),
+      h("span", { class: "lbl" }, h("span", { class: "t" }, st.title), h("span", { class: "hint" }, st.hint + (opt && !/optional/.test(st.hint) ? " · optional" : ""))),
+      aiMark(stepStages(st).map(s => s.key))));
   });
   nav.querySelector(".step.active")?.scrollIntoView({ block: "nearest", inline: "nearest" });   // narrow layout: keep the current step in view
 }
+
+// What a part of a split stage page is for (the stage's own description covers the rest)
+const PART_DESC = {
+  "protocol:rules": "Decide which papers belong in your review and which do not. The short exclusion reasons (E1, E2 …) are the only ones you can pick while screening.",
+  "protocol:methods": "The rest of your plan: background, sources, and how you will select, chart and summarise. Together with your question and search it becomes the Protocol note.",
+};
 
 function renderTop() {
   if (CUR === HOME) {
     $("#topbar").replaceChildren(
       h("div", { class: "titlerow" }, h("h1", {}, "Welcome to Review Studio")),
-      h("p", { class: "desc" }, "How a review goes in Review Studio, in one minute (shown for a scoping review; a systematic review adds risk of bias and a synthesis stage)."),
+      h("p", { class: "desc" }, `From your first idea to the finished report in ${S.steps.length} steps (shown for a scoping review; a systematic review adds risk of bias and a synthesis step).`),
       h("div", { class: "home-badges" }, [
         ["📝 Plain Markdown", "Every record is a Markdown note with properties; the searches are a CSV table. Any text editor can read them."],
         ["🟣 Opens in Obsidian", "A review folder is an Obsidian vault as it is: the notes, links and the screening and charting tables (.base files) work there too."],
@@ -318,23 +361,42 @@ function renderTop() {
           title: "The desktop version: a ZIP with launchers for Windows, Mac and Linux (needs Node.js). Or install it as an app from ⚙ Settings." }, "💾 Download desktop version")));
     return;
   }
-  const s = stage(CUR), n = S.stages.indexOf(s);
-  const phase = phases().find(([, a, b]) => n >= a && n <= b)[0];
+  const s = stage(CUR), st = stepOf(CUR), n = S.steps.indexOf(st), tab = curTab();
   const locked = S.state.protocol.locked;
+  const tabs = st.tabs.length > 1 ? h("div", { class: "steptabs", role: "tablist" }, st.tabs.map(t => {
+    const ts = stage(t.stage), on = t === tab;
+    return h("button", { class: `steptab ${ts.status} ${on ? "on" : ""}`, role: "tab", "aria-selected": String(on),
+      title: ts.desc + (ts.optional ? " (optional)" : ""), onclick: () => goTab(t) },
+      h("span", { class: "tdot" }, ts.status === "done" ? "✓" : ts.status === "skipped" ? "–" : ""), t.label,
+      ts.optional ? h("span", { class: "topt" }, "optional") : null, aiMark(t.stage));
+  })) : null;
+  const what = st.tabs.length > 1 ? `“${tab.label}”` : "this step";
   $("#topbar").replaceChildren(
-    h("div", { class: "crumbs" }, `${REVIEW} · ${S.review_type.label}, reported to ${S.review_type.guideline} · ${phase} · stage ${n} of ${S.stages.length - 1}`),
+    h("div", { class: "crumbs" }, `${REVIEW} · ${S.review_type.label}, reported to ${S.review_type.guideline} · ${st.phase} · step ${n + 1} of ${S.steps.length}`),
     h("div", { class: "titlerow" },
-      h("h1", {}, s.title.replace(/^\d+ · /, "")),
-      pill(s.status.replace("-", " "), statusKind(s.status)),
-      s.optional ? pill("optional", "info") : null,
+      h("h1", {}, st.title),
+      st.tabs.length > 1 ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
+      st.tabs.length > 1 || !s.optional ? null : pill("optional", "info"),
       S.dev_mode ? pill("🛠 developer mode — locks off", "bad")
         : locked && ["questions", "concepts", "queries", "protocol", "charting"].includes(CUR) ? pill("🔒 protocol locked — changes are amendments", "warn") : null,
       h("span", { class: "spacer" }),
       btn("? Help", () => openHelp(CUR), "ghost"),
-      s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", skipStage, "ghost") : null,
-      s.status === "done" || s.status === "skipped" ? btn("Reopen", () => api("stage_status", { stage: CUR, status: "in-progress" }), "") : btn("✓ Mark done", () => api("stage_status", { stage: CUR, status: "done" }), "primary")),
-    h("p", { class: "desc" }, s.desc, s.reason ? h("span", { class: "muted" }, ` — skipped: ${s.reason}`) : null),
-    savedIn(CUR), aiCard(CUR) || "");
+      s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", skipStage, "ghost", `Skip ${what} (it is optional)`) : null,
+      s.status === "done" || s.status === "skipped" ? btn("Reopen", () => api("stage_status", { stage: CUR, status: "in-progress" }), "", `Reopen ${what}`)
+        : btn("✓ Mark done", () => api("stage_status", { stage: CUR, status: "done" }), "primary", `Mark ${what} as done`)),
+    tabs || "",
+    h("p", { class: "desc" }, PART_DESC[`${CUR}:${tab.part}`] ?? s.desc, s.reason ? h("span", { class: "muted" }, ` — skipped: ${s.reason}`) : null),
+    savedIn(CUR) || "", aiCard(CUR) || "");
+}
+
+/** Back and Next at the foot of every page: walks the tabs and steps in order. */
+function pageNav() {
+  const seq = tabSequence(), tab = curTab(), i = seq.findIndex(x => x.tab === tab);
+  const name = x => x.step.tabs.length > 1 && x.step.tabs[0] !== x.tab ? `${x.step.title}: ${x.tab.label}` : x.step.title;
+  const prev = seq[i - 1], next = seq[i + 1];
+  return h("div", { class: "pagenav" },
+    prev ? btn(`← ${name(prev)}`, () => goTab(prev.tab), "ghost") : h("span"),
+    next ? btn(`Next: ${name(next)} →`, () => goTab(next.tab), "") : null);
 }
 
 // AI assistance for this step: the mode chosen for this review, the skill that does the work, what to check
@@ -382,9 +444,11 @@ const STORAGE = {
 
 function savedIn(key) {
   const icon = p => p === "@library" ? "📚" : /\.(md)$/.test(p) ? "📝" : /\.base$/.test(p) ? "▦" : /\.(csv|json)$/.test(p) ? "🗎" : "📁";
-  return h("div", { class: "savedin" }, h("span", { class: "small muted" }, "Saved in"),
-    (STORAGE[key] || []).map(([p, what]) => [p === "@checklist" ? S.review_type.checklistFile : p, what]).map(([p, what]) => h("button", { class: "file", title: `${S.folder}/${p === "@library" ? "../" + libraryName() : p} — click to open`, onclick: () => openNote(p) },
-      icon(p), " ", p === "@library" ? libraryName() : p, h("span", { class: "muted" }, " · " + what))));
+  const files = STORAGE[key] || [];
+  if (!files.length) return null;
+  return h("details", { class: "savedin" }, h("summary", { title: "Which files in your review folder this step writes" }, `📁 Saved in your review folder · ${files.length} file${files.length > 1 ? "s" : ""} ▾`),
+    h("div", { class: "files" }, files.map(([p, what]) => [p === "@checklist" ? S.review_type.checklistFile : p, what]).map(([p, what]) => h("button", { class: "file", title: `${S.folder}/${p === "@library" ? "../" + libraryName() : p} — click to open`, onclick: () => openNote(p) },
+      icon(p), " ", p === "@library" ? libraryName() : p, h("span", { class: "muted" }, " · " + what)))));
 }
 
 function renderMetrics() {
@@ -439,7 +503,7 @@ function render() {
   $("#btnType").textContent = `🧭 ${S.review_type.label} · ${S.review_type.guideline}`;
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
   const page = $("#page");
-  page.replaceChildren(PAGES[CUR]());
+  page.replaceChildren(PAGES[CUR](), CUR === HOME ? "" : pageNav());
   nameFields(page);
 }
 
@@ -461,10 +525,10 @@ function nameFields(root) {
   }
 }
 
-function go(key) { CUR = key; store.set("stage", key); history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
+function go(key) { CUR = key; store.set("stage", key); if (key !== HOME) { const st = stepOf(key), t = curTab(); if (st && t) store.set("tab_" + st.key, `${t.stage}:${t.part ?? ""}`); } history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
 
 async function skipStage() {
-  const r = await promptText("Skip this stage", "Skipping is fine for optional stages, but the reason is reported in the timeline and the reporting checklist.", "e.g. optional in scoping reviews; not planned in the protocol", true);
+  const r = await promptText("Skip this part", "Skipping is fine for optional parts, but the reason is reported in the timeline and the reporting checklist.", "e.g. optional in scoping reviews; not planned in the protocol", true);
   if (r) api("stage_status", { stage: CUR, status: "skipped", reason: r });
 }
 
@@ -491,7 +555,7 @@ function openHelp(key) {
   const x = (S.review_type?.key === "systematic" && H.stages_systematic?.[key]) || H.stages[key], s = stage(key), num = {};
   const rules = x.rules.map(([text, level, refs]) => h("div", { class: "rule" }, lvl(level), h("div", {}, withScr(text), refMarks(refs, num))));
   const terms = x.terms.map(t => h("div", { class: "term" }, h("b", {}, t), H.terms[t].definition, refMarks(H.terms[t].refs, num)));
-  drawer("Help · " + s.title.replace(/^\d+ · /, ""),
+  drawer("Help · " + stageName(key),
     h("p", { class: "lead" }, x.what),
     h("ol", { class: "steps" }, x.how.map(l => h("li", {}, l))),
     h("h4", {}, "Rule or choice?"), rules,
@@ -520,7 +584,7 @@ function exampleFor(stageKey, name, part) {
 
 function openExample(key) {
   const ex = examples()[key] || {}, s = stage(key);
-  drawer("Example · " + s.title.replace(/^\d+ · /, ""),
+  drawer("Example · " + stageName(key),
     h("div", { class: "callout", style: "margin:8px 0 14px" }, h("b", {}, "Worked example: "), sysExample() ? H.example_topic_systematic : H.example_topic),
     ex.items ? h("table", { class: "tbl" }, ex.items.map(([k, v]) => h("tr", {}, h("td", { style: "width:34%;color:var(--muted);font-weight:600" }, k), h("td", {}, v)))) : null,
     ex.code ? h("div", { class: "code", style: "margin-top:10px", html: hlQuery(ex.code) }) : null,
@@ -539,11 +603,11 @@ function openClaudeGuide() {
   const ul = items => h("ul", { style: "margin:4px 0 0;padding-left:20px;line-height:1.6" }, items.map(i => h("li", {}, i)));
   const goStage = key => { document.querySelector(".scrim")?.remove(); go(key); };
   const steps = Object.entries(S.ai.steps).map(([key, step]) => {
-    const stg = stage(key), mode = S.ai.modes[key] || "off";
+    const mode = S.ai.modes[key] || "off";
     return h("div", { class: "card", style: "padding:12px 16px;margin:0 0 10px" },
       h("div", { class: "row", style: "margin-bottom:6px" },
-        h("b", {}, stg.title), pill(mode === "off" ? "off for this review" : "on: " + step.modes.find(m => m.key === mode).label, mode === "off" ? "" : "ok"),
-        h("span", { style: "flex:1" }), btn("Open stage", () => goStage(key), "sm ghost"),
+        h("b", {}, stepOf(key).tabs.length > 1 ? `${stepOf(key).title} · ${stageName(key)}` : stepOf(key).title), pill(mode === "off" ? "off for this review" : "on: " + step.modes.find(m => m.key === mode).label, mode === "off" ? "" : "ok"),
+        h("span", { style: "flex:1" }), btn("Open", () => goStage(key), "sm ghost"),
         mode === "off" ? null : btn("📋 Copy prompt", () => copy(step.prompt), "sm")),
       h("div", { class: "small" }, ul(step.modes.filter(m => m.key !== "off").map(m => [h("b", {}, m.label + ": "), m.desc]))),
       h("div", { class: "small", style: "margin-top:6px" }, h("b", {}, "You check: "), ul(step.checks)),
@@ -559,7 +623,7 @@ function openClaudeGuide() {
       "Keep Review Studio open next to it: Claude writes, Review Studio is where you check and confirm.",
       "For paywalled papers: let Claude use a browser where you are signed in to your library (for example Claude in Chrome), only if you agree to that."])),
     sec("2 · How one step works", ol([
-      "Open the stage and choose a mode on its 🤖 AI assistance card. The choice is part of your method: after the protocol is locked it is an amendment.",
+      "Open the step and choose a mode on its 🤖 AI assistance card. The choice is part of your method: after the protocol is locked it is an amendment.",
       "Press 📋 Copy prompt and paste it into Claude Code.",
       ["Claude follows the skill: it reads what it needs and writes its suggestions through ", h("code", {}, "bin/ai-assist.js"), ", which refuses when the mode is off and never sets a final decision. If two folders share the review's name (a review and its test copy), Claude asks you which one."],
       "Back in Review Studio, review the suggestions (Suggested queue, blind-sheet agreement, 'checked by AI' papers) and confirm or change each one.",
@@ -604,7 +668,7 @@ function openTimeline() {
 }
 
 function openKeys() {
-  const rows = [["?", "help for this stage"], ["X", "example for this stage"], ["G", "glossary"], ["T", "timeline"], ["[", "hide / show the stages"], ["Alt+↑ / Alt+↓", "previous / next stage"],
+  const rows = [["?", "help for this page"], ["X", "example for this page"], ["G", "glossary"], ["T", "timeline"], ["[", "hide / show the steps"], ["Alt+↑ / Alt+↓", "previous / next page"],
     ["I / U / E", "include / unsure / exclude (screening)"], ["1–9", "exclusion reason (screening)"], ["← / →", "previous / next record"], ["Esc", "close panel"]];
   modal({ title: "Keyboard shortcuts", body: h("table", { class: "tbl" }, rows.map(([k, d]) => h("tr", {}, h("td", {}, h("kbd", {}, k)), h("td", {}, d)))) });
 }
@@ -650,7 +714,7 @@ function openChecklist(focus) {
           h("div", {}, h("b", {}, it.item), h("div", { class: "small muted" }, it.desc), ev ? h("div", { style: "margin-top:3px" }, pill(ev, "info")) : null),
           it.optional ? pill("optional", "info") : null, done ? pill("✓ reported", "ok") : null);
       }))));
-  modal({ title: `${rt.guideline} checklist`, wide: true, body, buttons: [{ label: "Go to Report stage", value: () => go("report") }, { label: "Close", primary: true, value: null }] });
+  modal({ title: `${rt.guideline} checklist`, wide: true, body, buttons: [{ label: "Go to Report", value: () => go("report") }, { label: "Close", primary: true, value: null }] });
   if (focus) setTimeout(() => document.getElementById("scr" + focus)?.scrollIntoView({ block: "center" }), 60);
 }
 
@@ -660,7 +724,7 @@ const PAGES = {};
 // The animated demo on the Homepage: a small mock screen that plays through the five steps of a review.
 // Plain DOM and CSS (no video file), so it works offline and follows the light/dark theme.
 const DEMO = [
-  { key: "plan", you: "Write the idea, the questions (Population, Concept, Context) and the search terms. Lock the protocol before searching.", ai: null, label: "Plan", caption: "Write down your idea, then turn it into questions and search terms.",
+  { key: "plan", you: "Write your question (Population, Concept, Context), pick the search terms and set the inclusion rules. Lock the plan before searching.", ai: null, label: "Plan", caption: "Write down your idea, then turn it into questions and search terms.",
     draw: el => { const t = h("div", { class: "demo-type" }); el.append(h("div", { class: "demo-lbl" }, "💡 Idea note"), t);
       const s = "How do researchers measure how repairable a phone is?"; let i = 0;
       return setInterval(() => { t.textContent = s.slice(0, ++i); }, 45); } },
@@ -789,7 +853,7 @@ PAGES.idea = () => {
   const ta = autosize(h("textarea", { placeholder: exampleFor("idea", "Note") || "What do you want to find out, and why? What did you read or discuss? What changed?", rows: 4, value: D.idea || "", oninput: e => D.idea = e.target.value }));
   const ideas = [...S.state.idea].reverse();
   return h("div", {},
-    card("New idea note", "Short and dated. It is fine to be vague here — the next stage makes it precise.", ta,
+    card("New idea note", "Short and dated. It is fine to be vague here — the Question tab makes it precise.", ta,
       h("div", { class: "row end", style: "margin-top:10px" }, h("span", { class: "kbdhint" }, "Ctrl+Enter to add"),
         btn("Add note", e => { if (ta.value.trim()) busy(e.currentTarget, () => api("add_idea", { text: ta.value }).then(() => D.idea = "")); }, "primary"))),
     card("Idea log", `${ideas.length} note(s)`, ideas.length ? h("div", { class: "tl" }, ideas.map(i => h("div", { class: "ev" }, h("div", { class: "when" }, i.when), i.text)))
@@ -862,14 +926,14 @@ PAGES.concepts = () => {
   draw(); drawPreview(); refresh();
   return h("div", {},
     h("div", { class: "grid2" },
-      h("div", {}, card("Concept table", "One block per concept. Synonyms inside a block are joined with OR; blocks are joined with AND.",
+      h("div", {}, card("Keyword blocks", "One block per idea in your question. A paper needs any word from a block (OR) and a match in every block (AND).",
         list, h("div", { class: "row", style: "margin-top:12px" },
           btn("+ Add concept", () => { d.push({ name: "", role: "AND", terms: [] }); draw(); }, ""),
           h("span", { style: "flex:1" }), dirty,
           btn("Save concepts", e => busy(e.currentTarget, () => api("save_concepts", { concepts: d, why: D.cwhy || "" }).then(() => { delete D.concepts; D.cwhy = ""; })), "primary")),
         h("input", { type: "text", placeholder: "What changed and why? (kept with this version)", value: D.cwhy || "", style: "margin-top:8px", oninput: e => D.cwhy = e.target.value })),
         conceptHistory()),
-      h("div", {}, card("Live search string", "Updates as you type. Final strings and manual edits are in the next stage.", tabs, preview,
+      h("div", {}, card("Live search string", "Updates as you type. The final strings, and hand edits, are on the Search strings tab.", tabs, preview,
         h("div", { class: "row end", style: "margin-top:10px" }, btn("Copy", () => copy(preview.textContent), "sm"))))));
 };
 
@@ -1020,9 +1084,12 @@ function authorPill(key) {
     : h("span", { class: "pill ok", style: "margin-left:8px", title: `Last edited by you on ${m.when}` }, "Edited by you");
 }
 
+// One step, two tabs: the inclusion and exclusion rules (eligibility criteria and the exclusion reasons used in
+// screening), and the other method sections of the protocol. Both are saved in the same protocol.
 PAGES.protocol = () => {
   const d = D.protocol ??= { ...S.state.protocol_text };
   const r = D.reasons ??= { ta: [...S.reasons.ta], ft: [...S.reasons.ft] };
+  const rules = (PART.protocol ?? "rules") === "rules";
   const reasonList = key => {
     const wrap = h("div", { class: "stack" });
     const draw = () => wrap.replaceChildren(...r[key].map((x, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
@@ -1030,20 +1097,27 @@ PAGES.protocol = () => {
       btn("+ Add reason", () => { r[key].push(`E${r[key].length + 1} `); draw(); }, "sm"));
     draw(); return wrap;
   };
+  const section = (sct, open) => h("details", { open, style: "border-bottom:1px solid var(--border);padding:8px 0" },
+    h("summary", {}, h("b", { style: "color:var(--text)" }, withScr(sct.title)), authorPill(sct.key), d[sct.key] ? h("span", { class: "pill ok", style: "margin-left:8px" }, "written") : h("span", { class: "pill", style: "margin-left:8px" }, "empty")),
+    h("div", { style: "margin-top:8px" }, autosize(h("textarea", { rows: rules ? 6 : 3, value: d[sct.key] || "", placeholder: exampleFor("protocol", sct.key) || exampleFor("protocol", sct.title), oninput: e => d[sct.key] = e.target.value })),
+      ((S.state.protocol_meta || {})[sct.key] || {}).by === "claude" ? h("div", { class: "row end", style: "margin-top:6px" },
+        btn("✓ Approve as is", () => api("approve_section", { key: sct.key }), "sm")) : null));
+  const saveRow = (...extra) => h("div", { class: "row end", style: "margin-top:12px" }, ...extra,
+    btn("Save", e => busy(e.currentTarget, () => api("save_protocol_text", { text: d }).then(() => delete D.protocol)), rules ? "primary" : ""),
+    rules ? null : btn("Save & generate Protocol", e => busy(e.currentTarget, () => api("save_protocol_text", { text: d, generate: true }).then(() => delete D.protocol)), "primary"));
+  if (rules) {
+    const elig = S.protocol_sections.find(sct => sct.key === "eligibility");
+    return h("div", {},
+      card("Who is in, who is out", "Describe the papers you want (include) and the ones you don't (exclude), with a short reason for each rule. Your question's parts are a good checklist: who or what, which topic, which setting, which publication types.",
+        elig ? section({ ...elig, title: elig.title.replace(/^Eligibility criteria/, "Inclusion and exclusion criteria") }, true) : null, saveRow()),
+      card("Exclusion reasons for screening", "The only reasons you can choose when you exclude a paper. Short code first (E1, E2 …), so screeners can type just the code.",
+        h("div", { class: "grid2" }, h("div", {}, h("b", {}, "Title and abstract"), reasonList("ta")), h("div", {}, h("b", {}, "Full text"), reasonList("ft"))),
+        h("div", { class: "row end", style: "margin-top:12px" }, btn("Save reasons", e => busy(e.currentTarget, () => api("save_reasons", r).then(() => delete D.reasons)), "primary"))));
+  }
   return h("div", {},
-    h("div", { class: "callout", style: "margin-bottom:16px" }, "Objectives, questions, search strings and pilot results are filled in automatically from stages 1–4. Write the method sections below, then generate the Protocol note."),
-    card("Method sections", null, S.protocol_sections.map(sct => h("details", { open: !d[sct.key], style: "border-bottom:1px solid var(--border);padding:8px 0" },
-      h("summary", {}, h("b", { style: "color:var(--text)" }, withScr(sct.title)), authorPill(sct.key), d[sct.key] ? h("span", { class: "pill ok", style: "margin-left:8px" }, "written") : h("span", { class: "pill", style: "margin-left:8px" }, "empty")),
-      h("div", { style: "margin-top:8px" }, autosize(h("textarea", { rows: 3, value: d[sct.key] || "", placeholder: exampleFor("protocol", sct.key) || exampleFor("protocol", sct.title), oninput: e => d[sct.key] = e.target.value })),
-        ((S.state.protocol_meta || {})[sct.key] || {}).by === "claude" ? h("div", { class: "row end", style: "margin-top:6px" },
-          btn("✓ Approve as is", () => api("approve_section", { key: sct.key }), "sm")) : null))),
-      h("div", { class: "row end", style: "margin-top:12px" },
-        btn("Open Protocol in Obsidian", () => openNote("05 - Protocol.md"), "ghost"),
-        btn("Save", e => busy(e.currentTarget, () => api("save_protocol_text", { text: d }).then(() => delete D.protocol)), ""),
-        btn("Save & generate Protocol", e => busy(e.currentTarget, () => api("save_protocol_text", { text: d, generate: true }).then(() => delete D.protocol)), "primary"))),
-    card("Exclusion reasons", "The only reasons allowed during screening. Short code first (E1, E2 …) — screeners can type just the code.",
-      h("div", { class: "grid2" }, h("div", {}, h("b", {}, "Title/abstract"), reasonList("ta")), h("div", {}, h("b", {}, "Full text"), reasonList("ft"))),
-      h("div", { class: "row end", style: "margin-top:12px" }, btn("Save reasons", e => busy(e.currentTarget, () => api("save_reasons", r).then(() => delete D.reasons)), "primary"))));
+    h("div", { class: "callout", style: "margin-bottom:16px" }, "Your question, search strings, test results and inclusion rules are added to the protocol automatically. Write the remaining sections below, then generate the Protocol note."),
+    card("Method sections", null, S.protocol_sections.filter(sct => sct.key !== "eligibility").map(sct => section(sct, !d[sct.key])),
+      saveRow(btn("Open Protocol in Obsidian", () => openNote("05 - Protocol.md"), "ghost"))));
 };
 
 function lockReadiness() {
@@ -1197,7 +1271,7 @@ PAGES.screening = () => {
   } else if (!rec) {
     main = h("div", { class: "card empty" }, h("div", { class: "big" }, total ? "🎉" : "📭"),
       h("h3", {}, total ? "Nothing left to screen here" : "No records yet"),
-      h("p", {}, total ? "Switch to 'All' to review earlier decisions, or continue with the next stage." : "Import a database export in stage 7 first."));
+      h("p", {}, total ? "Switch to 'All' to review earlier decisions, or continue with the next step." : "Import a database export first (step Search & import)."));
   } else {
     const absBox = h("div", { class: "abstract" }, h("span", { class: "muted" }, "Loading abstract…"));
     const showAbs = r => absBox.innerHTML = r.abstract ? highlight(r.abstract) : `<span class="muted">No abstract in the export. Open the DOI to read it.</span>`;
@@ -1338,7 +1412,7 @@ PAGES.reviewer = () => {
         h("div", { class: "grid3" }, field("Stage", stage), field("Fraction", frac), field("Seed", seed)),
         h("div", { class: "row end", style: "margin-top:12px" }, btn("Draw sample & write sheet", async e => {
           const exists = S.records.some(r => r["sample_" + stage.value]);
-          if (exists && !(await confirmBox("Sample exists", "A sample for this stage already exists. Draw a new one? The old draw stays in the log.", "Draw new sample"))) return;
+          if (exists && !(await confirmBox("Sample exists", "A sample for this screening round already exists. Draw a new one? The old draw stays in the log.", "Draw new sample"))) return;
           busy(e.target, () => api("sample", { stage: stage.value, fraction: frac.value, seed: seed.value, redo: exists }));
         }, "primary")),
         S.sheets.length ? h("div", { style: "margin-top:12px" }, h("b", { class: "small" }, "Sheets — send to your second reviewer:"),
@@ -1371,7 +1445,7 @@ PAGES.snowballing = () => {
         const dirs = [back.checked && "backward", fwd.checked && "forward"].filter(Boolean);
         if (dirs.length) busy(e.currentTarget, () => api("snowball", { directions: dirs, seeds: seeds.value, per_seed: per.value }));
       }, "primary"))),
-    lastZero ? h("div", { class: "callout ok", style: "margin-bottom:16px" }, "The last round has been screened and added no included study — the usual stopping rule is met. You can mark this stage done.") : null,
+    lastZero ? h("div", { class: "callout ok", style: "margin-bottom:16px" }, "The last round has been screened and added no included study — the usual stopping rule is met. You can mark this step done.") : null,
     card("Rounds", "Stop when a round adds no new included study.",
       rounds.length ? h("table", { class: "tbl" }, h("tr", {}, ["Round", "Records added", "", "Included so far"].map(t => h("th", {}, t))),
         rounds.map(r => h("tr", {}, h("td", {}, h("b", {}, "#" + r.round)), h("td", { class: "num" }, r.added),
@@ -1689,7 +1763,7 @@ PAGES.report = () => {
             h("summary", {}, "Working with Zotero"),
             h("ol", {},
               h("li", {}, "In Zotero, install the Better BibTeX add-on (Tools → Plugins) so every paper gets a stable citation key."),
-              h("li", {}, "Zotero → Review Studio: right-click a collection → Export Collection… → Better BibTeX, and import that .bib at stage 7. The citation keys are kept on the records."),
+              h("li", {}, "Zotero → Review Studio: right-click a collection → Export Collection… → Better BibTeX, and import that .bib in Search & import. The citation keys are kept on the records."),
               h("li", {}, "Review Studio → Zotero: click “Included for Zotero (RIS)”, then in Zotero use File → Import… and pick the file from this review's 07 - Exports folder (not your Downloads), so the full texts in 10 - Full texts are attached."),
               h("li", {}, "Imported papers are tagged review:<name>, included and record:R…; the BibTeX export uses the same citation keys.")))),
         card("Sync with the library", `Marks included papers in ${libraryName()} (included_in). Preview first.`,
@@ -1722,8 +1796,8 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") { closeHelp(); return; }
   if (e.ctrlKey && e.key === "Enter" && CUR === "idea") { $("#page .btn.primary")?.click(); return; }
   if (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
-    const i = S.stages.findIndex(s => s.key === CUR) + (e.key === "ArrowDown" ? 1 : -1);
-    if (S.stages[i]) { e.preventDefault(); go(S.stages[i].key); }
+    const seq = tabSequence(), i = (CUR === HOME ? -1 : seq.findIndex(x => x.tab === curTab())) + (e.key === "ArrowDown" ? 1 : -1);
+    if (seq[i]) { e.preventDefault(); goTab(seq[i].tab); }
     return;
   }
   if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -1852,17 +1926,17 @@ setInterval(checkOutside, 15000);
 // Offered once on the first visit; the button on the Homepage replays it.
 const TOUR = [
   { title: "Welcome to Review Studio 👋",
-    text: "This app guides you through a scoping review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
-  { target: "#stepper", title: "The 15 stages",
-    text: "Your review in order: planning (questions, search terms, protocol), conducting (searching, screening, full texts, charting) and reporting. Stages marked AI are where Claude can help, if you want. Click any stage to open it." },
-  { target: "#topbar", title: "One stage at a time",
-    text: "Each stage says what to do and where it is saved. ? Help explains the method (with a filled-in example), and ✓ Mark done moves you on." },
+    text: "This app guides you through a scoping or systematic review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
+  { target: "#stepper", title: "Your review, step by step",
+    text: "Plan (question, search, inclusion rules), find and select papers, analyse them, report. Each step says in one line what it is for. Steps marked AI are where Claude can help, if you want. Click any step to open it." },
+  { target: "#topbar", title: "One step at a time",
+    text: "Some steps have tabs for their parts. Each page says what to do; ? Help explains the method with a filled-in example, ✓ Mark done ticks it off, and Next at the bottom takes you on." },
   { target: "#draftBar", title: "Your files stay on your PC",
     text: "You start in a draft kept in this browser. Save it to a folder when you want to keep it: the review becomes plain notes, tables and PDFs on your PC. Nothing is uploaded." },
-  { target: ".toolbar", title: "Tools for every stage",
+  { target: ".toolbar", title: "Tools for every step",
     text: "The timeline of everything you did, the reporting checklist (PRISMA-ScR or PRISMA 2020) and, if you want it, AI help from Claude, which only ever suggests. The glossary and keyboard shortcuts are under ⚙ Settings." },
-  { title: "Ready? Start with your idea ✍️",
-    text: "Write down what you want to find out and why. It's fine to be vague: the next stage makes it precise. You can replay this tour from the Homepage." },
+  { title: "Ready? Start with your question ✍️",
+    text: "Step 1 is your research question. Not sure yet? Jot your idea down under Idea notes first; the Question tab makes it precise. You can replay this tour from the Homepage." },
 ];
 
 function offerTour() {
@@ -1894,7 +1968,7 @@ function startTour(i = 0) {
       i < steps.length - 1 ? btn("Skip tour", close, "sm ghost") : null,
       h("span", { class: "spacer" }),
       i > 0 ? btn("← Back", () => startTour(i - 1), "sm") : null,
-      i < steps.length - 1 ? btn("Next →", () => startTour(i + 1), "sm primary") : btn("Let's start", () => { close(); go("idea"); }, "sm primary")));
+      i < steps.length - 1 ? btn("Next →", () => startTour(i + 1), "sm primary") : btn("Let's start", () => { close(); go("questions"); }, "sm primary")));
   wrap.append(spot, card);
   document.body.append(wrap);
   function place() {

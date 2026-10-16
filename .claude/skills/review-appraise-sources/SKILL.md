@@ -1,6 +1,6 @@
 ---
 name: review-appraise-sources
-description: Suggest risk-of-bias judgements (systematic review) or critical-appraisal ratings (scoping review) for the included papers of a review in Review Studio (stage 13), using the tool the reviewer chose. Use when the user asks to appraise, assess risk of bias, or suggest quality ratings for included papers. The reviewer confirms every rating; this skill never decides.
+description: Suggest risk-of-bias judgements (systematic review) or critical-appraisal ratings (scoping review) for the included papers of a review in Review Studio (step Quality check / Risk of bias), using the tool the reviewer chose. Use when the user asks to appraise, assess risk of bias, or suggest quality ratings for included papers. The reviewer confirms every rating; this skill never decides.
 ---
 
 # Suggest appraisal or risk-of-bias ratings
@@ -19,8 +19,8 @@ Run the commands from the Review Studio folder (the project open in Claude Code)
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context appraisal --limit 5
    ```
-   - If AI assistance is **off**, stop and tell the user where to switch it on (Review Studio, stage 13, AI assistance card).
-   - If no tool is chosen yet, stop and ask the reviewer to name it on stage 13 (Approach). Don't choose one yourself.
+   - If AI assistance is **off**, stop and tell the user where to switch it on (Review Studio, step Quality check / Risk of bias, AI assistance card).
+   - If no tool is chosen yet, stop and ask the reviewer to name it in the step Quality check / Risk of bias (Approach). Don't choose one yourself.
    - The output has the review questions, the `tool`, the allowed `ratings`, and per paper its `pdf` path and `study_type` when it was charted.
 
 2. **Read each PDF in full** and apply the tool as published:
@@ -38,4 +38,4 @@ Run the commands from the Review Studio folder (the project open in Claude Code)
    node bin/ai-assist.js --review "<review name or full path of its records folder>" appraise FILE.json --model "<your exact model id>"
    ```
 
-4. **Report** how many papers you rated and which ones were hard to judge, and why. Remind the reviewer that every AI rating must be confirmed or changed on stage 13. The methods must say that an AI suggested ratings, with model and date.
+4. **Report** how many papers you rated and which ones were hard to judge, and why. Remind the reviewer that every AI rating must be confirmed or changed in the step Quality check / Risk of bias. The methods must say that an AI suggested ratings, with model and date.

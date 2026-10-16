@@ -1,6 +1,6 @@
 ---
 name: review-second-reviewer
-description: Act as the independent (blind) second reviewer on the screening sample of a scoping or systematic review (Review Studio) (Review Studio, stage 9), when the review chose "AI as second reviewer". Use when the user asks the AI to fill the second-reviewer sheet or compute agreement with an AI reviewer.
+description: Act as the independent (blind) second reviewer on the screening sample of a scoping or systematic review (Review Studio) (Review Studio, step Screen papers, Second reviewer tab), when the review chose "AI as second reviewer". Use when the user asks the AI to fill the second-reviewer sheet or compute agreement with an AI reviewer.
 ---
 
 # Blind second reviewer
@@ -18,7 +18,7 @@ Run the commands from the Review Studio folder (the project open in Claude Code)
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context reviewer
    ```
    - If it says AI assistance is **off**, stop: this review uses a human second reviewer.
-   - If there's no sheet yet, the reviewer first draws the sample in Review Studio (stage 9).
+   - If there's no sheet yet, the reviewer first draws the sample in Review Studio (step Screen papers, Second reviewer tab).
    - The output has the questions, the eligibility text, the reasons, `stage` (`ta` = title/abstract, `ft` = full text) and the sampled records.
 
 2. **Decide every record:** `include`, `exclude` or `unsure`.

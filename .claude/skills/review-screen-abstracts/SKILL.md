@@ -1,6 +1,6 @@
 ---
 name: review-screen-abstracts
-description: Suggest title/abstract screening decisions for a scoping or systematic review (Review Studio) (Review Studio, stage 8). Use when the user asks to pre-screen, suggest decisions, or help with title/abstract screening of a review. The reviewer confirms every suggestion; this skill never decides.
+description: Suggest title/abstract screening decisions for a scoping or systematic review (Review Studio) (Review Studio, step Screen papers, Screen tab). Use when the user asks to pre-screen, suggest decisions, or help with title/abstract screening of a review. The reviewer confirms every suggestion; this skill never decides.
 ---
 
 # Suggest title/abstract decisions
@@ -15,7 +15,7 @@ All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `-
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context screening --limit 40
    ```
-   - If it says AI assistance is **off**, stop. Tell the user to switch it on in Review Studio: stage 8, the AI assistance card. Never switch it on yourself.
+   - If it says AI assistance is **off**, stop. Tell the user to switch it on in Review Studio: step Screen papers, the AI assistance card. Never switch it on yourself.
    - The output has the review questions (PCC), the eligibility text, the exclusion reasons (`ta_reasons`, e.g. `E1 …`), `remaining`, and up to 40 records with title and abstract.
 
 2. **Judge each record against the eligibility criteria and the questions only.** Rules:

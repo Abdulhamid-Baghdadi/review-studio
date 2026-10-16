@@ -84,7 +84,7 @@ export function lockChecks(st, reasons) {
   const sup = st.supervisor_review ?? {};
   const row = (label, ok, detail, required) => ({ label, ok: Boolean(ok), detail, required });
   return [
-    row("Review questions written", st.questions.main, chars(st.questions.main).slice(0, 80).join("") || "stage 1", true),
+    row("Review questions written", st.questions.main, chars(st.questions.main).slice(0, 80).join("") || "not written yet (Research question)", true),
     row("Concept table and search strings", st.concepts.length, `${st.concepts.length} concept block(s)`, true),
     row("All protocol sections written", !empty.length, empty.length ? "missing: " + empty.join(", ") : "8 of 8", true),
     row("No placeholders left", !holders.length, holders.length ? "replace: " + holders.join(", ") : "none found", true),

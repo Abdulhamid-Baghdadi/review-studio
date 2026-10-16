@@ -85,7 +85,7 @@ try {
     console.log(`saved docs/${name}`);
   };
   await save("screenshot.png");
-  // the tour, at its step about the stages
+  // the tour, at its step about the steps
   await run(`document.querySelector("#btnTour").click()`);
   await sleep(300);
   await run(`[...document.querySelectorAll(".tour-card button")].find(b => b.textContent.startsWith("Next")).click()`);

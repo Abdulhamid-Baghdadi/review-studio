@@ -335,7 +335,7 @@
    "what": "Dated notes on what you want to find out and why.",
    "how": [
     "Write a note whenever your view changes.",
-    "Vague is fine; stage 1 makes it precise."
+    "Vague is fine; the Question tab makes it precise."
    ],
    "terms": [
     "Scoping review",
@@ -515,11 +515,12 @@
    ]
   },
   "protocol": {
-   "what": "The plan of the review, written before searching.",
+   "what": "The plan of the review, written before searching: which papers are in and which are out, and how you will work.",
    "how": [
-    "Write the method sections.",
-    "Set the exclusion reasons.",
-    "Let your supervisor review it."
+    "Include / exclude rules: write the criteria, with a reason for each.",
+    "Set the short exclusion reasons (E1, E2 …) used in screening.",
+    "Other methods: write the remaining sections and generate the Protocol note.",
+    "Let your supervisor review it, then lock it on the Lock & register tab."
    ],
    "terms": [
     "Protocol"

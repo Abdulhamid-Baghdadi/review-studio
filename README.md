@@ -6,17 +6,17 @@
 
 Review Studio walks you through a scoping or systematic review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
 
-![Review Studio: screening a record, with the review's stages in the sidebar](docs/screenshot.png)
+![Review Studio: screening a record, with the review's steps in the sidebar](docs/screenshot.png)
 
 *Screening in Review Studio (example data). Search terms are highlighted in the abstract; I / U / E decide.*
 
-![The app tour highlighting the 15 stages](docs/tour.png)
+![The app tour highlighting the steps](docs/tour.png)
 
 *The 1-minute app tour, started from the Homepage.*
 
 **Highlights**
 
-- 🧭 **Guided, step by step:** 15 stages from idea to report, each with what to do, where it is saved, and help with a worked example.
+- 🧭 **Guided, step by step:** 9 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
 - 🔒 **Your files, your PC:** no account, no upload, no database. A review is a folder of Markdown, CSV and PDFs.
 - 🟣 **Opens in Obsidian:** a review folder is an Obsidian vault as it is, with the screening and charting tables as `.base` files.
 - 🤖 **AI only if you want it:** Claude can pre-screen, fetch PDFs, be the blind second reviewer or prefill charting. It suggests; you confirm.
@@ -26,7 +26,7 @@ Review Studio walks you through a scoping or systematic review from the first id
 
 - [Getting started](#getting-started)
 - [Three ways to use it](#three-ways-to-use-it)
-- [The 15 stages](#the-15-stages)
+- [The 9 steps](#the-9-steps)
 - [Your review folder](#your-review-folder)
 - [AI assistance with Claude (optional)](#ai-assistance-with-claude-optional)
 - [Privacy and data safety](#privacy-and-data-safety)
@@ -37,7 +37,7 @@ Review Studio walks you through a scoping or systematic review from the first id
 
 1. Open **https://abdulhamid-baghdadi.github.io/review-studio/** in **Chrome or Edge** on a computer.
 2. You start on the **Homepage**: a one-minute animated walk through a review, and the **🎓 tour** of the screen.
-3. Pick a stage in the sidebar. Your work starts as a **draft** kept in the browser, so you can begin with your idea and research questions right away.
+3. Pick a step in the sidebar. Your work starts as a **draft** kept in the browser, so you can begin with your idea and research questions right away.
 4. When you want to keep it, press **💾 Save to a folder…** in the bar at the top, give the review a name and pick a place on your PC. From then on every change is written to that folder.
 5. Next time, the same bar offers **📂 Open a review folder…** and your recent reviews. The browser asks once per visit before the app may edit a folder.
 
@@ -63,25 +63,23 @@ You need **[Node.js](https://nodejs.org) 20 or newer** (free; install it once) a
 
 The launcher starts the app on your computer and opens it at **http://localhost:8770/web/**. Keep its window open while you work; close it (or press Ctrl+C) to stop. Your reviews are not inside the app's folder: they are wherever you saved them, so you can replace the app with a newer download at any time.
 
-## The 15 stages
+## The 9 steps
 
-| # | Stage | What you do |
-|---:|---|---|
-| 0 | Idea *(optional)* | Write down, with dates, what you want to find out and why. |
-| 1 | Research questions | Population–Concept–Context and the review questions; every version is kept. |
-| 2 | Concepts and terms | One block per concept with all synonyms and spellings, combined with AND. |
-| 3 | Search strings | Strings generated per database (Scopus, IEEE Xplore, OpenAlex, …) from the concept table. |
-| 4 | Pilot and validation *(optional)* | Trial runs: hit count and how many papers of your test set a string finds. |
-| 5 | Protocol | The protocol text, generated from stages 1–4 plus the method sections. |
-| 6 | Registration *(optional)* | Freeze the protocol before searching; later changes become logged amendments. |
-| 7 | Database searches | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
-| 8 | Screening | Title/abstract, then full text, with keyboard shortcuts and exclusion reasons. |
-| 9 | Second reviewer *(optional)* | A blind sample of ≥ 20 % for a second reviewer, with Cohen's κ. |
-| 10 | Full-text retrieval | Find and attach the PDFs (it can match them in your own folders), or mark them not retrieved. |
-| 11 | Snowballing *(optional)* | Citation rounds from the included papers until a round adds nothing new. |
-| 12 | Data charting | The charting form for every included paper, with page locators. |
-| 13 | Critical appraisal *(optional)* | Appraise each included source. |
-| 14 | Report | PRISMA flow diagram, PRISMA-ScR checklist, report draft and exports. |
+The sidebar shows nine steps in plain words. Steps with more than one part show them as tabs at the top of the page. A systematic review adds a **Synthesis** step and calls step 8 **Risk of bias** (required) and step 7 **Extract data**.
+
+| # | Step | Tabs | What you do |
+|---:|---|---|---|
+| 1 | **Research question** | Question · Idea notes *(optional)* | Say exactly what you want to find out (Population–Concept–Context, or PICO); jot down early ideas with dates. Every version is kept. |
+| 2 | **Search strategy** | Keywords · Search strings · Test the search *(optional)* | One block of synonyms per idea in your question; ready-to-paste strings per database (Scopus, IEEE Xplore, OpenAlex, …); trial runs against papers you already know. |
+| 3 | **Inclusion rules** | Include / exclude rules · Other methods · Lock & register *(optional)* | Which papers are in and which are out, with the exclusion reasons (E1, E2 …) used while screening; the other protocol sections; freeze the plan before searching. |
+| 4 | **Search & import** | | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
+| 5 | **Screen papers** | Screen · Get full texts · Second reviewer *(optional)* | Title/abstract, then full text, with keyboard shortcuts; find and attach the PDFs; a blind sample for a second reviewer, with Cohen's κ. |
+| 6 | **Citation search** *(optional)* | | Follow the references of included papers until a round adds nothing new (snowballing). |
+| 7 | **Chart the data** | | The charting form for every included paper, with page numbers. |
+| 8 | **Quality check** *(optional)* | | Critical appraisal of each included source. |
+| 9 | **Report** | | PRISMA flow diagram, PRISMA-ScR or PRISMA 2020 checklist, report draft and exports. |
+
+Links to a part of the app keep working: `…/web/#questions` opens the Question tab, `#protocol` the inclusion rules, `#screening` screening.
 
 Keyboard shortcuts while screening: **I** include · **U** unsure · **E** exclude · **1–9** reason · **← / →** previous / next.
 
@@ -115,7 +113,7 @@ Each record note keeps its decisions in its properties (`ta_decision`, `ft_decis
 
 ## AI assistance with Claude (optional)
 
-Each stage that can use help has an **🤖 AI assistance** card where you choose whether to use it. It is off by default. When it's on, [Claude Code](https://claude.com/claude-code) can:
+Each step that can use help has an **🤖 AI assistance** card where you choose whether to use it. It is off by default. When it's on, [Claude Code](https://claude.com/claude-code) can:
 
 - **pre-screen** titles and abstracts, or full texts, and suggest a decision with a reason;
 - **fetch full texts** (open access first) and attach the PDFs;

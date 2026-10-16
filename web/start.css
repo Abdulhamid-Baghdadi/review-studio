@@ -54,3 +54,4 @@ dialog.modal::backdrop { background: rgb(0 0 0 / 0.45); }
 dialog.modal .mh { font-weight: 700; padding: 16px 20px 0; }
 dialog.modal .mb { padding: 12px 20px; display: grid; gap: 12px; }
 dialog.modal .mf { padding: 0 20px 16px; display: flex; justify-content: flex-end; gap: 8px; }
+.start-stage .muted { display: block; margin-top: 2px; }
