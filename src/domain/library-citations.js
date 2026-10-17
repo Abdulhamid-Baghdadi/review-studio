@@ -5,7 +5,9 @@
  *   cites      every work this paper cites (OpenAlex): a link to the library note when the work is in the library,
  *              otherwise its DOI ("10.1186/…"), or its OpenAlex id ("W123") when it has no DOI. Updating again
  *              after adding papers turns those DOIs into links.
- *   cited_by   library papers citing it (OpenAlex, and `references_pdf` read from the PDFs); links only
+ *
+ * `cited_by` is no longer written (it would need updating whenever a new paper cites one): it is removed from
+ * every note on update. Obsidian's backlinks show the same thing.
  *
  * The "Unlinked cited works" section that Library Studio wrote (the same outside works, as OpenAlex ids) is removed
  * from every note found in OpenAlex. Only these generated parts of a note change; the rest of the text stays as it
@@ -87,14 +89,15 @@ function withoutCitationProps(text) {
 const blockRe = ([start, end]) => new RegExp(`(?:\\r?\\n)?${start}[\\s\\S]*?${end}\\r?\\n?`, "g");
 
 /**
- * The note with `cites` and `cited_by` replaced, and the retired "Citation network" section removed.
- * @param {string[]} refs library notes it cites @param {string[]} cited library notes citing it
+ * The note with `cites` replaced, and the retired properties (references, sites, cited_by) and "Citation network"
+ * section removed.
+ * @param {string[]} refs library notes it cites @param {string[]} [cited] not written any more (kept for callers)
  * @param {string[]} [external] cited works outside the library (DOIs, else OpenAlex ids), listed after the links
  */
-export function withCitations(text, refs, cited, external = []) {
+export function withCitations(text, refs, cited = [], external = []) {
   const eol = text.includes("\r\n") ? "\r\n" : "\n";
   let out = withoutCitationProps(text);
-  out = replaceProps(out, { cites: formatList("cites", refs, external), cited_by: formatList("cited_by", cited) });
+  out = replaceProps(out, { cites: formatList("cites", refs, external) });
   out = out.replace(blockRe(OLD_SECTION), "").replace(/[ \t]*(?:\r?\n)*$/, "");
   return `${out}${eol}`;
 }

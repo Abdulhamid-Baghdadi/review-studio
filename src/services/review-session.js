@@ -529,7 +529,7 @@ export class ReviewSession {
   /**
    * Export to the Obsidian library: the included papers become publication notes (from the template; a paper
    * already there only gets this review in `included_in`), then the citations between library papers are updated
-   * (`cites`, `cited_by`). Without OpenAlex the export still happens and the message says so.
+   * (`cites`). Without OpenAlex the export still happens and the message says so.
    */
   async exportToLibrary(template, { status = "" } = {}) {
     const added = await this.addToLibrary(template, { status });
@@ -549,7 +549,7 @@ export class ReviewSession {
   }
 
   /**
-   * Citations of the library's papers (`cites` with links and DOIs, `cited_by`). Without `apply` it only asks OpenAlex and says what would change; with `apply` it writes those notes
+   * Citations of the library's papers (`cites` with links and DOIs; an old `cited_by` is removed). Without `apply` it only asks OpenAlex and says what would change; with `apply` it writes those notes
    * (from the reference lists fetched for the preview, so a second click costs no OpenAlex requests).
    */
   async libraryCitations({ apply = false, onProgress } = {}) {

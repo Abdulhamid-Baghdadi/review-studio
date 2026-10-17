@@ -1,4 +1,4 @@
-// Citations of library papers (moved from Library Studio): `cites` / `cited_by` from OpenAlex reference lists,
+// Citations of library papers (moved from Library Studio): `cites` from OpenAlex reference lists (no cited_by),
 // cited works outside the library as DOIs in `cites` (links once they join the library), nothing else in the
 // notes touched, and a preview first.
 import { test } from "node:test";
@@ -41,10 +41,10 @@ test("the graph: links inside the library; outside works by DOI, else by OpenAle
 
 test("only the generated parts change; line endings and the rest of the note stay", () => {
   const unlinked = `\r\n\r\n${UNLINKED[0]}\r\n\r\n## Unlinked cited works\r\n\r\nOpenAlex works cited outside this library: W9.\r\n\r\n${UNLINKED[1]}`;
-  const text = note("10.1/a", unlinked, "\r\n").replace("type: publication", "type: publication\r\nreferences:\r\n  - \"[[old]]\"");
+  const text = note("10.1/a", unlinked, "\r\n").replace("type: publication", "type: publication\r\nreferences:\r\n  - \"[[old]]\"\r\ncited_by:\r\n  - \"[[old]]\"");
   const next = withoutUnlinked(withCitations(text, ["002 B"], [], ["10.9/outside", "W9"]));
-  assert.match(next, /^cites:\r\n  - "\[\[002 B\]\]"\r\n  - "10\.9\/outside"\r\n  - "W9"\r\ncited_by: \[\]\r\ncategory:/m, "links first, then DOIs and ids, before category");
-  assert.doesNotMatch(next, /^references:/m, "the retired property is removed");
+  assert.match(next, /^cites:\r\n  - "\[\[002 B\]\]"\r\n  - "10\.9\/outside"\r\n  - "W9"\r\ncategory:/m, "links first, then DOIs and ids, before category");
+  assert.doesNotMatch(next, /^(references|cited_by):/m, "the retired properties are removed");
   assert.doesNotMatch(next, /Unlinked cited works/, "the old section is gone: those works are in cites");
   assert.match(next, /My own words\.\r\n$/);
   assert.equal(withoutUnlinked(withCitations(next, ["002 B"], [], ["10.9/outside", "W9"])), next, "running it again changes nothing");
@@ -64,17 +64,17 @@ test("from the Report page: a preview first, then the notes are written; a DOI b
   const done = await s.libraryCitations({ apply: true });
   assert.equal(done.written, 3);
   assert.equal(openalex.calls.length, 2, "the library's papers, then the cited works' DOIs; writing reuses the preview's");
-  assert.match(await lib.readText("001 - A.md"), /^cites:\n  - "\[\[002 - B\]\]"\n  - "10\.9\/outside"\n  - "W9"\ncited_by: \[\]/m);
-  assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\ncited_by:\n  - "\[\[001 - A\]\]"/m);
+  assert.match(await lib.readText("001 - A.md"), /^cites:\n  - "\[\[002 - B\]\]"\n  - "10\.9\/outside"\n  - "W9"\ncategory:/m);
+  assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\ncategory:/m);
+  assert.doesNotMatch(await lib.readText("002 - B.md"), /^cited_by:/m, "no cited_by");
   assert.match(await lib.readText("001 - A.md"), /## Summary\n\nMy own words\.\n$/);
   assert.equal((await s.libraryCitations()).changed, 0);
 
-  // the cited work joins the library: the next update turns its DOI into a link, in both papers
+  // the cited work joins the library: the next update turns its DOI into a link
   await lib.writeText("004 - Outside.md", note("10.9/outside"));
   const s2 = await ReviewSession.open(memoryFolder(), { clock: { today: () => "2026-10-18", now: () => "2026-10-18 12:00" },
     settings: { name: "R", recordsPath: "R records/08 - Records" }, library: await openLibrary(lib),
     openalex: fakeOpenalex({ ...WORKS, "10.9/outside": { id: "https://openalex.org/W8", doi: "https://doi.org/10.9/outside", referenced_works: [] } }) });
   await s2.libraryCitations({ apply: true });
   assert.match(await lib.readText("001 - A.md"), /^cites:\n  - "\[\[002 - B\]\]"\n  - "\[\[004 - Outside\]\]"\n  - "W9"\n/m);
-  assert.match(await lib.readText("004 - Outside.md"), /^cited_by:\n  - "\[\[001 - A\]\]"\n  - "\[\[002 - B\]\]"/m);
 });

@@ -1,5 +1,5 @@
 /**
- * Citations of the papers of the publication library (`cites`, `cited_by`), from OpenAlex. Library papers are
+ * What the papers of the publication library cite (`cites`), from OpenAlex; an old `cited_by` is removed. Library papers are
  * looked up by DOI, 50 per request (about 4 requests for 200 papers); then the DOIs of the works they cite, 100 per
  * request, so that a cited work outside the library is listed by its DOI. Nothing is written until the reviewer
  * confirms the preview.

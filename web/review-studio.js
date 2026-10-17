@@ -1958,11 +1958,11 @@ function citationsCard() {
     h("div", { style: "margin-top:4px" }, written ? `✓ ${r.written} note(s) updated.` : r.changed ? `${r.changed} note(s) would change.` : "✓ Every note is up to date."),
     !written && r.changed ? h("div", { class: "row end", style: "margin-top:6px" }, btn(`Write to ${r.changed} note(s)`, async e => {
       const button = e.currentTarget;                         // (gone from the event once the dialog was awaited)
-      if (!(await confirmBox("Update citations", `Write 'cites' and 'cited_by' in ${r.changed} publication note(s)? The old 'Unlinked cited works' section is removed (those works are in 'cites' now). Nothing else in the notes changes.`, "Write"))) return;
+      if (!(await confirmBox("Update citations", `Write 'cites' in ${r.changed} publication note(s)? An old 'cited_by' and the old 'Unlinked cited works' section are removed (those works are in 'cites' now). Nothing else in the notes changes.`, "Write"))) return;
       const done = await busy(button, () => api("library_citations", { apply: true }, { silent: true }));
       if (done) show(done, true);
     }, "primary")) : null);
-  return card("Citations in your library", `What each library paper cites, from OpenAlex reference lists: 'cites' links to the library papers it cites and lists the others by DOI (an OpenAlex id when there is none); 'cited_by' links to the library papers citing it. Run it again after adding papers: DOIs of papers now in the library become links. Nothing is written until you confirm.`,
+  return card("Citations in your library", `What each library paper cites, from OpenAlex reference lists: 'cites' links to the library papers it cites and lists the others by DOI (an OpenAlex id when there is none). Which papers cite a paper: its backlinks in Obsidian. Run it again after adding papers: DOIs of papers now in the library become links. Nothing is written until you confirm.`,
     h("div", { class: "row" }, h("span", { class: "small muted", style: "flex:1" }, `Library: ${libraryName()}. Uses about one OpenAlex request per 50 papers, and one per 100 cited works.`),
       btn("🔗 Check citations", async e => {
         const r = await busy(e.currentTarget, () => api("library_citations", {}, { silent: true }));
