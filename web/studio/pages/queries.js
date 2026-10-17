@@ -8,7 +8,7 @@ import { h } from "../core/dom.js";
 import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
-import { autosize, btn, card, chipsInput, copy, hlQuery, pill } from "../ui/components.js";
+import { autosize, btn, card, chipsInput, copy, decDot, hlQuery, pill } from "../ui/components.js";
 
 PAGES.queries = () => {
   const dbs = [...S.state.queries.databases];
@@ -75,7 +75,7 @@ export function testSetCard() {
     const q = search.value.toLowerCase().trim();
     results.replaceChildren(...(q ? S.library.filter(x => x.stem.toLowerCase().includes(q)) : []).slice(0, 40).map(x =>
       h("div", { class: "qitem" + (sel.has(x.stem) ? " cur" : ""), onclick: () => { sel.has(x.stem) ? sel.delete(x.stem) : sel.add(x.stem); draw(); } },
-        h("span", { class: "dec-dot " + (sel.has(x.stem) ? "include" : "") }), h("span", { class: "t" }, x.stem), x.doi ? null : h("span", { class: "pill warn" }, "no DOI"))));
+        sel.has(x.stem) ? decDot("include", "in the test set") : decDot("pending", "not in the test set"), h("span", { class: "t" }, x.stem), x.doi ? null : h("span", { class: "pill warn" }, "no DOI"))));
     if (dirty()) tsSaver.schedule();
   };
   const search = h("input", { type: "text", placeholder: "Search your library (author, year, title words)…", oninput: draw });

@@ -4,13 +4,13 @@
  */
 import { api, busy } from "../core/api.js";
 import { h, store } from "../core/dom.js";
-import { D, S, SC } from "../core/state.js";
+import { D, REVIEW, S, SC } from "../core/state.js";
 import { PAGE_KEYS, PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
-import { bar, btn, decKind, highlight, openNote, pill, segmented } from "../ui/components.js";
-import { confirmBox } from "../ui/dialogs.js";
+import { bar, btn, decDot, decKind, highlight, openNote, pill, segmented } from "../ui/components.js";
+import { announce, confirmBox } from "../ui/dialogs.js";
 
-// The screening keys: I include, U unsure (title/abstract), E then 1–9 exclude with a reason, ← → move.
+// The screening keys: I include, U unsure (title/abstract), E then 1–9 exclude with a reason, Z undo, ← → move.
 PAGE_KEYS.screening = (e, typing) => {
   if (typing || e.ctrlKey || e.metaKey || e.altKey || !SC.id) return false;
   const k = e.key.toLowerCase();
@@ -18,6 +18,7 @@ PAGE_KEYS.screening = (e, typing) => {
   else if (k === "u" && SC.stage === "ta") decide("unsure");
   else if (k === "e") { SC.excl = true; render(); }
   else if (/^[1-9]$/.test(k) && SC.excl) { const r = S.reasons[SC.stage][+k - 1]; if (r) decide("exclude", r.split(" ")[0]); }
+  else if (k === "z" && lastDecision()) undo();
   else if (e.key === "ArrowRight") move(1);
   else if (e.key === "ArrowLeft") move(-1);
   else return false;
@@ -39,13 +40,36 @@ function queue() {
   return SC.filter === "todo" ? ft.filter(r => ["", "pending"].includes(r.ft_decision) && r.pdf_status !== "not-retrieved") : ft;
 }
 
+const KEYS = stage => (stage === "ta" ? ["ta_decision", "ta_reason"] : ["ft_decision", "ft_reason"]);
+const DONE = { include: "included", exclude: "excluded", unsure: "marked unsure", pending: "open again", "": "open again" };
+
 async function decide(decision, reason = "") {
   const q = queue(), i = q.findIndex(r => r.record_id === SC.id);
   if (i < 0) return;
-  const next = q[i + 1] || q[i - 1];
+  const rec = q[i], [dkey, rkey] = KEYS(SC.stage), next = q[i + 1] || q[i - 1];
+  const before = { decision: rec[dkey] ?? "", reason: rec[rkey] ?? "" };
   await api("decide", { record_id: SC.id, stage: SC.stage, decision, reason }, { silent: true });
+  SC.last = { review: REVIEW, id: rec.record_id, stage: SC.stage, before, decision, reason };   // what Undo puts back
+  announce(`${rec.record_id} ${DONE[decision]}${reason ? ", " + reason : ""}. Z to undo.`);
   SC.excl = false;
   if (SC.filter === "todo") SC.id = next ? next.record_id : null;
+  render();
+}
+
+/** The reviewer's last decision in this review, while its record is still there. */
+const lastDecision = () => SC.last && SC.last.review === REVIEW && S.records.some(r => r.record_id === SC.last.id) ? SC.last : null;
+
+/**
+ * Undo (Z): puts back the decision the last record had before, and shows that record again. A slip in fast
+ * keyboard screening costs one key; the decision log records it as undone.
+ */
+async function undo() {
+  const l = lastDecision();
+  if (!l) return;
+  await api("decide", { record_id: l.id, stage: l.stage, decision: l.before.decision, reason: l.before.reason, undo: true }, { silent: true });
+  SC.last = null; SC.stage = l.stage; SC.id = l.id; SC.excl = false;
+  announce(`Undone: ${l.id} is ${["", "pending"].includes(l.before.decision) ? "open" : DONE[l.before.decision]} again.`);
+  if (!queue().some(r => r.record_id === l.id)) SC.filter = "all";
   render();
 }
 
@@ -115,16 +139,9 @@ PAGES.screening = () => {
         rec.oa_url ? h("a", { href: rec.oa_url, target: "_blank", class: "btn sm" }, "Open access ↗") : null,
         SC.stage === "ft" ? pill(rec.pdf_status ? "PDF: " + rec.pdf_status : "PDF: not checked", rec.pdf_status === "found" ? "ok" : rec.pdf_status ? "bad" : "") : null),
       absBox,
-      h("div", { class: "decide" },
-        h("button", { class: "inc" + (cur === "include" ? " on" : ""), onclick: () => decide("include") }, "✓ Include", h("kbd", {}, "I")),
-        SC.stage === "ta" ? h("button", { class: "uns" + (cur === "unsure" ? " on" : ""), onclick: () => decide("unsure") }, "? Unsure", h("kbd", {}, "U"))
-          : h("button", { class: "uns", onclick: () => api("mark_pdf", { record_id: rec.record_id, status: "not-retrieved" }) }, "⊘ Not retrieved"),
-        h("button", { class: "exc" + (cur === "exclude" ? " on" : ""), onclick: () => { SC.excl = true; reasonRow.style.display = ""; } }, "✕ Exclude", h("kbd", {}, "E"))),
-      reasonRow,
       h("div", { style: "margin-top:12px" }, notes),
       decisionHistory(rec.record_id),
-      h("div", { class: "row", style: "margin-top:12px;justify-content:space-between" },
-        btn("← Previous", () => move(-1), "ghost"), h("span", { class: "kbdhint" }, "I include · U unsure · E exclude · 1–9 reason · ←/→ move"), btn("Next →", () => move(1), "ghost")));
+      decisionBar(rec, cur, reasonRow));
   }
 
   // the queue lists at most 400 records: those around the current one, so it is always in view
@@ -134,7 +151,7 @@ PAGES.screening = () => {
     h("div", { class: "card", style: "padding:12px" }, h("h2", { style: "padding:4px 6px" }, `Queue (${q.length})`,
       q.length > shown.length ? h("span", { class: "small muted" }, ` · showing ${from + 1}–${from + shown.length}`) : null),
       h("div", { class: "queue" }, shown.map(r => h("div", { class: "qitem" + (r.record_id === SC.id ? " cur" : ""), onclick: () => { SC.id = r.record_id; SC.excl = false; render(); } },
-        h("span", { class: "dec-dot " + r[dkey] }), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
+        decDot(r[dkey] || "pending"), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
     S.problems.length ? h("div", { class: "card", style: "padding:12px;border-left:4px solid var(--bad)" }, h("h2", {}, `${S.problems.length} problem(s)`),
       S.problems.slice(0, 30).map(p => h("div", { class: "small", style: "padding:3px 0;cursor:pointer", onclick: () => { SC.id = p.record_id; SC.filter = "all"; render(); } }, h("b", {}, p.record_id), " ", p.text))) : null);
   setTimeout(() => {                                    // keep the current record in view inside the queue list
@@ -145,6 +162,28 @@ PAGES.screening = () => {
   });
   return h("div", {}, head, h("div", { class: "screen" }, main, side));
 };
+
+/**
+ * The decision buttons, kept in view at the foot of the window while the abstract is read (sticky), so a decision
+ * never needs a scroll first (Fitts). Above them: the last decision with its Undo, and Previous / Next.
+ */
+function decisionBar(rec, cur, reasonRow) {
+  const last = lastDecision();
+  const pressed = d => ({ "aria-pressed": String(cur === d) });
+  return h("div", { class: "decide-bar" },
+    h("div", { class: "decide-top" },
+      last ? h("span", { class: "last-decision" }, decDot(last.decision), h("span", {}, h("b", {}, last.id), ` ${DONE[last.decision]}${last.reason ? " · " + last.reason : ""}`),
+        btn(["↶ Undo ", h("kbd", {}, "Z")], undo, "sm ghost", `Put back the decision ${last.id} had before`))
+        : h("span", { class: "kbdhint" }, "I include · U unsure · E exclude, then 1–9 reason · Z undo · ←/→ previous / next"),
+      h("span", { class: "spacer" }),
+      btn("← Previous", () => move(-1), "sm ghost", "Previous record (←)"), btn("Next →", () => move(1), "sm ghost", "Next record (→)")),
+    h("div", { class: "decide" },
+      h("button", { class: "inc" + (cur === "include" ? " on" : ""), ...pressed("include"), onclick: () => decide("include") }, "✓ Include", h("kbd", {}, "I")),
+      SC.stage === "ta" ? h("button", { class: "uns" + (cur === "unsure" ? " on" : ""), ...pressed("unsure"), onclick: () => decide("unsure") }, "? Unsure", h("kbd", {}, "U"))
+        : h("button", { class: "uns", onclick: () => api("mark_pdf", { record_id: rec.record_id, status: "not-retrieved" }) }, "⊘ Not retrieved"),
+      h("button", { class: "exc" + (cur === "exclude" ? " on" : ""), ...pressed("exclude"), onclick: () => { SC.excl = true; reasonRow.style.display = ""; } }, "✕ Exclude", h("kbd", {}, "E"))),
+    reasonRow);
+}
 
 function suggestView(q) {
   const batch = q.slice(0, 50);
@@ -172,7 +211,7 @@ function suggestView(q) {
         const sel = h("select", { onchange: e => { choice[r.record_id] = e.target.value; render(); } }, opts.map(([v, t]) => h("option", { value: v, selected: v === val(r) }, t)));
         const abs = h("div", { class: "small muted", style: "display:none;margin-top:6px;max-width:640px" });
         return h("tr", {},
-          h("td", {}, h("span", { class: "dec-dot " + val(r).split(":")[0] })),
+          h("td", {}, decDot(val(r).split(":")[0])),
           h("td", { style: "max-width:560px" }, h("a", { href: "#", onclick: async e => {
             e.preventDefault();
             if (abs.style.display === "none") { if (!abs.textContent) { const j = await api("record_abstract", { record_id: r.record_id }, { silent: true }); abs.innerHTML = highlight(j.record.abstract || "No abstract."); } abs.style.display = ""; }

@@ -18,6 +18,13 @@ export const iconBtn = (icon, label, onclick, cls = "") => h("button", { class: 
 export const bar = frac => h("div", { class: "bar" }, h("i", { style: `width:${Math.round((frac || 0) * 100)}%` }));
 export const statusKind = s => ({ done: "ok", "in-progress": "accent", skipped: "", "not-started": "" }[s]);
 export const decKind = d => ({ include: "ok", exclude: "bad", unsure: "warn", pending: "", "": "" }[d] ?? "");
+const DECIDED = { include: "included", exclude: "excluded", unsure: "unsure", pending: "not decided yet", "": "not decided yet" };
+/**
+ * A decision as a small round mark: ✓ include, ✕ exclude, ? unsure, an empty ring when open. The symbol and its name
+ * (read out, and shown as a tooltip) carry the meaning, so it never rests on colour alone (WCAG 1.4.1).
+ */
+export const decDot = (decision, name = DECIDED[decision] ?? decision) =>
+  h("span", { class: "dec-dot " + (decision || "pending"), role: "img", "aria-label": name, title: name });
 
 /** A row of buttons of which one is on; each says whether it is pressed, so screen readers know the mode. */
 export function segmented(options, value, onchange, label) {

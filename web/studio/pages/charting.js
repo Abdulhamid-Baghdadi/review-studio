@@ -9,7 +9,7 @@ import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
 import { exampleFor } from "../shell/help.js";
-import { autosize, bar, btn, card, field, iconBtn, openNote, pill, segmented } from "../ui/components.js";
+import { autosize, bar, btn, card, decDot, field, iconBtn, openNote, pill, segmented } from "../ui/components.js";
 
 PAGES.charting = () => {
   const fields = D.fields ??= S.state.charting.fields.map(f => ({ ...f }));
@@ -73,7 +73,7 @@ PAGES.charting = () => {
         segmented([["all", `All ${inc.length}`], ["ft", `Full text ${n("ft")}`], ["abs", `Abstract ${n("abs")}`], ["me", `Checked ${n("me")}`]], flt,
           v => { D.cfilter = v; D.chartSel = null; render(); }, "Show papers"),
         h("div", { class: "queue", style: "max-height:640px;margin-top:10px" }, list.map(r => h("div", { class: "qitem" + (r.record_id === sel ? " cur" : ""), onclick: () => { D.chartSel = r.record_id; render(); } },
-          h("span", { class: "dec-dot " + (kind(r) === "me" ? "include" : r.pdf_status === "found" ? "unsure" : "") }), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
+          kind(r) === "me" ? decDot("include", "checked by you") : decDot(r.pdf_status === "found" ? "unsure" : "pending", `prefilled by AI from the ${r.pdf_status === "found" ? "full text" : "abstract"}, not checked yet`), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
       card(null, null, form)),
     h("details", { class: "card", style: "margin-top:16px" },
       h("summary", { style: "font-weight:700;color:var(--text)" }, "Charting form (fields)", h("span", { class: "muted small", style: "font-weight:400" }, ` — the data items (${S.review_type.refs.dataItems}); changing them after locking is an amendment`)),

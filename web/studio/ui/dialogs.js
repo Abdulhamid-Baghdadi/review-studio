@@ -35,6 +35,14 @@ export function toast(text, kind = "") {
   t.addEventListener("mouseleave", () => { timer = setTimeout(() => t.remove(), 1500); });
 }
 
+/** Says something to screen-reader users only (a result shown elsewhere on the page, e.g. a screening decision). */
+export function announce(text) {
+  const region = $("#srStatus");
+  if (!region) return;
+  region.textContent = "";
+  setTimeout(() => { region.textContent = text; }, 50);   // a change, even when the same words come twice
+}
+
 let dialogs = 0;
 /**
  * A modal dialog (WAI-ARIA dialog pattern): named by its title, focus moves in when it opens, Tab stays inside,

@@ -351,7 +351,7 @@ export class Backend {
         return s.importSearch({ fileName: f.name, bytes: f.bytes, database: a.database, query: a.query, date: a.date || undefined, filters: a.filters ?? "", other: Boolean(a.other) }, { force: Boolean(a.force) });
       }
       case "add_paper": return s.addPaper(a);
-      case "decide": return s.decide(a.record_id, a.stage, a.decision, { reason: a.reason ?? "", notes: a.notes });
+      case "decide": return s.decide(a.record_id, a.stage, a.decision, { reason: a.reason ?? "", notes: a.notes, undo: Boolean(a.undo) });
       case "bulk_decide": return s.bulkDecide(a.ids, a.reason ?? "");
       case "apply_decisions": return s.applyDecisions(a.items, a.stage ?? "ta");
       case "clear_presort": return s.clearPresort(a.ids);

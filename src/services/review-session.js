@@ -281,10 +281,13 @@ export class ReviewSession {
 
   addPaper(paper) { return addPaper(this.repo, paper, this.library); }
 
-  /** One screening decision (with the reason when excluding, and optionally the notes). */
-  async decide(recordId, stage, decision, { reason = "", notes } = {}) {
+  /**
+   * One screening decision (with the reason when excluding, and optionally the notes). With `undo`, it puts back the
+   * decision a record had before the reviewer's last one, and the decision log says so.
+   */
+  async decide(recordId, stage, decision, { reason = "", notes, undo = false } = {}) {
     const changed = screening.decide(this.repo, recordId, stage, decision, { reason, notes });
-    await this.#afterScreeningChange(changed, HOW.hand);
+    await this.#afterScreeningChange(changed, undo ? HOW.undo : HOW.hand);
     await this.save();
   }
 

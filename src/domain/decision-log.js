@@ -23,6 +23,7 @@ export const LOGGED_DECISIONS = Object.freeze([
 /** How a decision came about (the `how` column). */
 export const HOW = Object.freeze({
   hand: "by hand",
+  undo: "undone by the reviewer (the decision before is restored)",
   rule: "rule-based pre-sort, confirmed by the reviewer",
   ai: "AI suggestion, reviewed by the reviewer",
   sheet: "second-reviewer sheet imported",

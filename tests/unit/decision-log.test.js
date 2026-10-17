@@ -33,6 +33,17 @@ test("each decision and each change of mind is a row with the reviewer's initial
   assert.deepEqual(await s.repo.decisionLog.verify(), { rows: 3, intact: true, brokenAt: "", last: (await s.repo.decisionLog.read())[2].hash });
 });
 
+test("undoing a decision puts the one before back, and the log says it was undone", async () => {
+  const s = await review();
+  await s.decide("R0001", "ta", "exclude", { reason: "E2" });                 // a slip: meant to include
+  await s.decide("R0001", "ta", "pending", { undo: true });
+  assert.equal(s.repo.records.get("R0001").props.ta_decision, "pending");
+  assert.equal(s.repo.records.get("R0001").props.ta_reason, "");
+  const h = await s.repo.decisionLog.history("R0001");
+  assert.deepEqual(h.map(r => [r.from, r.to, r.reason, r.how]), [["pending", "exclude", "E2", HOW.hand], ["exclude", "pending", "", HOW.undo]]);
+  assert.equal((await s.repo.decisionLog.verify()).intact, true);
+});
+
 test("a decision changed in Obsidian is found when the review is opened again", async () => {
   const s = await review();
   await s.decide("R0003", "ta", "include");
