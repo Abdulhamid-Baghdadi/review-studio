@@ -318,6 +318,10 @@ export class Backend {
       case "add_to_library":
         if (!this.session.library.folder) throw new Error("Choose a library folder in Settings first.");
         return s.addToLibrary(this.templates.publication);
+      case "library_citations": {
+        if (!this.session.library.folder) throw new Error("Choose a library folder in Settings first.");
+        return { raw: await s.libraryCitations({ apply: Boolean(a.apply) }) };
+      }
       case "prepare_charting": return s.prepareCharting(Boolean(a.appraisal));
       case "appraisal_tool": return s.setAppraisalTool(a.tool);
       case "review_type": return s.setReviewType(a.type, amendment);

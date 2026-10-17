@@ -111,11 +111,12 @@ Project 2 review records/
 └── review_state.json           stages, protocol, settings
 ```
 
-Each record note keeps its decisions in its properties (`ta_decision`, `ft_decision`, `ta_reason`, …), so you can also browse and filter the review in Obsidian. *Settings → Review settings* links the folder to your Obsidian vault, so notes open there with one click.
+Each record note keeps its decisions in its properties, in full words (`title_abstract_decision`, `full_text_decision`, `full_text_status`, `extracted_<field>`, …), with the properties it shares with a library's publication notes first (`title`, `authors`, `year`, `journal`, `doi`, `url`, `openalex`), so you can also browse and filter the review in Obsidian. Reviews made with the older short names (`ta_decision` …) are upgraded the first time they are opened. *Settings → Review settings* links the folder to your Obsidian vault, so notes open there with one click.
 
 ## Traceability
 
 - **Decision log.** Every change of a screening decision (title/abstract, full text, second reviewer) is a row in `08 - Decision log.csv`: when, old → new decision, reason, who (your initials, set in *Settings → Review settings*) and how (by hand, a reviewed AI suggestion, a rule, an imported sheet, or an edit outside the app such as in Obsidian). Each row's SHA-256 covers the row before it, so an edited or deleted row shows: *Report → Check the decision log*. Each record shows its own history under the screening buttons.
+- **Citations in your library.** *Report → Check citations* looks up the papers of your publication library on OpenAlex (by DOI, about one request per 50 papers) and writes which library papers cite each other into `cites` and `cited_by` (for Obsidian's graph), plus the works they cite outside the library as plain OpenAlex ids under *Unlinked cited works*. It shows what would change first; nothing else in the notes is touched. (This used to be Library Studio's Citations page; the rules are the same.)
 - **Review package.** *Report → Make review package* writes `07 - Exports/Review package <date>/` and the same as a ZIP: the registered and current protocol, timeline and amendments, search strings and export files, every decision with its reason, the decision log, the second-reviewer sheets, the charting or extraction table, the flow diagram, the checklist and a report on AI use. `MANIFEST.md` lists the SHA-256 of every file, so a copy deposited on OSF or Zenodo can be checked.
 
 ## AI assistance with Claude (optional)

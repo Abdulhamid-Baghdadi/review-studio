@@ -12,6 +12,7 @@ import { buildQuery } from "../domain/queries.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
 import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setReviewType, setStatus, touch } from "../domain/stages.js";
 import { checkScreening, drawSample, importSearch, importSecondReviewer, addPaper, writeReport, ReviewError } from "./review-commands.js";
+import { fetchLibraryWorks, planLibraryCitations, writeLibraryCitations } from "./library-citations.js";
 import { addKeptToLibrary, applyLibrarySync, emptyLibrary, planLibrarySync } from "./library.js";
 import { loadState, saveState } from "./review-state.js";
 import { HOW } from "../domain/decision-log.js";
@@ -531,6 +532,25 @@ export class ReviewSession {
     await this.save();
     return "Library: " + ([...done].map(([k, v]) => `${v} ${k}`).join(", ") || "nothing to add") + ".";
   }
+
+  /**
+   * Citations between the library's papers (`cites`, `cited_by`, "Unlinked cited works"), as Library Studio wrote
+   * them. Without `apply` it only asks OpenAlex and says what would change; with `apply` it writes those notes
+   * (from the reference lists fetched for the preview, so a second click costs no OpenAlex requests).
+   */
+  async libraryCitations({ apply = false, onProgress } = {}) {
+    if (!this.library.folder) throw new ReviewError("Choose a library folder first.");
+    if (!apply || !this.#citationWorks) this.#citationWorks = await fetchLibraryWorks(this.library, this.#requireOpenalex(), onProgress);
+    const { summary, changes } = await planLibraryCitations(this.library, this.#citationWorks);
+    if (!apply) return { ...summary, changed: changes.length, written: 0 };
+    const written = await writeLibraryCitations(this.library, changes);
+    event(this.st, "report", `library citations updated from OpenAlex: ${summary.links} links between ${summary.found} of ${summary.publications} papers, ${written} note(s) written`, this.now);
+    this.#citationWorks = null;
+    await this.save();
+    return { ...summary, changed: changes.length, written };
+  }
+
+  #citationWorks = null;
 
   /** Marks in the library which publications this review considered and included. */
   async sync(apply = false) {

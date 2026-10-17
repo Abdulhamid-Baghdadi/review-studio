@@ -1949,6 +1949,27 @@ function outcomeEditor() {
     h("div", { class: "row end", style: "margin-top:10px" }, btn("Cancel", () => { delete D.outcome; render(); }, "ghost"), btn("Save and analyse", save, "primary")));
 }
 
+// Citations between the papers of the library (formerly Library Studio's Citations page): preview, then write.
+function citationsCard() {
+  const out = h("div", { class: "small", style: "margin-top:8px" });
+  const show = (r, written) => out.replaceChildren(
+    h("div", {}, `${r.publications} publication notes · ${r.found} found in OpenAlex by DOI · ${r.links} citations between library papers`),
+    r.missing ? h("div", { class: "muted" }, `${r.missing} without a DOI found in OpenAlex: their 'cites' stays empty.`) : null,
+    h("div", { style: "margin-top:4px" }, written ? `✓ ${r.written} note(s) updated.` : r.changed ? `${r.changed} note(s) would change.` : "✓ Every note is up to date."),
+    !written && r.changed ? h("div", { class: "row end", style: "margin-top:6px" }, btn(`Write to ${r.changed} note(s)`, async e => {
+      const button = e.currentTarget;                         // (gone from the event once the dialog was awaited)
+      if (!(await confirmBox("Update citations", `Write 'cites', 'cited_by' and the 'Unlinked cited works' block in ${r.changed} publication note(s)? Nothing else in the notes changes.`, "Write"))) return;
+      const done = await busy(button, () => api("library_citations", { apply: true }, { silent: true }));
+      if (done) show(done, true);
+    }, "primary")) : null);
+  return card("Citations in your library", `Which library papers cite each other, from OpenAlex reference lists: the properties 'cites' and 'cited_by' (for the graph) and the cited works outside the library as plain OpenAlex ids. Run it after adding papers. Nothing is written until you confirm.`,
+    h("div", { class: "row" }, h("span", { class: "small muted", style: "flex:1" }, `Library: ${libraryName()}. Uses about one OpenAlex request per 50 papers.`),
+      btn("🔗 Check citations", async e => {
+        const r = await busy(e.currentTarget, () => api("library_citations", {}, { silent: true }));
+        if (r) show(r, false);
+      }, "")), out);
+}
+
 PAGES.report = () => {
   const auto = S.checklist_auto;
   const kept = S.records.filter(r => r.ft_decision === "include");
@@ -1960,6 +1981,7 @@ PAGES.report = () => {
           if (await confirmBox("Add to library", `Copy ${kept.length} included paper(s) to ${libraryName()}? Do this when screening is final.`, "Add"))
             busy(e.target, () => api("add_to_library"));
         }, "primary"))) : null,
+    S.library?.length ? citationsCard() : null,
     card("Traceability", "Every change of a screening decision is in 08 - Decision log.csv (when, who, how), chained with SHA-256 so that an edited row shows. The review package collects the protocol, searches, decisions, log, second-reviewer sheets, charting, flow, checklist and AI use, with a checksum per file, ready to deposit on OSF or Zenodo.",
       h("div", { class: "row" },
         btn("Check the decision log", async e => {
