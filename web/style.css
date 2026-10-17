@@ -620,3 +620,6 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .save-state.saving { color: var(--muted); }
 .save-state.locked { color: var(--warn); }
 .save-state.error { color: var(--bad); font-weight: 600; }
+
+/* narrow windows (e.g. a browser pane beside another app): the top bar wraps instead of pushing buttons off screen */
+@media (max-width: 1100px) { .toolbar { flex-wrap: wrap; row-gap: 4px; } }

@@ -47,8 +47,8 @@ export function testSet(library, reviewLink) {
 }
 
 const noteName = link => String(link ?? "").replace(/^[[\]]+|[[\]]+$/g, "");
-// a property value is iterated: a list item by item, a text character by character
-const asList = v => (Array.isArray(v) ? v : typeof v === "string" ? [...v] : []).filter(Boolean);
+// a list property, also when it was typed as one link of text ("[[Review]]") rather than as a list
+const asList = v => (Array.isArray(v) ? v : typeof v === "string" && v.trim() ? [v.trim()] : []).filter(Boolean);
 
 /**
  * What the library should say about this review: `included_in` on the publications of included records,
@@ -84,6 +84,7 @@ export async function applyLibrarySync(library, repo, { changes }) {
     let text = await library.folder.readText(file);
     for (const c of list) text = frontmatter.replaceList(text, c.key, c.values);
     await library.folder.writeText(file, text);
+    library.notes.set(note, { ...library.notes.get(note), ...Object.fromEntries(list.map(c => [c.key, c.values])) });
   }
   if (changes.length) await repo.log("sync", `${changes.length} property change(s) in publication notes`);
   return byNote.size;
@@ -116,15 +117,16 @@ export async function addKeptToLibrary(repo, st, library, { template }) {
       bump("added");
     }
     const [props, body] = frontmatter.parse(await library.folder.readText(`${stem}.md`));
-    const current = props.included_in;                       // a list, or text typed by hand 
+    const current = props.included_in;                       // a list, or text typed by hand (one link)
     const listed = (Array.isArray(current) || typeof current === "string") && current.includes(repo.link);
-    if (!listed) props.included_in = [...(Array.isArray(current) ? current : typeof current === "string" ? [...current] : []), repo.link];
+    if (!listed) props.included_in = [...(Array.isArray(current) ? current : typeof current === "string" && current.trim() ? [current.trim()] : []), repo.link];
     const pdf = `${FULLTEXT_DIR}/${r.file.split("/").pop().replace(/\.md$/, "")}.pdf`;
     if (!props.pdf && (await repo.folder.exists(pdf))) {
       await library.folder.writeBytes(`PDFs/${stem}.pdf`, await repo.folder.readBytes(pdf));
       props.pdf = `[[${stem}.pdf]]`;
     }
     await library.folder.writeText(`${stem}.md`, frontmatter.serialize(props) + body);
+    library.notes.set(stem, props);                          // the sync and the test set read these, not the file
     if (f.publication !== `[[${stem}]]`) repo.put({ ...repo.records.get(r.id), props: { ...repo.records.get(r.id).props, publication: `[[${stem}]]` } });
   }
   await repo.save();
