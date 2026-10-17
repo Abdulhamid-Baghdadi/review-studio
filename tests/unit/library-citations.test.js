@@ -59,10 +59,11 @@ test("from the Report page: a preview first, then the notes are written; a DOI b
     settings: { name: "R", recordsPath: "R records/08 - Records" }, library, openalex });
   const before = await lib.readText("001 - A.md");
   const preview = await s.libraryCitations();
-  assert.deepEqual([preview.publications, preview.found, preview.links, preview.outside, preview.changed, preview.written], [3, 2, 1, 3, 3, 0]);
+  assert.deepEqual([preview.publications, preview.found, preview.links, preview.outside, preview.changed, preview.written], [3, 2, 1, 3, 2, 0], "003 - C has no DOI: not found, so not changed");
   assert.equal(await lib.readText("001 - A.md"), before, "the preview writes nothing");
   const done = await s.libraryCitations({ apply: true });
-  assert.equal(done.written, 3);
+  assert.equal(done.written, 2);
+  assert.equal(await lib.readText("003 - C.md"), note(""), "a note OpenAlex did not return stays as it was");
   assert.equal(openalex.calls.length, 2, "the library's papers, then the cited works' DOIs; writing reuses the preview's");
   assert.match(await lib.readText("001 - A.md"), /^cites:\n  - "\[\[002 - B\]\]"\n  - "10\.9\/outside"\n  - "W9"\ncategory:/m);
   assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\ncategory:/m);
@@ -77,4 +78,18 @@ test("from the Report page: a preview first, then the notes are written; a DOI b
     openalex: fakeOpenalex({ ...WORKS, "10.9/outside": { id: "https://openalex.org/W8", doi: "https://doi.org/10.9/outside", referenced_works: [] } }) });
   await s2.libraryCitations({ apply: true });
   assert.match(await lib.readText("001 - A.md"), /^cites:\n  - "\[\[002 - B\]\]"\n  - "\[\[004 - Outside\]\]"\n  - "W9"\n/m);
+});
+
+test("a note OpenAlex does not return keeps its cites, also when OpenAlex answers with nothing at all", async () => {
+  const kept = note("10.1/unknown", "").replace("category:", 'cites:\n  - "[[002 - B]]"\n  - "10.9/outside"\ncategory:') + ["", UNLINKED[0], "W5", UNLINKED[1], ""].join("\n");
+  const lib = memoryFolder({ "001 - A.md": kept, "002 - B.md": note("10.1/b") });
+  const open = async openalex => ReviewSession.open(memoryFolder(), { clock: { today: () => "2026-10-17", now: () => "2026-10-17 12:00" },
+    settings: { name: "R", recordsPath: "R records/08 - Records" }, library: await openLibrary(lib), openalex });
+  const silent = await open({ get: async () => ({ results: [] }) });
+  const none = await silent.libraryCitations({ apply: true });
+  assert.deepEqual([none.found, none.written], [0, 0], "nothing found, nothing written");
+  assert.equal(await lib.readText("001 - A.md"), kept);
+  await (await open(fakeOpenalex())).libraryCitations({ apply: true });
+  assert.equal(await lib.readText("001 - A.md"), kept, "only 002 - B is found; 001 - A is untouched, its Unlinked block too");
+  assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\ncategory:/m);
 });

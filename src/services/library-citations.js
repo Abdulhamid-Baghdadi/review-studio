@@ -46,8 +46,9 @@ export async function fetchLibraryWorks(library, openalex, onProgress = () => {}
 }
 
 /**
- * What the citation step would change: each note's new text, and the counts. Notes not found in OpenAlex keep
- * their "Unlinked cited works" block (it may come from elsewhere); their `cites` is emptied, as in Library Studio.
+ * What the citation step would change: each note's new text, and the counts. Notes OpenAlex did not return are
+ * left as they are: their `cites` may come from elsewhere (Library Studio's title match, a reading of the PDF), and
+ * an empty or partial answer from OpenAlex must never empty it.
  * @param {CitationData} data
  * @returns {Promise<{summary: object, changes: {stem: string, text: string, next: string}[]}>}
  */
@@ -57,9 +58,9 @@ export async function planLibraryCitations(library, { works, refDois }) {
   const graph = citationGraph(dois, works, refsPdf, { ...(await knownLibraryIds(library)), refDois });
   const changes = [];
   for (const stem of library.notes.keys()) {
+    if (!graph.refs.has(stem)) continue;                // not found in OpenAlex: nothing to replace its cites with
     const text = await library.folder.readText(`${stem}.md`);
-    let next = withCitations(text, graph.refs.get(stem) ?? [], graph.cited.get(stem) ?? [], graph.external.get(stem) ?? []);
-    if (graph.external.has(stem)) next = withoutUnlinked(next);
+    const next = withoutUnlinked(withCitations(text, graph.refs.get(stem), graph.cited.get(stem) ?? [], graph.external.get(stem) ?? []));
     if (next !== text) changes.push({ stem, text, next });
   }
   return { summary: citationSummary(dois, graph), changes };

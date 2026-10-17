@@ -8,7 +8,7 @@ import { integrityProblems, lockChecks, protocolMarkdown } from "../../src/domai
 import { autoDone, chartingProgress, workComplete } from "../../src/domain/progress.js";
 import { bibtex, citekeyOf, timelineNote, zoteroRis } from "../../src/domain/stage-notes.js";
 import { abstractFromIndex, workToEntry } from "../../src/domain/openalex.js";
-import { fileTitle, nextIndex, shortAuthors } from "../../src/domain/publications.js";
+import { fileTitle, libraryCitekey, nextIndex, shortAuthors } from "../../src/domain/publications.js";
 import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "../../src/domain/vocabulary.js";
 import { OpenAlexClient } from "../../src/services/openalex-client.js";
 
@@ -118,7 +118,17 @@ test("OpenAlex works and publication names", () => {
     authorships: [{ author: { display_name: "Ann Lee" } }, { author: null }], primary_location: { source: { display_name: "J" } } });
   assert.deepEqual([e.authors, e.doi, e.journal, e.url], ["Ann Lee", "10.1/x", "J", "https://doi.org/10.1/X"]);
   assert.equal(shortAuthors("Liu, Z. and Zhong, P."), "Liu & Zhong");
+  assert.equal(shortAuthors("Rebecca M. Henderson; Kim B. Clark"), "Henderson & Clark", "names given first, as from OpenAlex");
+  assert.equal(shortAuthors("Karl T. Ulrich"), "Ulrich");
   assert.equal(fileTitle("A: very/long " + "word ".repeat(30)).length <= 90, true);
+  assert.equal(fileTitle("Architectural Innovation: The Reconfiguration of Existing Product Technologies"),
+    "Architectural Innovation - The Reconfiguration of Existing Product Technologies", "a colon becomes ' - ', as in the library");
+  assert.equal(fileTitle("Why? A note : on/off"), "Why A note - onoff");
+  assert.equal(libraryCitekey("Ulrich, Karl T.", 1995), "ulrich1995");
+  assert.equal(libraryCitekey("Ellen Bracquené; Jef R. Peeters", 2019), "bracquene2019", "accents folded, name given first");
+  assert.equal(libraryCitekey("De Fazio, Thomas L.", 1987), "defazio1987");
+  assert.equal(libraryCitekey("Baldwin, C. Y.; Clark, K. B.", 2000, new Set(["baldwin2000", "baldwin2000a"])), "baldwin2000b");
+  assert.equal(libraryCitekey("", ""), "anonnd");
   assert.equal(nextIndex(new Map([["a", { index: 7 }], ["b", { index: "12" }], ["c", {}]])), 13);
 });
 

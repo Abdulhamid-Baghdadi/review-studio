@@ -127,7 +127,8 @@ export async function addKeptToLibrary(repo, st, library, { template, status = "
     let stem = library.notes.has(linked) ? linked : library.index.find(f.doi, f.title, yearOf(f.year));
     if (stem) bump("already in library");
     else {
-      const note = newPublicationNote({ record: f, recordBody: r.body, index: nextIndex(library.notes), reviewName: repo.name, reviewLink: repo.link, template, today: repo.clock.today(), status });
+      const citekeys = new Set([...library.notes.values()].map(p => String(p.citekey ?? "")).filter(Boolean));
+      const note = newPublicationNote({ record: f, recordBody: r.body, index: nextIndex(library.notes), reviewName: repo.name, reviewLink: repo.link, template, today: repo.clock.today(), status, citekeys });
       await library.folder.writeText(`${note.stem}.md`, frontmatter.serialize(note.props) + note.body);
       library.index.add(note.stem, f.doi, f.title, yearOf(f.year));
       library.notes.set(note.stem, note.props);

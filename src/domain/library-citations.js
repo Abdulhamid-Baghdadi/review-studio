@@ -7,7 +7,8 @@
  *              after adding papers turns those DOIs into links.
  *
  * `cited_by` is no longer written (it would need updating whenever a new paper cites one): it is removed from
- * every note on update. Obsidian's backlinks show the same thing.
+ * every note found in OpenAlex on update. Obsidian's backlinks show the same thing. A note OpenAlex does not return
+ * is not changed at all.
  *
  * The "Unlinked cited works" section that Library Studio wrote (the same outside works, as OpenAlex ids) is removed
  * from every note found in OpenAlex. Only these generated parts of a note change; the rest of the text stays as it
