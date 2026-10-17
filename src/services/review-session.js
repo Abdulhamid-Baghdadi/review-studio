@@ -549,8 +549,7 @@ export class ReviewSession {
   }
 
   /**
-   * Citations between the library's papers (`cites`, `cited_by`, "Unlinked cited works"), as Library Studio wrote
-   * them. Without `apply` it only asks OpenAlex and says what would change; with `apply` it writes those notes
+   * Citations of the library's papers (`cites` with links and DOIs, `cited_by`). Without `apply` it only asks OpenAlex and says what would change; with `apply` it writes those notes
    * (from the reference lists fetched for the preview, so a second click costs no OpenAlex requests).
    */
   async libraryCitations({ apply = false, onProgress } = {}) {

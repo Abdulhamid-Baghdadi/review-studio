@@ -1,14 +1,15 @@
 /**
- * Citations between the papers of the publication library (`cites`, `cited_by`, "Unlinked cited works"), from
- * OpenAlex. Library papers are looked up by DOI, 50 per request (about 4 requests for 200 papers); nothing is
- * written until the reviewer confirms the preview.
+ * Citations of the papers of the publication library (`cites`, `cited_by`), from OpenAlex. Library papers are
+ * looked up by DOI, 50 per request (about 4 requests for 200 papers); then the DOIs of the works they cite, 100 per
+ * request, so that a cited work outside the library is listed by its DOI. Nothing is written until the reviewer
+ * confirms the preview.
  * @module services/library-citations
  */
-import { citationGraph, citationSummary, shortId, withCitations, withUnlinked } from "../domain/library-citations.js";
+import { citationGraph, citationSummary, shortId, withCitations, withoutUnlinked } from "../domain/library-citations.js";
 import { normalizeDoi } from "../domain/matching.js";
 
 const REFERENCES_FILE = "References.json";
-const BATCH = 50;
+const BATCH = 50, ID_BATCH = 100;
 const linkTarget = v => String(v ?? "").replace(/^!?\[\[|\]\]$/g, "").split("|")[0].split("#")[0].trim();
 const asList = v => (Array.isArray(v) ? v : v ? [v] : []).filter(Boolean);
 
@@ -16,51 +17,67 @@ const asList = v => (Array.isArray(v) ? v : v ? [v] : []).filter(Boolean);
 export const libraryDois = library => new Map([...library.notes].map(([stem, p]) => [stem, normalizeDoi(p.doi)]));
 
 /**
- * The OpenAlex works of the library's DOIs. DOIs the filter syntax cannot carry (":", ",", "|") are left out,
- * as in Library Studio. @returns {Promise<Map<string, {id: string, referenced: string[]}>>} by normalised DOI
+ * @typedef {object} CitationData
+ * @property {Map<string, {id: string, referenced: string[]}>} works  the library's OpenAlex works, by normalised DOI
+ * @property {Map<string, string>} refDois  OpenAlex id ("W123") of each cited work → its normalised DOI ("" when none)
+ */
+
+/**
+ * The OpenAlex works of the library's DOIs, and the DOIs of the works they cite. DOIs the filter syntax cannot
+ * carry (":", ",", "|") are left out, as in Library Studio. @returns {Promise<CitationData>}
  */
 export async function fetchLibraryWorks(library, openalex, onProgress = () => {}) {
   const dois = [...new Set([...libraryDois(library).values()].filter(d => d && !/[:,|]/.test(d)))];
   const works = new Map();
   for (let i = 0; i < dois.length; i += BATCH) {
-    onProgress(`Asking OpenAlex (${i / BATCH + 1} of ${Math.ceil(dois.length / BATCH)})…`);
+    onProgress(`Asking OpenAlex for the library's papers (${i / BATCH + 1} of ${Math.ceil(dois.length / BATCH)})…`);
     const json = await openalex.get("works", { filter: "doi:" + dois.slice(i, i + BATCH).join("|"), "per-page": BATCH, select: "id,doi,referenced_works" });
     for (const w of json?.results ?? []) works.set(normalizeDoi(w.doi), { id: w.id, referenced: w.referenced_works ?? [] });
   }
-  return works;
+  const inLibrary = new Set([...works.values()].map(w => shortId(w.id)));
+  const cited = [...new Set([...works.values()].flatMap(w => w.referenced.map(shortId)))].filter(id => /^W\d+$/.test(id) && !inLibrary.has(id));
+  const refDois = new Map(cited.map(id => [id, ""]));
+  for (let i = 0; i < cited.length; i += ID_BATCH) {
+    onProgress(`Asking OpenAlex for the DOIs of the cited works (${i / ID_BATCH + 1} of ${Math.ceil(cited.length / ID_BATCH)})…`);
+    const json = await openalex.get("works", { filter: "openalex:" + cited.slice(i, i + ID_BATCH).join("|"), "per-page": ID_BATCH, select: "id,doi" });
+    for (const w of json?.results ?? []) refDois.set(shortId(w.id), normalizeDoi(w.doi));
+  }
+  return { works, refDois };
 }
 
 /**
  * What the citation step would change: each note's new text, and the counts. Notes not found in OpenAlex keep
  * their "Unlinked cited works" block (it may come from elsewhere); their `cites` is emptied, as in Library Studio.
+ * @param {CitationData} data
  * @returns {Promise<{summary: object, changes: {stem: string, text: string, next: string}[]}>}
  */
-export async function planLibraryCitations(library, works) {
+export async function planLibraryCitations(library, { works, refDois }) {
   const dois = libraryDois(library);
   const refsPdf = new Map([...library.notes].map(([stem, p]) => [stem, asList(p.references_pdf).map(linkTarget)]));
-  const graph = citationGraph(dois, works, refsPdf, await knownLibraryIds(library));
+  const graph = citationGraph(dois, works, refsPdf, { ...(await knownLibraryIds(library)), refDois });
   const changes = [];
   for (const stem of library.notes.keys()) {
     const text = await library.folder.readText(`${stem}.md`);
-    let next = withCitations(text, graph.refs.get(stem) ?? [], graph.cited.get(stem) ?? []);
-    if (graph.external.has(stem)) next = withUnlinked(next, graph.external.get(stem));
+    let next = withCitations(text, graph.refs.get(stem) ?? [], graph.cited.get(stem) ?? [], graph.external.get(stem) ?? []);
+    if (graph.external.has(stem)) next = withoutUnlinked(next);
     if (next !== text) changes.push({ stem, text, next });
   }
   return { summary: citationSummary(dois, graph), changes };
 }
 
 /**
- * OpenAlex ids of library papers known without a DOI lookup: the notes' `openalex` property, and the papers in
- * References.json (written by Library Studio's enrich, which also matches by title).
+ * Library papers known without a DOI lookup: the notes' `openalex` property (id → note), and the papers in
+ * References.json (written by Library Studio's enrich, which also matches by title; ids only).
  */
 async function knownLibraryIds(library) {
-  const ids = new Set([...library.notes.values()].map(p => shortId(p.openalex)).filter(Boolean));
+  const idStems = new Map([...library.notes].map(([stem, p]) => [shortId(p.openalex), stem]).filter(([id]) => id));
+  const ids = new Set();
   if (await library.folder.exists(REFERENCES_FILE)) {
     try {
-      for (const p of Object.values(JSON.parse(await library.folder.readText(REFERENCES_FILE)).papers ?? {})) if (p?.openalex) ids.add(shortId(p.openalex));
+      for (const p of Object.values(JSON.parse(await library.folder.readText(REFERENCES_FILE)).papers ?? {})) if (p?.openalex && !idStems.has(shortId(p.openalex))) ids.add(shortId(p.openalex));
     } catch { /* an unreadable file adds nothing */ }
   }
-  return ids;
+  return { idStems, ids };
 }
 
 /** Writes the planned notes. @returns {Promise<number>} notes written */
