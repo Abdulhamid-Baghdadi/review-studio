@@ -56,17 +56,18 @@
   <div class="app" id="app" hidden>
     <main class="main" id="main">
       <header class="topbar" id="topwrap">
-        <div class="draft-bar" id="draftBar" hidden></div>
         <nav class="toolbar" aria-label="Review tools">
-          <button class="brand-btn" id="btnHome" title="Homepage: what Review Studio is and how it works"><span class="logo">
+          <button class="brand-btn" id="btnHome" title="Home: what Review Studio is, and where to start"><span class="logo">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-          </span>Review Studio</button>
+          </span><span class="brand-name">Review Studio</span></button>
+          <button class="btn sm ghost home-btn" id="btnHomeLink" title="Home: what Review Studio is, and where to start">⌂ Home</button>
           <select id="reviewSel" class="review-sel" title="Review"></select>
+          <span class="draft-bar" id="draftBar" hidden></span>
           <button class="btn sm ghost" id="btnType" title="Review type: scoping (PRISMA-ScR) or systematic (PRISMA 2020); click to switch">🧭 Review type</button>
-          <button class="btn sm ghost" id="btnTimeline" title="Every dated event of this review (T)">🕘 Timeline</button>
-          <button class="btn sm ghost" id="btnScr" title="The reporting checklist of this review (PRISMA 2020)">☑ Reporting checklist</button>
-          <button class="btn sm ghost" id="btnClaude" title="How to use Claude (or another AI assistant) with this review">🤖 Working with Claude</button>
           <span class="spacer"></span>
+          <button class="btn sm ghost" id="btnTimeline" title="Every dated event of this review (T)">🕘 Timeline</button>
+          <button class="btn sm ghost" id="btnScr" title="The reporting checklist of this review (PRISMA 2020)">☑ Checklist</button>
+          <button class="btn sm ghost" id="btnClaude" title="How to use Claude (or another AI assistant) with this review">🤖 Claude</button>
           <div class="menu-wrap">
             <button class="btn sm ghost" id="btnSettings" aria-haspopup="true" aria-expanded="false">⚙ Settings</button>
             <div class="popmenu" id="settingsMenu" hidden>
@@ -81,9 +82,10 @@
             </div>
           </div>
         </nav>
-        <div id="topbar"></div>
+        <div id="mapbar"></div>
       </header>
       <section class="content">
+        <div id="topbar"></div>
         <div class="metrics" id="metrics"></div>
         <div id="page"></div>
       </section>

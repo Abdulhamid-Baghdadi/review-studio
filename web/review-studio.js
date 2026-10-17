@@ -314,19 +314,43 @@ function flowGroups() {
   ].map(g => ({ ...g, nodes: g.nodes.filter(Boolean) }));
 }
 
+/** The map: folded to one slim line (numbered dots and the PRISMA counts) or unfolded; the choice is remembered. */
 function flowMap() {
-  const groups = flowGroups(), here = flowHere();
+  const groups = flowGroups(), here = flowHere(), open = store.get("map_open", "") === "1";
+  const toggle = () => { store.set("map_open", open ? "" : "1"); render(); };
+  const full = () => modal({ title: "PRISMA flow diagram", wide: true,
+    body: h("div", {}, h("p", { class: "muted", style: "margin-top:0" }, "Live from your records; the box you are working on is highlighted."), flowDiagram(S.flow, here ?? undefined)) });
+  const arrow = () => h("span", { class: "fm-arrow", "aria-hidden": "true" }, "→");
+  const tipOf = (n, isHere) => (n.tip || (n.step ? `${n.step.title}: ${n.step.hint}` : n.label)) + (isHere ? " — you are here" : "");
+  if (!open) {                                                     // folded: one line
+    const SHORT = { identified: "Found", screened: "Screened", sought: "Full texts", assessed: "Read", included: "Included" };
+    const item = n => {
+      const isHere = n.id === here, num = n.step ? S.steps.indexOf(n.step) + 1 : null;
+      if (n.n === undefined) {
+        const status = stepStatus(n.step);
+        return h("button", { class: `fmc-dot ${status} ${isHere ? "here" : ""}`, onclick: n.go, title: tipOf(n, isHere), "aria-label": n.step.title, "aria-current": isHere ? "step" : null },
+          status === "done" ? "✓" : status === "skipped" ? "–" : String(num));
+      }
+      return h("button", { class: `fmc-count ${isHere ? "here" : ""} ${n.good ? "good" : ""}`, onclick: n.go, title: tipOf(n, isHere), "aria-current": isHere ? "step" : null },
+        h("span", {}, SHORT[n.id] ?? n.label), h("b", {}, Number(n.n).toLocaleString()));
+    };
+    return h("nav", { class: "flowmap compact", "aria-label": "Steps of the review, with the PRISMA flow" },
+      groups.flatMap((g, i) => [i ? arrow() : null, h("span", { class: `fmc-group ${g.prisma ? "prisma" : "steps"}`, title: g.phase },
+        h("span", { class: "fmc-phase" }, g.phase), g.nodes.flatMap((n, j) => [j && g.prisma && g.phase !== "Identification" ? h("span", { class: "fmc-sep" }, "›") : null, item(n)]))]),
+      h("span", { class: "spacer" }),
+      iconBtn("⤢", "Show the full PRISMA flow diagram", full),
+      h("button", { class: "btn sm ghost fm-toggle", onclick: toggle, "aria-expanded": "false", title: "Unfold the map: every step with its name, and the PRISMA counts" }, "Map ▾"));
+  }
   const node = n => {
     const isHere = n.id === here, status = n.step && n.n === undefined ? stepStatus(n.step) : null, num = n.step ? S.steps.indexOf(n.step) + 1 : null;
     return h("button", { class: `fm-node ${isHere ? "here" : ""} ${n.n === undefined ? "stepnode" : ""} ${n.small ? "small" : ""} ${n.good ? "good" : ""} ${status ?? ""}`,
-      onclick: n.go, title: (n.tip || (n.step ? `${n.step.title}: ${n.step.hint}` : n.label)) + (isHere ? " — you are here" : ""), "aria-current": isHere ? "step" : null },
+      onclick: n.go, title: tipOf(n, isHere), "aria-current": isHere ? "step" : null },
       h("span", { class: "fm-label" }, num ? h("span", { class: "fm-num" }, status === "done" ? "✓" : status === "skipped" ? "–" : String(num)) : null, n.label,
         n.step && stepOptional(n.step) ? h("span", { class: "fm-opt" }, "optional") : null, n.step && !n.small ? aiMark(stepStages(n.step).map(s => s.key)) : null),
       n.n === undefined ? null : h("span", { class: "fm-n" }, Number(n.n).toLocaleString(), n.open ? h("span", { class: "fm-open" }, ` · ${n.open} to do`) : null),
       n.minus ? h("span", { class: "fm-minus" }, "− " + n.minus) : null,
       isHere ? h("span", { class: "fm-here" }, "You are here") : null);
   };
-  const arrow = () => h("span", { class: "fm-arrow", "aria-hidden": "true" }, "→");
   // the planning and analysis steps as short lists; citation searching under the database records, as in PRISMA 2020
   const nodesOf = g => !g.prisma || g.phase === "Identification"
     ? h("div", { class: "fm-nodes stack" }, g.nodes.map(node))
@@ -334,9 +358,8 @@ function flowMap() {
   return h("nav", { class: "flowmap", "aria-label": "Steps of the review, with the PRISMA flow" },
     h("div", { class: "fm-track" }, groups.flatMap((g, i) => [i ? arrow() : null,
       h("div", { class: `fm-group ${g.prisma ? "prisma" : "steps"}` }, h("div", { class: "fm-phase" }, g.phase), nodesOf(g))])),
-    h("div", { class: "fm-tools" },
-      iconBtn("⤢", "Show the full PRISMA flow diagram", () => modal({ title: "PRISMA flow diagram", wide: true,
-        body: h("div", {}, h("p", { class: "muted", style: "margin-top:0" }, "Live from your records; the box you are working on is highlighted."), flowDiagram(S.flow, here ?? undefined)) }))));
+    h("div", { class: "fm-tools" }, iconBtn("⤢", "Show the full PRISMA flow diagram", full),
+      h("button", { class: "btn sm ghost fm-toggle", onclick: toggle, "aria-expanded": "true", title: "Fold the map to one line" }, "▴")));
 }
 
 // ================================================================ chrome: sidebar, topbar, metrics
@@ -401,47 +424,43 @@ const PART_DESC = {
 };
 
 function renderTop() {
-  if (CUR === HOME) {
-    $("#topbar").replaceChildren(
-      h("div", { class: "titlerow" }, h("h1", {}, "Welcome to Review Studio")),
-      h("p", { class: "desc" }, `From your first idea to the finished report in ${S.steps.length} steps: a ${S.review_type.label.toLowerCase()}, reported to ${S.review_type.guideline}. Click a step in the map to open it.`),
-      flowMap(),
-      h("div", { class: "home-badges" }, [
-        ["📝 Plain Markdown", "Every record is a Markdown note with properties; the searches are a CSV table. Any text editor can read them."],
-        ["🟣 Opens in Obsidian", "A review folder is an Obsidian vault as it is: the notes, links and the screening and charting tables (.base files) work there too."],
-        ["🔒 Stays on your PC", "Everything is saved in a folder you choose. Nothing is uploaded and there is no account."],
-      ].map(([t, tip]) => h("span", { class: "home-badge", title: tip }, t)),
-        h("a", { class: "home-badge download", href: "https://github.com/Abdulhamid-Baghdadi/review-studio/releases/latest/download/review-studio.zip",
-          title: "The desktop version: a ZIP with launchers for Windows, Mac and Linux (needs Node.js). Or install it as an app from ⚙ Settings." }, "💾 Download desktop version")));
+  const mapbar = $("#mapbar");
+  if (CUR === HOME) {                                               // the Homepage explains; the page itself holds the choices
+    mapbar.replaceChildren();
+    $("#topbar").replaceChildren(h("div", { class: "home-hero" }, h("h1", {}, "Welcome to Review Studio"),
+      h("p", {}, `A guided ${S.review_type.label.toLowerCase()}, from your question to the PRISMA report. Everything stays on your PC.`)));
     return;
   }
-  const s = stage(CUR), st = stepOf(CUR), n = S.steps.indexOf(st), tab = curTab();
+  mapbar.replaceChildren(flowMap());
+  const s = stage(CUR), st = stepOf(CUR), tab = curTab();
   const locked = S.state.protocol.locked;
   const tabs = st.tabs.length > 1 ? h("div", { class: "steptabs", role: "tablist" }, st.tabs.map(t => {
     const ts = stage(t.stage), on = t === tab;
     return h("button", { class: `steptab ${ts.status} ${on ? "on" : ""}`, role: "tab", "aria-selected": String(on),
       title: ts.desc + (ts.optional ? " (optional)" : ""), onclick: () => goTab(t) },
       h("span", { class: "tdot" }, ts.status === "done" ? "✓" : ts.status === "skipped" ? "–" : ""), t.label,
-      ts.optional ? h("span", { class: "topt" }, "optional") : null, aiMark(t.stage));
+      ts.optional ? h("span", { class: "topt" }, "optional") : null);
   })) : null;
   const what = st.tabs.length > 1 ? `“${tab.label}”` : "this step";
+  const aiStep = S.ai?.steps[CUR], aiMode = aiStep && (S.ai.modes[CUR] || "off"), aiOpen = store.get("ai_open", "") === "1";
   $("#topbar").replaceChildren(
-    h("div", { class: "crumbs" }, `${REVIEW} · ${S.review_type.label}, reported to ${S.review_type.guideline} · ${st.phase} · step ${n + 1} of ${S.steps.length}`),
-    flowMap(),
     h("div", { class: "titlerow" },
       h("h1", {}, st.title),
       st.tabs.length > 1 ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
-      st.tabs.length > 1 || !s.optional ? null : pill("optional", "info"),
-      S.dev_mode ? pill("🛠 developer mode — locks off", "bad")
-        : locked && ["questions", "concepts", "queries", "protocol", "charting"].includes(CUR) ? pill("🔒 protocol locked — changes are amendments", "warn") : null,
+      tabs,
+      S.dev_mode ? pill("🛠 developer mode", "bad")
+        : locked && ["questions", "concepts", "queries", "protocol", "charting"].includes(CUR) ? h("span", { class: "pill warn", title: "The protocol is locked: changes here are amendments, with a reason" }, "🔒 locked") : null,
       h("span", { class: "spacer" }),
       btn("? Help", () => openHelp(CUR), "ghost"),
       s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", skipStage, "ghost", `Skip ${what} (it is optional)`) : null,
       s.status === "done" || s.status === "skipped" ? btn("Reopen", () => api("stage_status", { stage: CUR, status: "in-progress" }), "", `Reopen ${what}`)
         : btn("✓ Mark done", () => api("stage_status", { stage: CUR, status: "done" }), "primary", `Mark ${what} as done`)),
-    tabs || "",
-    h("p", { class: "desc" }, PART_DESC[`${CUR}:${tab.part}`] ?? s.desc, s.reason ? h("span", { class: "muted" }, ` — skipped: ${s.reason}`) : null),
-    savedIn(CUR) || "", aiCard(CUR) || "");
+    h("div", { class: "infoline" },
+      h("span", { class: "desc" }, PART_DESC[`${CUR}:${tab.part}`] ?? s.desc, s.reason ? h("span", { class: "muted" }, ` — skipped: ${s.reason}`) : null),
+      aiStep ? h("button", { class: "btn sm ai-chip" + (aiMode === "off" ? "" : " on"), "aria-expanded": String(aiOpen), title: "AI assistance for this step: who does what, and the prompt for Claude",
+        onclick: () => { store.set("ai_open", aiOpen ? "" : "1"); render(); } }, `🤖 AI: ${aiStep.modes.find(m => m.key === aiMode).label} ${aiOpen ? "▴" : "▾"}`) : null,
+      savedIn(CUR) || null),
+    aiOpen ? aiCard(CUR) || "" : "");
 }
 
 /** Back and Next at the foot of every page: walks the tabs and steps in order. */
@@ -468,7 +487,7 @@ function aiCard(key) {
       segmented(step.modes.map(m => [m.key, m.label]), mode, v => api("ai_mode", { stage: key, mode: v })),
       mode === "off" ? null : btn("📋 Copy prompt", () => copy(step.prompt), "sm primary"),
       h("span", { class: "spacer" }),
-      h("button", { class: "btn sm ghost ai-toggle", "aria-expanded": String(open), onclick: toggle }, open ? "Hide details ▴" : "Details ▾")),
+      h("button", { class: "btn sm ghost ai-toggle", "aria-expanded": String(open), onclick: toggle }, "Close ▴")),
     open ? h("div", { class: "aibody" },
       h("div", { class: "small muted" }, cur.desc),
       mode === "off" ? null : h("div", { class: "small muted" }, step.skills.length > 1 ? "Skills: " : "Skill: ",
@@ -501,7 +520,7 @@ function savedIn(key) {
   const icon = p => p === "@library" ? "📚" : /\.(md)$/.test(p) ? "📝" : /\.base$/.test(p) ? "▦" : /\.(csv|json)$/.test(p) ? "🗎" : "📁";
   const files = STORAGE[key] || [];
   if (!files.length) return null;
-  return h("details", { class: "savedin" }, h("summary", { title: "Which files in your review folder this step writes" }, `📁 Saved in your review folder · ${files.length} file${files.length > 1 ? "s" : ""} ▾`),
+  return h("details", { class: "savedin" }, h("summary", { title: "Which files in your review folder this step writes" }, `📁 ${files.length} file${files.length > 1 ? "s" : ""} ▾`),
     h("div", { class: "files" }, files.map(([p, what]) => [p === "@checklist" ? S.review_type.checklistFile : p, what]).map(([p, what]) => h("button", { class: "file", title: `${S.folder}/${p === "@library" ? "../" + libraryName() : p} — click to open`, onclick: () => openNote(p) },
       icon(p), " ", p === "@library" ? libraryName() : p, h("span", { class: "muted" }, " · " + what)))));
 }
@@ -555,6 +574,7 @@ function render() {
   renderChrome();
   renderDraftBar();
   for (const id of ["btnTimeline", "btnScr"]) $("#" + id).hidden = CUR === HOME;   // the Homepage is only an introduction
+  $("#btnHomeLink").classList.toggle("on", CUR === HOME);
   $("#btnType").textContent = `🧭 ${S.review_type.label} · ${S.review_type.guideline}`;
   $("#btnType").hidden = S.review_type.key !== "scoping" || CUR === HOME;   // systematic is the standard; only a scoping review shows its type
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
@@ -581,7 +601,7 @@ function nameFields(root) {
   }
 }
 
-function go(key) { CUR = key; store.set("stage", key); if (key !== HOME) { const st = stepOf(key), t = curTab(); if (st && t) store.set("tab_" + st.key, `${t.stage}:${t.part ?? ""}`); } history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
+function go(key) { CUR = key; store.set("stage", key); if (key !== HOME) store.set("last_stage", key); if (key !== HOME) { const st = stepOf(key), t = curTab(); if (st && t) store.set("tab_" + st.key, `${t.stage}:${t.part ?? ""}`); } history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
 
 async function skipStage() {
   const r = await promptText("Skip this part", "Skipping is fine for optional parts, but the reason is reported in the timeline and the reporting checklist.", "e.g. not planned in the protocol", true);
@@ -871,15 +891,22 @@ function homeDemo() {
 }
 
 // Homepage: the demo and the tour
-PAGES.home = () => h("div", { class: "home" },
-  card("See how it works", "A one-minute walk through a review: what you do, and where Claude can help (AI). Click a part of the circle to jump to it.", homeDemo()),
-  h("div", { class: "home-tour" },
-    h("div", {}, h("h3", {}, "🎓 New here? Take the tour"), h("p", { class: "sub" }, "One minute: what each part of the screen is for.")),
-    btn("Start the tour", () => startTour(), "primary tour-big")),
-  h("div", { class: "home-tour home-example" },
-    h("div", {}, h("h3", {}, "📘 See a finished example"),
-      h("p", { class: "sub" }, "A small systematic review from start to finish: a real search of 61 records, screened down to 10 included studies, with the data extracted and the PRISMA flow diagram. Look around or change things: the example is reset each time you open it.")),
-    btn("Open the example", openFinishedExample, "tour-big")));
+// Homepage: only explains, and offers three ways in. The work itself happens on the steps.
+PAGES.home = () => {
+  const last = store.get("last_stage", ""), lastStage = S.stages.find(x => x.key === last);
+  const started = lastStage && (S.events.length || S.records.length);
+  const choice = (icon, title, text, onclick, cls = "") => h("button", { class: "home-choice " + cls, onclick },
+    h("span", { class: "hc-icon", "aria-hidden": "true" }, icon), h("span", { class: "hc-title" }, title), h("span", { class: "hc-text" }, text));
+  return h("div", { class: "home" },
+    h("div", { class: "home-choices" },
+      started ? choice("▶", `Continue: ${stepOf(last).title}`, "Pick up where you left off.", () => go(last), "primary")
+        : choice("▶", "Start your review", "Step 1: write down your research question.", () => go("questions"), "primary"),
+      choice("📘", "See a finished example", "A real search of 61 records, screened down to 10 included studies.", openFinishedExample),
+      choice("🎓", "Take the 1-minute tour", "What each part of the screen is for.", () => { go("questions"); setTimeout(() => startTour(), 250); })),
+    card("How a review goes", "Five phases, one minute. Click a part of the circle to jump to it.", homeDemo()),
+    h("p", { class: "home-foot small muted" }, "📝 Plain Markdown notes and CSV tables · 🟣 opens in Obsidian · 🔒 nothing is uploaded, no account · ",
+      h("a", { href: "https://github.com/Abdulhamid-Baghdadi/review-studio/releases/latest/download/review-studio.zip" }, "💾 desktop version")));
+};
 
 /** Opens the finished example review (backend.exampleEntry), on its Report step: the result first, Back walks through it. */
 async function openFinishedExample() {
@@ -1964,6 +1991,7 @@ $("#btnKeys").onclick = openKeys;
 $("#btnScr").onclick = () => openChecklist();
 // The sidebar folds away (☰ or [) to give the content the whole width; remembered in this browser
 $("#btnHome").onclick = () => go(HOME);
+$("#btnHomeLink").onclick = () => go(HOME);
 window.addEventListener("hashchange", () => { if (location.hash === "#example" && S) openFinishedExample(); });   // …/web/#example while the app is open
 $("#main").addEventListener("scroll", () => $("#topwrap").classList.toggle("scrolled", $("#main").scrollTop > 4));
 
@@ -1980,31 +2008,22 @@ $("#main").addEventListener("scroll", () => $("#topwrap").classList.toggle("scro
 // The draft (a review in the browser's own storage, where the app starts): save it to a folder, or open one.
 function renderDraftBar() {
   const bar = $("#draftBar");
-  if (backend.entry?.example) {                                     // the finished example: say what it is, and the way back
+  bar.classList.remove("example", "has-content");
+  if (backend.entry?.example) {                                     // the finished example: what it is, and the way back
     bar.hidden = false;
-    bar.classList.remove("has-content");
     bar.classList.add("example");
     bar.replaceChildren(
-      h("span", { class: "draft-text" }, h("span", { class: "example-badge" }, "📘 Finished example"),
-        ` A real OpenAlex search (${S.flow.unique} records) screened down to ${S.flow.included} included studies. Decisions were made from titles and abstracts; risk of bias is left open. Try anything: changes are not kept.`),
-      h("span", { class: "draft-actions" }, btn("← Back to my review", () => switchReview(S.reviews[0]), "sm primary")));
+      h("span", { class: "example-badge", title: `A real OpenAlex search (${S.flow.unique} records) screened down to ${S.flow.included} included studies. Decisions were made from titles and abstracts; risk of bias is left open. Try anything: changes are not kept.` }, "📘 Example · not kept"),
+      btn("← My review", () => switchReview(S.reviews[0]), "sm primary", "Back to your own review"));
     return;
   }
-  bar.classList.remove("example");
-  bar.hidden = !backend.entry?.draft || CUR === HOME;              // the Homepage is only an introduction
-  bar.classList.toggle("has-content", draftHasContent());
+  bar.hidden = !backend.entry?.draft;
   if (bar.hidden) return;
-  const recent = S.reviews.filter(r => r !== REVIEW && !r.startsWith("📘")).slice(0, 2);
+  const content = draftHasContent();
+  bar.classList.toggle("has-content", content);
   bar.replaceChildren(
-    h("span", { class: "draft-text" }, h("span", { class: "unsaved-badge" }, "● Not saved"),
-      draftHasContent()
-        ? " This draft exists only in this browser. Save it to a folder on your PC to keep it."
-        : " Start writing here; save it to a folder on your PC when you want to keep it."),
-    h("span", { class: "draft-actions" },
-      btn("💾 Save to a folder…", e => busy(e.currentTarget, saveDraft), "sm primary"),
-      btn("📂 Open a review folder…", openReviewFolder, "sm"),
-      S.reviews.some(r => r.startsWith("📘")) ? btn("📘 Show me an example", openFinishedExample, "sm", "A finished review: a real search screened down to 10 included studies") : null,
-      ...recent.map(r => btn(`▶ ${r.replace(/ records$/, "")}`, () => switchReview(r), "sm ghost"))));
+    h("span", { class: "unsaved-badge", title: content ? "This draft exists only in this browser. Save it to a folder on your PC to keep it." : "You are in a draft kept in this browser; save it to a folder on your PC when you want to keep it." }, "● Not saved"),
+    btn("💾 Save…", e => busy(e.currentTarget, saveDraft), content ? "sm primary" : "sm", "Save this draft to a folder on your PC"));
 }
 
 // Closing or leaving the page with a draft that has content: the browser asks first (it shows its own wording).

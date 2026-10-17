@@ -41,7 +41,7 @@ Review Studio walks you through a systematic review from the first idea to the P
 4. When you want to keep it, press **💾 Save to a folder…** in the bar at the top, give the review a name and pick a place on your PC. From then on every change is written to that folder.
 5. Next time, the same bar offers **📂 Open a review folder…** and your recent reviews. The browser asks once per visit before the app may edit a folder.
 
-Handy: click **Review Studio** (top left) for the Homepage; **⚙ Settings** has light/dark, the glossary and the keyboard shortcuts.
+Handy: **⌂ Home** (top left) explains the app and offers three ways in: start or continue your review, see the finished example, or take the tour. The map under the top bar is folded to one line while you work (**Map ▾** unfolds it); **⚙ Settings** has light/dark, the glossary and the keyboard shortcuts.
 
 ## Three ways to use it
 
@@ -80,7 +80,7 @@ A new review is a **systematic review, reported to PRISMA 2020**. A map at the t
 | 9 | **Synthesis** | | Narrative synthesis or meta-analysis (forest and funnel plots, R script) and the certainty of the evidence (GRADE). |
 | 10 | **Report** | | PRISMA flow diagram, PRISMA 2020 checklist, report draft and exports. |
 
-**The map is the navigation.** It runs from the planning steps through the boxes of the PRISMA flow diagram, with your live counts (records found, titles and abstracts screened, full texts sought and read, studies included), to the analysis steps and the report. *You are here* marks the page on screen; click any box to open it, or ⤢ for the full PRISMA diagram.
+**The map is the navigation.** Folded to one slim line by default (numbered steps and the PRISMA counts), or unfolded with *Map ▾*. It runs from the planning steps through the boxes of the PRISMA flow diagram, with your live counts (records found, titles and abstracts screened, full texts sought and read, studies included), to the analysis steps and the report. *You are here* marks the page on screen; click any box to open it, or ⤢ for the full PRISMA diagram.
 
 **A finished example.** [Open it directly](https://abdulhamid-baghdadi.github.io/review-studio/web/#example) (the link `…/web/#example`), or click *Open the example* on the Homepage or *📘 Show me an example* at the top of any page. It opens a small systematic review that is finished up to the report: a real OpenAlex search (61 records, string and date logged), screened down to 10 included studies, with data extracted and the PRISMA flow diagram. The decisions and extracted values come from the titles and abstracts, and risk of bias is left open because it needs the full texts. The example is copied fresh into the browser each time it is opened, so visitors can change anything. It is built by `npm run example` from the saved search in `web/example/openalex-search.json`.
 
