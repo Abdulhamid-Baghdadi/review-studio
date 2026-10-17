@@ -1,4 +1,11 @@
 ---
+pdf:
+status:
+  - unread
+importance: 3
+reason_for_importance: []
+category:
+  -
 type: publication
 publication_type: ""
 index:
@@ -8,19 +15,13 @@ title:
 journal:
 doi:
 url:
-pdf:
-status: to-read
-importance: 3
-added_by: ""
-candidate_in: []
-included_in: []
-category:
-  -
 tags:
   -
 ---
 
 # {{title}}
+
+## Summary
 
 ## Abstract
 
@@ -46,4 +47,14 @@ tags:
 -
 
 ## Questions raised
+-
+
+## Modularity lens (Project 1)
+
+### Definition of modularity
+
+### Benefits of modularity identified
+-
+
+### Costs / disadvantages identified
 -

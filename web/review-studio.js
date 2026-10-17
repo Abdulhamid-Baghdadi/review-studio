@@ -1978,7 +1978,7 @@ PAGES.report = () => {
       h("div", { class: "row" }, h("span", { class: "small muted", style: "flex:1" },
         `${kept.length} included paper(s); ${kept.filter(r => r.publication).length} already linked to a library note. `,
         S.publication_template ? `New notes use your template “${S.publication_template}”` : "New notes use the app's own template (choose yours in ⚙ Settings → Review settings)",
-        ", plus 'added_by' (this review) and 'added_on' (the date). A paper already in your library only gets this review in its 'included_in'."),
+        ", plus 'added_by' (PRISMA Review Studio) and 'added_on' (the date). A paper already in your library only gets this review in its 'included_in'."),
         btn("📚 Export to Obsidian library", async e => {
           const button = e.currentTarget;
           if (await confirmBox("Export to Obsidian library", `Export ${kept.length} included paper(s) to ${libraryName()} as publication notes, then update the citations between library papers (OpenAlex)? Do this when screening is final.`, "Export"))

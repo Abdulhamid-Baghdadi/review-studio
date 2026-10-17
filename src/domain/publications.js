@@ -6,6 +6,9 @@
 import * as frontmatter from "./frontmatter.js";
 import { chars, strip } from "./text-rules.js";
 
+/** What `added_by` says on every publication note the app creates. */
+export const ADDED_BY = "PRISMA Review Studio";
+
 const FORBIDDEN = /[\\/:*?"<>|#^[\]]/g;
 
 /** "Liu, Z.; Zhong, P.; Liu, H." → "Liu et al."; two authors → "A & B"; none → "Anon". */
@@ -47,7 +50,7 @@ export function newPublicationNote({ record: f, recordBody, index, reviewName, r
   const stem = `${String(index).padStart(3, "0")} - ${f.year || "n.d."} - ${shortAuthors(f.authors)} - ${fileTitle(f.title)}`;
   // the template's properties in its order, filled from the record; added_by / added_on say where the note came from
   const props = { ...templateProps, type: "publication", index, authors: f.authors ?? "", year: f.year ?? "", title: f.title,
-    journal: f.journal ?? "", doi: f.doi ?? "", url: f.url ?? "", pdf: "", candidate_in: [], included_in: [], added_by: reviewLink, added_on: today };
+    journal: f.journal ?? "", doi: f.doi ?? "", url: f.url ?? "", pdf: "", added_by: ADDED_BY, added_on: today };
   if (strip(status)) props.status = Array.isArray(templateProps.status) ? [strip(status)] : strip(status);   // as set in Review settings, in the template's shape
   else if (!("status" in templateProps)) props.status = "read";
   for (const k of ["category", "tags"]) if (!Array.isArray(props[k]) || props[k].every(v => !v)) props[k] = [];

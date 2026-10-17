@@ -18,6 +18,11 @@ A browser app for scoping reviews (reported to PRISMA-ScR) and systematic review
 - `npm test` unit tests · `npm run check` architecture · `npm run build` → `dist/` static site.
 - Browser automation cannot use the native folder picker: test with the browser's private storage instead (`navigator.storage.getDirectory()` gives a directory handle; `backend.open({handle, name, settings})`).
 
+## Experiments folder
+
+- Every example, demo or test review made in Review Studio goes in `C:\Users\A-Bag\Desktop\literature-review-studio experiments folder` (one subfolder per experiment, e.g. `2026-10-17 demo records`). In Chrome, choose that folder in the folder picker when creating or opening a review. Never put experiments in this repo folder, the test copy, or the vault.
+- The folder picker is a Windows dialog that Chrome browser automation cannot click. Either use computer use for the dialog (type the path in the address bar), or ask the user to pick the folder.
+
 ## Open items (2026-10-08)
 
 - Test copy of the user's review: `Desktop\PRISMA Studio test\Project 2 review records` (5,683 records; never test on the original in the vault). Check the folder exists before using it: opening a missing path creates an empty review there.
