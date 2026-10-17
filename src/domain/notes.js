@@ -9,6 +9,7 @@ import * as frontmatter from "./frontmatter.js";
 import { formatFixed, formatPercent } from "./text-rules.js";
 import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "./vocabulary.js";
 import { RECORDS_DIR } from "./records.js";
+import { fullName } from "./record-properties.js";
 
 /**
  * How generated notes name the tool that wrote them.
@@ -41,44 +42,54 @@ export const FILES = Object.freeze({
 const guideBody = commands => `
 # Screening guide
 
-> [!warning] Replace the exclusion reasons in the properties above with the criteria of the registered protocol (Step 01) **before** screening starts. Changes after the pilot are protocol amendments: log them.
+> [!warning] Replace the exclusion reasons in the properties above with the criteria of the registered protocol **before** screening starts. Changes after the pilot are protocol amendments: log them.
 
-Screening happens in [[08 - Screening.base]]. Edit the properties in the table; nothing else needs to be touched.
+Screening happens in Review Studio, or in [[08 - Screening.base]] by editing the properties in the table.
 
-## Title/abstract stage — \`ta_decision\`
+## Title and abstract — \`title_abstract_decision\`
 
 | Value | Meaning |
 |---|---|
 | \`pending\` | not yet screened (set on import) |
 | \`include\` | meets the criteria → goes to full text |
-| \`unsure\` | cannot decide from title/abstract → goes to full text |
-| \`exclude\` | fails a criterion → set \`ta_reason\` to one of \`ta_reasons\` (the code alone, e.g. \`E1\`, is enough) |
+| \`unsure\` | cannot decide from title and abstract → goes to full text |
+| \`exclude\` | fails a criterion → set \`title_abstract_reason\` to one of \`title_abstract_reasons\` (the code alone, e.g. \`E1\`, is enough) |
 
-## Full-text stage — \`ft_decision\`
+## Full text — \`full_text_decision\`
 
-Filled with \`pending\` automatically (by \`check\` / \`report\`) for every record marked include or unsure.
+Set to \`pending\` automatically for every record marked include or unsure.
 
 | Value | Meaning |
 |---|---|
-| \`include\` | included source |
-| \`exclude\` | set \`ft_reason\` to one of \`ft_reasons\` — one reason per record |
+| \`include\` | included study |
+| \`exclude\` | set \`full_text_reason\` to one of \`full_text_reasons\` — one reason per record |
 
-\`pdf_status\`: \`found\` or \`not-retrieved\`. A missing PDF is an access problem, not an exclusion: leave \`ft_decision\` pending and the record is counted as "not retrieved".
+\`full_text_status\`: \`found\` or \`not-retrieved\`. A missing full text is an access problem, not an exclusion: leave \`full_text_decision\` pending and the record is counted as "not retrieved".
 
-Optional: \`screener\` (your initials), \`notes\` (free text). \`screened_on\` is filled automatically.
+Optional: \`screened_by\` (your initials), \`notes\` (free text). \`screened_on\` is filled automatically.
 
 ## Second reviewer
 
-\`sample_ta\` / \`sample_ft\` are set when the sample is drawn in Review Studio (9 · Second reviewer); the second reviewer never sees this vault's decisions, only the blind CSV sheet. Do not edit the \`r2_*\` properties by hand: they are imported from the returned sheet.
+\`second_reviewer_title_abstract_sample\` / \`second_reviewer_full_text_sample\` are set when the sample is drawn in Review Studio (Screen papers → Second reviewer); the second reviewer never sees this vault's decisions, only the blind CSV sheet. Do not edit the other \`second_reviewer_…\` properties by hand: they are imported from the returned sheet.
 
 ## Commands
 
 ${commands}
 `;
 
+/** The properties of the screening guide that hold the exclusion reasons (older guides: ta_reasons, ft_reasons). */
+export const GUIDE_REASONS = Object.freeze({ ta: "title_abstract_reasons", ft: "full_text_reasons" });
+
+/** An older screening guide with its reason lists renamed; null if it is current. */
+export function upgradeGuide(text) {
+  const next = text.replace(/^ta_reasons:/m, `${GUIDE_REASONS.ta}:`).replace(/^ft_reasons:/m, `${GUIDE_REASONS.ft}:`)
+    .replace(/^## Title\/abstract stage — `ta_decision`[\s\S]*?(?=^## Commands)/m, () => guideBody("").split("\n## Commands")[0].replace(/^[\s\S]*?(?=## Title and abstract)/, "") + "\n");
+  return next === text ? null : next;
+}
+
 /** 08 - Screening guide.md with the default exclusion reasons. */
 export const screeningGuide = (reviewLink, generator = APP_GENERATOR) =>
-  frontmatter.serialize({ type: "screening-guide", review: reviewLink, ta_reasons: [...DEFAULT_TA_REASONS], ft_reasons: [...DEFAULT_FT_REASONS] })
+  frontmatter.serialize({ type: "screening-guide", review: reviewLink, [GUIDE_REASONS.ta]: [...DEFAULT_TA_REASONS], [GUIDE_REASONS.ft]: [...DEFAULT_FT_REASONS] })
   + guideBody(generator.commands);
 
 /**
@@ -94,17 +105,23 @@ export const RECORD_FILTERS = Object.freeze([
 /** The generated filter line of older .base files, which only worked from the vault the review was made in. */
 export const oldRecordFilter = recordsPath => `        - file.inFolder("${recordsPath}")\n`;
 
-/** An older generated .base file with its folder filter replaced; null if it has none (left as it is). */
+/**
+ * An older generated .base file brought up to date; null if it is current or not one of ours (left as it is).
+ * Its folder filter is replaced, and short property names (ta_decision, chart_…) become the full words the notes use.
+ */
 export function upgradeBase(text, recordsPath) {
   const old = oldRecordFilter(recordsPath);
-  return text.includes(old) ? text.replaceAll(old, RECORD_FILTERS.map(f => `        - ${f}\n`).join("")) : null;
+  let next = text.replaceAll(old, RECORD_FILTERS.map(f => `        - ${f}\n`).join(""));
+  next = next.replace(/\b(chart_[a-z0-9_]+|ta_decision|ta_reason|ft_decision|ft_reason|pdf_status|oa_url|sample_ta|sample_ft|r2_ta_decision|r2_ta_reason|r2_ft_decision|r2_ft_reason)\b/g, k => fullName(k));
+  return next === text ? null : next;
 }
 
 /** 08 - Screening.base: the Obsidian Bases table over the records. */
 export function screeningBase() {
+  const n = fullName;                                     // property names as written in the notes
   const view = (name, extra, order) => {
     const filters = [...RECORD_FILTERS, 'type == "review-record"', ...extra].map(x => `        - ${x}`).join("\n");
-    const columns = order.map(x => `      - ${x}`).join("\n");
+    const columns = order.map(x => `      - ${n(x)}`).join("\n");
     return `  - type: table
     name: ${name}
     filters:
@@ -123,12 +140,12 @@ ${columns}
   const ft = ["file.name", "year", "publication", "pdf_status", "ft_decision", "ft_reason", "notes"];
   return "views:\n" + [                                 // "All records" first: the base never opens on an empty to-do list
     view("All records", [], ["file.name", "year", "journal", "doi", "sources", "publication", "ta_decision", "ft_decision", "screened_on"]),
-    view("1 · Title-abstract to screen", ['ta_decision == "pending"'], ta),
-    view("2 · Full text to screen", ['ft_decision == "pending"'], ft),
-    view("Unsure at title-abstract", ['ta_decision == "unsure"'], [...ta, "ft_decision"]),
-    view("Included", ['ft_decision == "include"'], ["file.name", "year", "journal", "publication", "sources"]),
-    view("Excluded", ['ta_decision == "exclude" || ft_decision == "exclude"'], ["file.name", "year", "ta_decision", "ta_reason", "ft_decision", "ft_reason"]),
-    view("Second-reviewer sample", ["sample_ta == true || sample_ft == true"], ["file.name", "ta_decision", "r2_ta_decision", "ft_decision", "r2_ft_decision"]),
+    view("1 · Title-abstract to screen", [`${n("ta_decision")} == "pending"`], ta),
+    view("2 · Full text to screen", [`${n("ft_decision")} == "pending"`], ft),
+    view("Unsure at title-abstract", [`${n("ta_decision")} == "unsure"`], [...ta, "ft_decision"]),
+    view("Included", [`${n("ft_decision")} == "include"`], ["file.name", "year", "journal", "publication", "sources"]),
+    view("Excluded", [`${n("ta_decision")} == "exclude" || ${n("ft_decision")} == "exclude"`], ["file.name", "year", "ta_decision", "ta_reason", "ft_decision", "ft_reason"]),
+    view("Second-reviewer sample", [`${n("sample_ta")} == true || ${n("sample_ft")} == true`], ["file.name", "ta_decision", "r2_ta_decision", "ft_decision", "r2_ft_decision"]),
   ].join("");
 }
 

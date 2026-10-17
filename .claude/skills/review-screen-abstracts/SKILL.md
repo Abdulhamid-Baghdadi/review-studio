@@ -5,7 +5,7 @@ description: Suggest title/abstract screening decisions for a scoping or systema
 
 # Suggest title/abstract decisions
 
-You suggest; the reviewer decides. You write only `ai_decision`, `ai_reason` and `ai_why` on records that are still `pending`. The reviewer then confirms or changes each suggestion in Review Studio (Screening → **Suggested** queue), and only that writes `ta_decision`.
+You suggest; the reviewer decides. You write only the AI suggestion (`ai_title_abstract_decision`, `ai_title_abstract_reason`, `ai_title_abstract_explanation` in the record note) on records that are still `pending`. The reviewer then confirms or changes each suggestion in Review Studio (Screening → **Suggested** queue), and only that writes the decision (`title_abstract_decision` in the record note).
 
 All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes, `review_state.json` or the screening guide yourself.
 

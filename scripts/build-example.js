@@ -174,7 +174,7 @@ await s.importSearch({ fileName: `openalex-${DAY}.ris`, bytes: new TextEncoder()
 // record ids by OpenAlex id (the export's UR line)
 const idOf = {};
 for (const r of s.repo.records.values()) {
-  const m = /W\d+/.exec(String(r.props.url ?? ""));
+  const m = /W\d+/.exec(String(r.props.openalex || r.props.url || ""));
   if (m) idOf[m[0]] = r.id ?? r.props.record_id;
 }
 const rid = w => { if (!idOf[w]) throw new Error(`no record for ${w}`); return idOf[w]; };

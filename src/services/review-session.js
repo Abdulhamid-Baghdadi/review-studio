@@ -6,7 +6,7 @@
  */
 import { aiMode, setAiMode } from "../domain/ai-steps.js";
 import * as frontmatter from "../domain/frontmatter.js";
-import { FILES, screeningGuide } from "../domain/notes.js";
+import { FILES, GUIDE_REASONS, screeningGuide, upgradeGuide } from "../domain/notes.js";
 import { PROTOCOL_FILE } from "../domain/protocol.js";
 import { buildQuery } from "../domain/queries.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
@@ -53,6 +53,7 @@ export class ReviewSession {
   static async open(folder, deps) {
     const repo = await ReviewRepository.open(folder, deps.clock, deps.settings, { onProgress: deps.onProgress });
     await repo.logDecisions();          // decisions changed elsewhere since the last row (or the first rows of a new log)
+    await repo.upgradeNotes();          // older record notes with short property names → full words
     await repo.upgradeBases();          // older .base files that only worked from the vault the review was made in
     return new ReviewSession(repo, await loadState(folder), deps);
   }
@@ -255,7 +256,7 @@ export class ReviewSession {
       const folder = this.repo.folder;
       if (!(await folder.exists(FILES.guide))) await folder.writeText(FILES.guide, screeningGuide(this.repo.link, this.repo.settings.generator));
       const text = await folder.readText(FILES.guide);
-      await folder.writeText(FILES.guide, frontmatter.replaceList(frontmatter.replaceList(text, "ta_reasons", nextTa), "ft_reasons", nextFt));
+      await folder.writeText(FILES.guide, frontmatter.replaceList(frontmatter.replaceList(upgradeGuide(text) ?? text, GUIDE_REASONS.ta, nextTa), GUIDE_REASONS.ft, nextFt));
       event(this.st, "protocol", "exclusion reasons edited", this.now);
     }
     await this.save();

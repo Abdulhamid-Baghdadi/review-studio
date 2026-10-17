@@ -21,13 +21,14 @@ test("the screening base does not depend on where the vault starts", () => {
   const base = screeningBase();
   assert.doesNotMatch(base, /records\/08 - Records/);
   for (const f of RECORD_FILTERS) assert.ok(base.includes(`        - ${f}\n`));
-  assert.match(base, /name: Second-reviewer sample[\s\S]*?sample_ta == true/);
+  assert.match(base, /name: Second-reviewer sample[\s\S]*?second_reviewer_title_abstract_sample == true/);
+  assert.doesNotMatch(base, /\b(ta_decision|ft_decision|pdf_status|sample_ta|r2_)/, "the notes' full-word names, not the short ones");
 });
 
 test("older generated bases are upgraded; hand-edited ones are left alone", async () => {
   const up = upgradeBase(OLD, "My review records/08 - Records");
   assert.doesNotMatch(up, /file\.inFolder\("My review/);
-  assert.match(up, /file\.folder\.endsWith\("08 - Records"\)\n[\s\S]*ft_decision == "include"/);
+  assert.match(up, /file\.folder\.endsWith\("08 - Records"\)\n[\s\S]*full_text_decision == "include"/);
   assert.equal(upgradeBase("views: []\n", "My review records/08 - Records"), null);
 
   const folder = memoryFolder({ "08 - Screening.base": OLD, "12 - Charting.base": OLD });

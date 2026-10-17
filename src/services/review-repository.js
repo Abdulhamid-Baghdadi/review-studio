@@ -5,10 +5,11 @@
  */
 import * as csv from "../domain/csv.js";
 import * as frontmatter from "../domain/frontmatter.js";
-import { FILES, logHeader, logRow, screeningBase, screeningGuide, upgradeBase } from "../domain/notes.js";
+import { FILES, GUIDE_REASONS, logHeader, logRow, screeningBase, screeningGuide, upgradeBase, upgradeGuide } from "../domain/notes.js";
 import { DecisionLog } from "./decision-log.js";
 import { compareCodePoints } from "../domain/text-rules.js";
-import { RECORDS_DIR, recordText } from "../domain/records.js";
+import { parseRecord, RECORDS_DIR, recordText } from "../domain/records.js";
+import { hasShortNames } from "../domain/record-properties.js";
 import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "../domain/vocabulary.js";
 
 export const SEARCH_COLUMNS = Object.freeze(["id", "kind", "database", "date", "query", "filters", "export", "records", "new", "duplicates"]);
@@ -65,7 +66,7 @@ export class ReviewRepository {
       const batch = files.slice(i, i + BATCH).map(name => `${RECORDS_DIR}/${name}`);
       const texts = await Promise.all(batch.map(file => folder.readText(file)));
       batch.forEach((file, k) => {
-        const [props, body] = frontmatter.parse(texts[k]);
+        const [props, body] = parseRecord(texts[k]);
         if (props.type !== "review-record") return;
         const id = String(props.record_id);
         repo.records.set(id, { id, file, props, body });
@@ -74,6 +75,15 @@ export class ReviewRepository {
       onProgress(Math.min(i + BATCH, files.length), files.length);
     }
     return repo;
+  }
+
+  /**
+   * Rewrites record notes still written with the older short property names (ta_decision, chart_…) in full words,
+   * in the shared order. Only the properties change; the values and the note text stay. @returns {Promise<number>}
+   */
+  async upgradeNotes() {
+    for (const [id, base] of this.#base) if (hasShortNames(frontmatter.parse(base.text)[0])) this.#changed.add(id);
+    return this.save();
   }
 
   /** Records in record-id order. */
@@ -110,7 +120,7 @@ export class ReviewRepository {
     if (!base || base.file !== r.file || !(await this.folder.exists(r.file))) return r;
     const disk = await this.folder.readText(r.file);
     if (disk === base.text) return r;
-    const [props, body] = frontmatter.parse(disk);
+    const [props, body] = parseRecord(disk);
     const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     for (const k of new Set([...Object.keys(base.props), ...Object.keys(r.props)])) {
       if (same(base.props[k], r.props[k])) continue;                    // not changed here: the disk value stays
@@ -134,7 +144,7 @@ export class ReviewRepository {
     if (!(await this.folder.exists(FILES.guide))) return { ta: DEFAULT_TA_REASONS, ft: DEFAULT_FT_REASONS };
     const [props] = frontmatter.parse(await this.folder.readText(FILES.guide));
     const list = v => (Array.isArray(v) && v.length ? v : null);
-    return { ta: list(props.ta_reasons) ?? DEFAULT_TA_REASONS, ft: list(props.ft_reasons) ?? DEFAULT_FT_REASONS };
+    return { ta: list(props[GUIDE_REASONS.ta] ?? props.ta_reasons) ?? DEFAULT_TA_REASONS, ft: list(props[GUIDE_REASONS.ft] ?? props.ft_reasons) ?? DEFAULT_FT_REASONS };
   }
 
   /** Appends a row to 00 - Review log.md (created on first use). */
@@ -158,6 +168,10 @@ export class ReviewRepository {
       if (!(await this.folder.exists(file))) continue;
       const next = upgradeBase(await this.folder.readText(file), this.settings.recordsPath);
       if (next) await this.folder.writeText(file, next);
+    }
+    if (await this.folder.exists(FILES.guide)) {
+      const next = upgradeGuide(await this.folder.readText(FILES.guide));
+      if (next) await this.folder.writeText(FILES.guide, next);
     }
   }
 }

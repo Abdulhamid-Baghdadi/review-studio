@@ -8,23 +8,18 @@ year: ""
 journal: ""
 doi: ""
 url: ""
+citekey: ""
 language: ""
 sources: []
 publication: ""
-ta_decision: pending
-ta_reason: ""
-ft_decision: ""
-ft_reason: ""
-pdf_status: ""
-screener: ""
+title_abstract_decision: pending
+title_abstract_reason: ""
+full_text_status: ""
+full_text_decision: ""
+full_text_reason: ""
+screened_by: ""
 screened_on: ""
 notes: ""
-sample_ta: false
-r2_ta_decision: ""
-r2_ta_reason: ""
-sample_ft: false
-r2_ft_decision: ""
-r2_ft_reason: ""
 ---
 
 # {{title}}
@@ -38,4 +33,3 @@ r2_ft_reason: ""
 {{keywords}}
 
 ## Reading notes
-

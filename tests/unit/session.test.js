@@ -56,7 +56,7 @@ test("saving keeps edits made outside the app (e.g. in Obsidian) since the note 
   await folder.writeText(r.file, disk.replace(/^notes: .*$/m, 'notes: "typed in Obsidian"').replace(/\n*$/, "\n\nA paragraph added in Obsidian.\n"));
   await s.decide(r.id, "ta", "include");
   const saved = await folder.readText(r.file);
-  assert.match(saved, /^ta_decision: "include"$/m, "the app's change is written");
+  assert.match(saved, /^title_abstract_decision: "include"$/m, "the app's change is written");
   assert.match(saved, /^notes: "typed in Obsidian"$/m, "the outside edit of another property is kept");
   assert.match(saved, /A paragraph added in Obsidian\./, "the outside edit of the body is kept");
   assert.equal(s.repo.records.get(r.id).props.notes, "typed in Obsidian", "the app now shows the merged note");

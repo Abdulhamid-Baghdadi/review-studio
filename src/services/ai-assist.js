@@ -3,7 +3,7 @@
  *
  * Every function checks the AI mode the review chose for that step and refuses when it is off. Writes go
  * through the same rules as the app and are logged in the timeline with the model name. The AI never sets
- * the reviewer's decisions (ta_decision / ft_decision); it writes suggestions the reviewer confirms.
+ * the reviewer's decisions (title_abstract_decision / full_text_decision in the notes); it writes suggestions the reviewer confirms.
  * @module services/ai-assist
  */
 import * as csv from "../domain/csv.js";
@@ -101,7 +101,7 @@ export async function aiContext(repo, st, step, { limit = 40, rel = p => p } = {
     out.destination = rel(FULLTEXT_DIR);
     out.records = retrievalQueue(repo).filter(r => r.props.pdf_status !== "found").slice(0, limit).map(r => ({
       id: r.props.record_id, title: r.props.title, authors: get(r.props, "authors"), year: get(r.props, "year"), doi: get(r.props, "doi"), url: get(r.props, "url"),
-      oa_url: r.props.oa_url ?? "", pdf_status: r.props.pdf_status ?? "" }));
+      open_access_url: r.props.oa_url ?? "", full_text_status: r.props.pdf_status ?? "" }));
   } else if (step === "charting") {
     const fields = st.charting.fields.filter(f => f.name !== "checked_by");     // the reviewer's own field
     const keys = fields.map(f => `chart_${f.name}`);

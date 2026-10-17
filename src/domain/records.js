@@ -7,6 +7,7 @@ import * as frontmatter from "./frontmatter.js";
 import { recordName } from "./names.js";
 import { strip } from "./text-rules.js";
 import { NO_ABSTRACT } from "./vocabulary.js";
+import { fromNote, openalexId, toNote } from "./record-properties.js";
 
 /**
  * @typedef {object} ReviewRecord
@@ -38,11 +39,12 @@ const fill = (template, values) =>
  * @returns {ReviewRecord}
  */
 export function createRecord({ id, entry: e, reviewLink, sourceId, publication, template = "" }) {
-  const [templateProps, templateBody] = template ? frontmatter.parse(template) : [{}, ""];
+  const [templateNote, templateBody] = template ? frontmatter.parse(template) : [{}, ""];
+  const templateProps = fromNote(templateNote);
   const own = {
     type: "review-record", review: reviewLink, record_id: id,
     title: e.title, authors: e.authors, year: e.year, journal: e.journal,
-    doi: e.doi, url: e.url || (e.doi ? `https://doi.org/${e.doi}` : ""),
+    doi: e.doi, url: e.doi ? `https://doi.org/${e.doi}` : e.url, openalex: openalexId(e.url),
     language: e.language ?? "", citekey: e.citekey ?? "",
     sources: [sourceId], publication: publication ? `[[${publication}]]` : "",
     ta_decision: "pending", ta_reason: "", ft_decision: "", ft_reason: "", pdf_status: "",
@@ -80,4 +82,10 @@ export const textAfterAbstractHeading = body => {
 };
 
 /** The note text of a record. */
-export const recordText = record => frontmatter.serialize(record.props) + record.body;
+export const recordText = record => frontmatter.serialize(toNote(record.props)) + record.body;
+
+/** A record note → its properties (as the app names them) and body. */
+export function parseRecord(text) {
+  const [props, body] = frontmatter.parse(text);
+  return [fromNote(props), body];
+}

@@ -5,7 +5,7 @@ import { cohensKappa } from "../../src/domain/agreement.js";
 import { flowCounts } from "../../src/domain/flow.js";
 import { sample } from "../../src/domain/seeded-random.js";
 import { formatFixed, formatPercent } from "../../src/domain/text-rules.js";
-import { createRecord, mergeDuplicate, nextRecordId } from "../../src/domain/records.js";
+import { createRecord, mergeDuplicate, nextRecordId, recordText } from "../../src/domain/records.js";
 import { checkRecord, isValidReason } from "../../src/domain/screening.js";
 import { makeEntry } from "../../src/domain/importers.js";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
@@ -37,7 +37,11 @@ test("records: ids, creation from the template, merging duplicates", () => {
   assert.equal(nextRecordId(new Set(["R0001", "R0003"])), "R0004");
   const template = "---\ntype: \"\"\ncustom: x\n---\n\n# {{title}}\n\n## Abstract\n\n{{abstract}}\n\n## Keywords\n\n{{keywords}}\n";
   const r = createRecord({ id: "R0001", entry: entry("Module $& partition", { doi: "10.1/x", keywords: "k" }), reviewLink: "[[T]]", sourceId: "S01", publication: "001 - Paper", template });
-  assert.deepEqual(Object.keys(r.props).slice(0, 3), ["type", "custom", "review"]);
+  const note = recordText(r).split("---")[1];                                   // as written: full words, shared properties first
+  assert.match(note, /^\ntype: "review-record"\nreview: "\[\[T\]\]"\nrecord_id: "R0001"\ntitle: /);
+  assert.match(note, /title_abstract_decision: "pending"/);
+  assert.match(note, /\ncustom: "x"\n$/, "a property of the template the app does not know is kept, at the end");
+  assert.doesNotMatch(note, /second_reviewer|ta_decision|sample_ta/, "no short names; empty second-reviewer fields are left out");
   assert.equal(r.props.url, "https://doi.org/10.1/x");
   assert.equal(r.props.publication, "[[001 - Paper]]");
   assert.match(r.body, /# Module \$& partition/);

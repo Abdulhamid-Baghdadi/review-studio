@@ -37,7 +37,7 @@ test("a decision changed in Obsidian is found when the review is opened again", 
   const s = await review();
   await s.decide("R0003", "ta", "include");
   const file = s.repo.records.get("R0003").file;
-  await s.repo.folder.writeText(file, (await s.repo.folder.readText(file)).replace(`ta_decision: "include"`, `ta_decision: "exclude"`));
+  await s.repo.folder.writeText(file, (await s.repo.folder.readText(file)).replace(`title_abstract_decision: "include"`, `title_abstract_decision: "exclude"`));
   const again = await ReviewSession.open(s.repo.folder, deps());
   const last = (await again.repo.decisionLog.history("R0003")).at(-1);
   assert.deepEqual([last.from, last.to, last.by, last.how], ["include", "exclude", "", HOW.outside]);

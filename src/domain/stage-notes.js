@@ -5,6 +5,7 @@
  */
 import { writeRows } from "./csv.js";
 import { RECORD_FILTERS } from "./notes.js";
+import { fullName } from "./record-properties.js";
 import * as frontmatter from "./frontmatter.js";
 import { buildQuery } from "./queries.js";
 import { chars, strip } from "./text-rules.js";
@@ -112,10 +113,10 @@ export function checklistNote({ reviewName, reviewLink, st, today, evidence }) {
 
 /** 12 - Charting.base: the charting form as a table over the included records (and appraisal, if used). */
 export function chartingBase(st, withAppraisal) {
-  const views = [["Charting", ["file.name", "year", ...st.charting.fields.map(f => `chart_${f.name}`)]]];
-  if (withAppraisal) views.push(["Appraisal", ["file.name", "year", "chart_study_type", "appraisal", "appraisal_note"]]);
+  const views = [["Charting", ["file.name", "year", ...st.charting.fields.map(f => fullName(`chart_${f.name}`))]]];
+  if (withAppraisal) views.push(["Appraisal", ["file.name", "year", fullName("chart_study_type"), "appraisal", "appraisal_note"]]);
   return "views:\n" + views.map(([name, order]) =>
-    `  - type: table\n    name: ${name}\n    filters:\n      and:\n${RECORD_FILTERS.map(f => `        - ${f}\n`).join("")}        - ft_decision == "include"\n    order:\n`
+    `  - type: table\n    name: ${name}\n    filters:\n      and:\n${RECORD_FILTERS.map(f => `        - ${f}\n`).join("")}        - ${fullName("ft_decision")} == "include"\n    order:\n`
     + order.map(c => `      - ${c}\n`).join("")
     + "    sort:\n      - property: file.name\n        direction: ASC\n    columnSize:\n      file.name: 380\n").join("");
 }
@@ -124,7 +125,7 @@ export function chartingBase(st, withAppraisal) {
 export function chartingCsv(st, includedProps) {
   const keys = [...st.charting.fields.map(f => `chart_${f.name}`), "appraisal", "appraisal_note"];
   const rows = includedProps.map(f => [f.record_id, f.authors, f.year, f.title, f.journal, f.doi, ...keys.map(k => f[k] ?? "")]);
-  return "﻿" + writeRows([["record_id", "authors", "year", "title", "journal", "doi", ...keys], ...rows]);
+  return "﻿" + writeRows([["record_id", "authors", "year", "title", "journal", "doi", ...keys.map(fullName)], ...rows]);
 }
 
 const authorList = f => String(f.authors ?? "").split(";").map(a => a.trim()).filter(Boolean);

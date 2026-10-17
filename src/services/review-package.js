@@ -4,6 +4,7 @@
  * every file, so a copy deposited on OSF or Zenodo can be shown to be unchanged.
  * @module services/review-package
  */
+import { fullName, toNote } from "../domain/record-properties.js";
 import { AI_STEPS, aiMode } from "../domain/ai-steps.js";
 import * as csv from "../domain/csv.js";
 import { DECISION_LOG_FILE, HOW } from "../domain/decision-log.js";
@@ -76,7 +77,7 @@ export async function writePackage(repo, st) {
     await copy(`${FILES.exports}/${name}`, `02 Searches/Exports/${name}`, "export file as downloaded, or an export made by the app");
   }
 
-  add("03 Screening/Screening decisions.csv", "﻿" + csv.writeRecords(DECISION_COLUMNS, records.map(r => r.props)),
+  add("03 Screening/Screening decisions.csv", "﻿" + csv.writeRecords(DECISION_COLUMNS.map(fullName), records.map(r => toNote(r.props))),
     "every record with its title/abstract, full-text and second-reviewer decisions and reasons");
   await copy(FILES.guide, `03 Screening/${FILES.guide}`, "the exclusion reasons used");
   await copy(DECISION_LOG_FILE, `03 Screening/${DECISION_LOG_FILE}`, "every change of every decision: when, who, how (hash-chained)");
