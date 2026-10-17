@@ -42,13 +42,14 @@ const section = (body, name) => strip(new RegExp(`## ${name}[ \\t]*\\n([\\s\\S]*
  * @param {string} p.reviewName @param {string} p.reviewLink @param {string} p.template text of the publication template
  * @returns {{stem: string, props: import("./frontmatter.js").Properties, body: string}}
  */
-export function newPublicationNote({ record: f, recordBody, index, reviewName, reviewLink, template, today = "" }) {
+export function newPublicationNote({ record: f, recordBody, index, reviewName, reviewLink, template, today = "", status = "" }) {
   const [templateProps, templateBody] = frontmatter.parse(template);
   const stem = `${String(index).padStart(3, "0")} - ${f.year || "n.d."} - ${shortAuthors(f.authors)} - ${fileTitle(f.title)}`;
   // the template's properties in its order, filled from the record; added_by / added_on say where the note came from
   const props = { ...templateProps, type: "publication", index, authors: f.authors ?? "", year: f.year ?? "", title: f.title,
     journal: f.journal ?? "", doi: f.doi ?? "", url: f.url ?? "", pdf: "", candidate_in: [], included_in: [], added_by: reviewLink, added_on: today };
-  if (!("status" in templateProps)) props.status = "read";
+  if (strip(status)) props.status = Array.isArray(templateProps.status) ? [strip(status)] : strip(status);   // as set in Review settings, in the template's shape
+  else if (!("status" in templateProps)) props.status = "read";
   for (const k of ["category", "tags"]) if (!Array.isArray(props[k]) || props[k].every(v => !v)) props[k] = [];
   const fill = name => { const text = section(recordBody, name); return text ? `## ${name}\n\n${text}\n` : `## ${name}\n`; };
   let body = templateBody.replaceAll("{{title}}", () => f.title)

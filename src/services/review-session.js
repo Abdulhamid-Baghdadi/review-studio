@@ -531,8 +531,8 @@ export class ReviewSession {
    * already there only gets this review in `included_in`), then the citations between library papers are updated
    * (`cites`, `cited_by`). Without OpenAlex the export still happens and the message says so.
    */
-  async exportToLibrary(template) {
-    const added = await this.addToLibrary(template);
+  async exportToLibrary(template, { status = "" } = {}) {
+    const added = await this.addToLibrary(template, { status });
     try {
       const c = await this.libraryCitations({ apply: true });
       return `${added} Citations: ${c.links} links between ${c.found} library papers, ${c.written} note(s) updated.`;
@@ -542,8 +542,8 @@ export class ReviewSession {
   }
 
   /** Copies the included papers to the library (publication template text needed for new notes). */
-  async addToLibrary(template) {
-    const done = await addKeptToLibrary(this.repo, this.st, this.library, { template });
+  async addToLibrary(template, { status = "" } = {}) {
+    const done = await addKeptToLibrary(this.repo, this.st, this.library, { template, status });
     await this.save();
     return "Library: " + ([...done].map(([k, v]) => `${v} ${k}`).join(", ") || "nothing to add") + ".";
   }

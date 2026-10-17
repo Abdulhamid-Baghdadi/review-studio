@@ -136,6 +136,7 @@ async function reviewSettings() {
   const tpl = el("span", { className: "muted" }, s.publicationTemplate ? s.publicationTemplate.name : "the app's own");
   const pdfs = el("span", { className: "muted" }, s.libraryPdfs ? s.libraryPdfs.name : "a PDFs folder inside the library folder");
   const initials = el("input", { type: "text", value: s.reviewer ?? "", placeholder: "e.g. AB", maxLength: 12 });
+  const exportStatus = el("input", { type: "text", value: s.exportStatus ?? "", placeholder: "the template's own value (e.g. quick review)" });
   const dialog = el("dialog", { className: "modal" },
     el("div", { className: "mh" }, "Review settings"),
     el("div", { className: "mb stack" },
@@ -150,11 +151,12 @@ async function reviewSettings() {
         button("Default", () => { delete s.publicationTemplate; tpl.textContent = "the app's own"; }, "sm ghost")),
       el("div", { className: "row" }, el("span", {}, "Folder for the exported PDFs: "), pdfs,
         button("Choose…", async () => { s.libraryPdfs = await window.showDirectoryPicker({ id: "library-pdfs", mode: "readwrite" }); pdfs.textContent = s.libraryPdfs.name; }, "sm"),
-        button("Default", () => { delete s.libraryPdfs; pdfs.textContent = "a PDFs folder inside the library folder"; }, "sm ghost"))),
+        button("Default", () => { delete s.libraryPdfs; pdfs.textContent = "a PDFs folder inside the library folder"; }, "sm ghost")),
+      el("label", { className: "field" }, el("span", {}, "Status of exported papers (the 'status' property of new library notes)"), exportStatus)),
     el("div", { className: "mf" },
       button("Cancel", () => dialog.close(), ""),
       button("Save", async () => {
-        Object.assign(s, { reviewer: initials.value.trim(), vault: vault.value.trim(), recordsPath: `${path.value.trim() || entry.name}/08 - Records` });
+        Object.assign(s, { exportStatus: exportStatus.value.trim(), reviewer: initials.value.trim(), vault: vault.value.trim(), recordsPath: `${path.value.trim() || entry.name}/08 - Records` });
         await backend.open(await rememberReview(entry.handle, s));
         dialog.close();
         location.reload();

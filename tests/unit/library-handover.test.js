@@ -70,10 +70,10 @@ test("export with the vault's own template: its properties and sections, plus ad
   const s = await ReviewSession.open(memoryFolder({ ...ex.files, ...pdfs }), { clock: { today: () => "2026-10-17", now: () => "2026-10-17 12:00" },
     settings: { name: "Example review", recordsPath: "Example review records/08 - Records" }, library,
     openalex: { get: async () => ({ results: [] }) } });
-  assert.match(await s.exportToLibrary(VAULT_TEMPLATE), /8 added.*Citations: 0 links/);
+  assert.match(await s.exportToLibrary(VAULT_TEMPLATE, { status: "quick review" }), /8 added.*Citations: 0 links/);
   const name = (await lib.list("")).find(n => n.includes("Pereira"));
   const note = await lib.readText(name);
-  assert.match(note, /^status:\n  - "unread"$/m, "the template's own values stay");
+  assert.match(note, /^status:\n  - "quick review"$/m, "the status from Review settings, as a list like the template's");
   assert.match(note, /^importance: 3$/m);
   assert.match(note, /^added_by: "\[\[Example review\]\]"\nadded_on: "2026-10-17"$/m);
   assert.match(note, /^cites: \[\]\ncited_by: \[\]\ncategory: \[\]$/m, "citations written before category, as Library Studio does");

@@ -99,7 +99,7 @@ export async function applyLibrarySync(library, repo, { changes }) {
  * @param {Library} library @param {{template: string}} options text of the publication template
  * @returns {Promise<Map<string, number>>} "added" / "already in library" counts
  */
-export async function addKeptToLibrary(repo, st, library, { template }) {
+export async function addKeptToLibrary(repo, st, library, { template, status = "" }) {
   const done = new Map();
   const bump = k => done.set(k, (done.get(k) ?? 0) + 1);
   const included = [...repo.records.values()].filter(r => isIncluded(r.props))
@@ -110,7 +110,7 @@ export async function addKeptToLibrary(repo, st, library, { template }) {
     let stem = library.notes.has(linked) ? linked : library.index.find(f.doi, f.title, yearOf(f.year));
     if (stem) bump("already in library");
     else {
-      const note = newPublicationNote({ record: f, recordBody: r.body, index: nextIndex(library.notes), reviewName: repo.name, reviewLink: repo.link, template, today: repo.clock.today() });
+      const note = newPublicationNote({ record: f, recordBody: r.body, index: nextIndex(library.notes), reviewName: repo.name, reviewLink: repo.link, template, today: repo.clock.today(), status });
       await library.folder.writeText(`${note.stem}.md`, frontmatter.serialize(note.props) + note.body);
       library.index.add(note.stem, f.doi, f.title, yearOf(f.year));
       library.notes.set(note.stem, note.props);

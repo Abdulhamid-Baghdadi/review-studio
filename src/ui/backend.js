@@ -326,7 +326,7 @@ export class Backend {
       case "save_fields": return s.saveFields(a.fields, amendment);
       case "add_to_library":
         if (!this.session.library.folder) throw new Error("Choose a library folder in Settings first.");
-        return s.exportToLibrary(this.publicationTemplate ?? this.templates.publication);
+        return s.exportToLibrary(this.publicationTemplate ?? this.templates.publication, { status: this.entry.settings?.exportStatus ?? "" });
       case "library_citations": {
         if (!this.session.library.folder) throw new Error("Choose a library folder in Settings first.");
         return { raw: await s.libraryCitations({ apply: Boolean(a.apply) }) };
