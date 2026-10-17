@@ -2091,7 +2091,7 @@ const TOUR = [
   { title: "Welcome to Review Studio 👋",
     text: "This app guides you through a systematic review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
   { target: ".flowmap", title: "Your review, step by step",
-    text: "The map shows the whole review: plan (question, search, inclusion rules), the PRISMA flow with your live counts (records found, screened, included), then analysis and the report. Click any box to open that step; \"You are here\" marks the page on screen. Steps marked AI are where Claude can help, if you want." },
+    text: "The map shows the whole review: plan (question, search, inclusion rules), the PRISMA flow with your live counts (records found, screened, included), then analysis and the report. Click any step to open it; the ringed one is where you are. While you work it stays folded to this one line: Map ▾ unfolds it." },
   { target: "#topbar", title: "One step at a time",
     text: "Some steps have tabs for their parts. Each page says what to do; ? Help explains the method with a filled-in example, ✓ Mark done ticks it off, and Next at the bottom takes you on." },
   { target: "#draftBar", title: "Your files stay on your PC",
