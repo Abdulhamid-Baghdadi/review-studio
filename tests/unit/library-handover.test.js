@@ -30,3 +30,55 @@ test("add kept papers, then sync: nothing left to do, and a typed included_in st
   await s.sync(true);
   assert.equal((await s.sync(false)).changes.length, 0, "after a sync, nothing is left to do");
 });
+
+const VAULT_TEMPLATE = `---
+pdf:
+status:
+  - unread
+importance: 3
+reason_for_importance: []
+category:
+  -
+type: publication
+publication_type: ""
+index:
+authors:
+year:
+title:
+journal:
+doi:
+url:
+tags:
+  -
+---
+
+# {{title}}
+
+## Summary
+
+## Abstract
+
+## Keywords
+
+## Why is this paper important?
+`;
+
+test("export with the vault's own template: its properties and sections, plus added_by and added_on; PDFs to the chosen folder", async () => {
+  const lib = memoryFolder({}), pdfFolder = memoryFolder({});
+  const library = { ...(await openLibrary(lib)), pdfFolder };
+  const pdfs = Object.fromEntries(Object.entries(ex.linked).map(([p, file]) => [p, new Uint8Array(readFileSync(new URL(file, EX)))]));
+  const s = await ReviewSession.open(memoryFolder({ ...ex.files, ...pdfs }), { clock: { today: () => "2026-10-17", now: () => "2026-10-17 12:00" },
+    settings: { name: "Example review", recordsPath: "Example review records/08 - Records" }, library,
+    openalex: { get: async () => ({ results: [] }) } });
+  assert.match(await s.exportToLibrary(VAULT_TEMPLATE), /8 added.*Citations: 0 links/);
+  const name = (await lib.list("")).find(n => n.includes("Pereira"));
+  const note = await lib.readText(name);
+  assert.match(note, /^status:\n  - "unread"$/m, "the template's own values stay");
+  assert.match(note, /^importance: 3$/m);
+  assert.match(note, /^added_by: "\[\[Example review\]\]"\nadded_on: "2026-10-17"$/m);
+  assert.match(note, /^cites: \[\]\ncited_by: \[\]\ncategory: \[\]$/m, "citations written before category, as Library Studio does");
+  assert.match(note, /## Summary\n\n## Abstract\n\nBACKGROUND:[^\n]*\n\n## Keywords\n\n## Why is this paper important\?/);
+  assert.doesNotMatch(note, /Notes from Example review/, "no empty section from the record");
+  assert.equal((await pdfFolder.list("")).length, 7);
+  assert.equal((await lib.list("")).includes("PDFs"), false);
+});

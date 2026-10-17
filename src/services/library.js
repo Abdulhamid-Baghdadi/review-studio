@@ -17,6 +17,7 @@ import { fileOrder } from "./review-repository.js";
  * @property {DuplicateIndex} index                      finds the note name (stem) of a paper
  * @property {Map<string, import("../domain/frontmatter.js").Properties>} notes  by note name
  * @property {import("../ports/folder.js").Folder|null} folder
+ * @property {import("../ports/folder.js").Folder} [pdfFolder]  where exported PDFs go (default: "PDFs" in the library folder)
  */
 
 /** An empty library, for reviews without one. @returns {Library} */
@@ -109,7 +110,7 @@ export async function addKeptToLibrary(repo, st, library, { template }) {
     let stem = library.notes.has(linked) ? linked : library.index.find(f.doi, f.title, yearOf(f.year));
     if (stem) bump("already in library");
     else {
-      const note = newPublicationNote({ record: f, recordBody: r.body, index: nextIndex(library.notes), reviewName: repo.name, reviewLink: repo.link, template });
+      const note = newPublicationNote({ record: f, recordBody: r.body, index: nextIndex(library.notes), reviewName: repo.name, reviewLink: repo.link, template, today: repo.clock.today() });
       await library.folder.writeText(`${note.stem}.md`, frontmatter.serialize(note.props) + note.body);
       library.index.add(note.stem, f.doi, f.title, yearOf(f.year));
       library.notes.set(note.stem, note.props);
@@ -122,7 +123,9 @@ export async function addKeptToLibrary(repo, st, library, { template }) {
     if (!listed) props.included_in = [...(Array.isArray(current) ? current : typeof current === "string" && current.trim() ? [current.trim()] : []), repo.link];
     const pdf = `${FULLTEXT_DIR}/${r.file.split("/").pop().replace(/\.md$/, "")}.pdf`;
     if (!props.pdf && (await repo.folder.exists(pdf))) {
-      await library.folder.writeBytes(`PDFs/${stem}.pdf`, await repo.folder.readBytes(pdf));
+      const bytes = await repo.folder.readBytes(pdf);
+      if (library.pdfFolder) await library.pdfFolder.writeBytes(`${stem}.pdf`, bytes);
+      else await library.folder.writeBytes(`PDFs/${stem}.pdf`, bytes);
       props.pdf = `[[${stem}.pdf]]`;
     }
     await library.folder.writeText(`${stem}.md`, frontmatter.serialize(props) + body);

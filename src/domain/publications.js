@@ -31,7 +31,7 @@ export function nextIndex(notes) {
 }
 
 /** Text after "## <name>" up to the next "## " heading, trimmed. */
-const section = (body, name) => strip(new RegExp(`## ${name}\\s*\\n([\\s\\S]*?)(?=\\n## |$(?![\\s\\S]))`).exec(body)?.[1] ?? "");
+const section = (body, name) => strip(new RegExp(`## ${name}[ \\t]*\\n([\\s\\S]*?)(?=\\n## |$(?![\\s\\S]))`).exec(body)?.[1] ?? "");   // an empty section stays empty
 
 /**
  * A publication note for an included record, from the publication template.
@@ -42,17 +42,20 @@ const section = (body, name) => strip(new RegExp(`## ${name}\\s*\\n([\\s\\S]*?)(
  * @param {string} p.reviewName @param {string} p.reviewLink @param {string} p.template text of the publication template
  * @returns {{stem: string, props: import("./frontmatter.js").Properties, body: string}}
  */
-export function newPublicationNote({ record: f, recordBody, index, reviewName, reviewLink, template }) {
+export function newPublicationNote({ record: f, recordBody, index, reviewName, reviewLink, template, today = "" }) {
   const [templateProps, templateBody] = frontmatter.parse(template);
   const stem = `${String(index).padStart(3, "0")} - ${f.year || "n.d."} - ${shortAuthors(f.authors)} - ${fileTitle(f.title)}`;
+  // the template's properties in its order, filled from the record; added_by / added_on say where the note came from
   const props = { ...templateProps, type: "publication", index, authors: f.authors ?? "", year: f.year ?? "", title: f.title,
-    journal: f.journal ?? "", doi: f.doi ?? "", url: f.url ?? "", pdf: "", status: "read", added_by: reviewLink,
-    candidate_in: [], included_in: [], category: [], tags: [] };
+    journal: f.journal ?? "", doi: f.doi ?? "", url: f.url ?? "", pdf: "", candidate_in: [], included_in: [], added_by: reviewLink, added_on: today };
+  if (!("status" in templateProps)) props.status = "read";
+  for (const k of ["category", "tags"]) if (!Array.isArray(props[k]) || props[k].every(v => !v)) props[k] = [];
+  const fill = name => { const text = section(recordBody, name); return text ? `## ${name}\n\n${text}\n` : `## ${name}\n`; };
   let body = templateBody.replaceAll("{{title}}", () => f.title)
-    .replace("## Abstract\n", () => `## Abstract\n\n${section(recordBody, "Abstract")}\n`)
-    .replace("## Keywords\n", () => `## Keywords\n\n${section(recordBody, "Keywords")}\n`);
+    .replace("## Abstract\n", () => fill("Abstract"))
+    .replace("## Keywords\n", () => fill("Keywords"));
   // anything the reviewer wrote in the record beyond title, abstract and keywords
-  const extra = recordBody.split(/\n(?=## )/).map(strip).filter(x => x.startsWith("## ") && !/^## (Abstract|Keywords)\b/.test(x));
+  const extra = recordBody.split(/\n(?=## )/).map(strip).filter(x => x.startsWith("## ") && !/^## (Abstract|Keywords)\b/.test(x) && x.includes("\n"));
   if (extra.length) body += `\n## Notes from ${reviewName}\n\n` + extra.map(x => x.replace("## ", "### ")).join("\n\n") + "\n";
   return { stem, props, body };
 }

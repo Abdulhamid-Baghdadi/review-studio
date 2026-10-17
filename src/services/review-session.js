@@ -526,6 +526,21 @@ export class ReviewSession {
     return { message: `Exported ${path.split("/").pop()}`, path };
   }
 
+  /**
+   * Export to the Obsidian library: the included papers become publication notes (from the template; a paper
+   * already there only gets this review in `included_in`), then the citations between library papers are updated
+   * (`cites`, `cited_by`). Without OpenAlex the export still happens and the message says so.
+   */
+  async exportToLibrary(template) {
+    const added = await this.addToLibrary(template);
+    try {
+      const c = await this.libraryCitations({ apply: true });
+      return `${added} Citations: ${c.links} links between ${c.found} library papers, ${c.written} note(s) updated.`;
+    } catch (e) {
+      return `${added} Citations not updated (${e.message}); use “Check citations” later.`;
+    }
+  }
+
   /** Copies the included papers to the library (publication template text needed for new notes). */
   async addToLibrary(template) {
     const done = await addKeptToLibrary(this.repo, this.st, this.library, { template });

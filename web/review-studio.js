@@ -1974,12 +1974,15 @@ PAGES.report = () => {
   const auto = S.checklist_auto;
   const kept = S.records.filter(r => r.ft_decision === "include");
   return h("div", {},
-    kept.length ? card("Your library", `When the review is finished, copy the papers you kept to ${libraryName()}. Everything else stays in this review's folder.`,
+    kept.length ? card("Export to your Obsidian library", `When the review is finished, the papers you kept become publication notes in ${libraryName()}, with their PDFs; then the citations between your library papers are updated ('cites', 'cited_by'). Everything else stays in this review's folder.`,
       h("div", { class: "row" }, h("span", { class: "small muted", style: "flex:1" },
-        `${kept.length} included paper(s); ${kept.filter(r => r.publication).length} already linked to a library note. Each gets a publication note from the template (or, if it is already in your library, this review is added to its 'included_in') and a copy of its PDF.`),
-        btn("📚 Add kept papers to library", async e => {
-          if (await confirmBox("Add to library", `Copy ${kept.length} included paper(s) to ${libraryName()}? Do this when screening is final.`, "Add"))
-            busy(e.target, () => api("add_to_library"));
+        `${kept.length} included paper(s); ${kept.filter(r => r.publication).length} already linked to a library note. `,
+        S.publication_template ? `New notes use your template “${S.publication_template}”` : "New notes use the app's own template (choose yours in ⚙ Settings → Review settings)",
+        ", plus 'added_by' (this review) and 'added_on' (the date). A paper already in your library only gets this review in its 'included_in'."),
+        btn("📚 Export to Obsidian library", async e => {
+          const button = e.currentTarget;
+          if (await confirmBox("Export to Obsidian library", `Export ${kept.length} included paper(s) to ${libraryName()} as publication notes, then update the citations between library papers (OpenAlex)? Do this when screening is final.`, "Export"))
+            busy(button, () => api("add_to_library"));
         }, "primary"))) : null,
     S.library?.length ? citationsCard() : null,
     card("Traceability", "Every change of a screening decision is in 08 - Decision log.csv (when, who, how), chained with SHA-256 so that an edited row shows. The review package collects the protocol, searches, decisions, log, second-reviewer sheets, charting, flow, checklist and AI use, with a checksum per file, ready to deposit on OSF or Zenodo.",

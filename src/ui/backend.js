@@ -34,6 +34,12 @@ const extension = path => (/\.[^./]+$/.exec(path)?.[0] ?? "").toLowerCase();
 /** A JSON answer as the page expects from the server. */
 const answer = (status, body) => ({ status, ok: status < 400, body });
 
+/** Read access to a file the user chose (asks once per visit when needed). */
+async function readAccess(handle) {
+  if (typeof handle.queryPermission !== "function") return true;
+  return (await handle.queryPermission({ mode: "read" })) === "granted" || (await handle.requestPermission({ mode: "read" })) === "granted";
+}
+
 export class Backend {
   /** @type {ReviewSession|null} */ session = null;
   /** @type {import("../adapters/browser-store.js").SavedReview|null} */ entry = null;
@@ -77,6 +83,9 @@ export class Backend {
     const s = entry.settings ?? {};
     let library = emptyLibrary();
     if (s.library && (await requestAccess(s.library))) library = await openLibrary(browserFolder(s.library));
+    if (library.folder && s.libraryPdfs && (await requestAccess(s.libraryPdfs))) library.pdfFolder = browserFolder(s.libraryPdfs);
+    this.publicationTemplate = null;                    // the vault's own template, when one was chosen in the settings
+    if (s.publicationTemplate && (await readAccess(s.publicationTemplate))) this.publicationTemplate = await (await s.publicationTemplate.getFile()).text();
     const clock = { today: () => new Date().toLocaleDateString("sv"), now: () => new Date().toLocaleString("sv").slice(0, 16) };
     this.session = await ReviewSession.open(browserFolder(entry.handle), {
       clock, library, openalex: this.openalex, devMode: false, onProgress,
@@ -195,7 +204,7 @@ export class Backend {
 
   snapshot() {
     return snapshot(this.session, { review: this.entry.name, reviews: [], vault: this.entry.settings?.vault ?? "" })
-      .then(async s => ({ ...s, reviews: await this.reviewNames() }));
+      .then(async s => ({ ...s, reviews: await this.reviewNames(), publication_template: this.publicationTemplate ? this.entry.settings?.publicationTemplate?.name ?? "" : "" }));
   }
 
   /** A file the user chose for an action (export, sheet, PDF); returns the token the action refers to. */
@@ -317,7 +326,7 @@ export class Backend {
       case "save_fields": return s.saveFields(a.fields, amendment);
       case "add_to_library":
         if (!this.session.library.folder) throw new Error("Choose a library folder in Settings first.");
-        return s.addToLibrary(this.templates.publication);
+        return s.exportToLibrary(this.publicationTemplate ?? this.templates.publication);
       case "library_citations": {
         if (!this.session.library.folder) throw new Error("Choose a library folder in Settings first.");
         return { raw: await s.libraryCitations({ apply: Boolean(a.apply) }) };

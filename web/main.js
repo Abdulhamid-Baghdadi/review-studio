@@ -133,6 +133,8 @@ async function reviewSettings() {
   const vault = el("input", { type: "text", value: s.vault ?? "", placeholder: "e.g. My research vault" });
   const path = el("input", { type: "text", value: (s.recordsPath ?? `${entry.name}/08 - Records`).replace(/\/08 - Records$/, ""), placeholder: entry.name });
   const lib = el("span", { className: "muted" }, s.library ? s.library.name : "none");
+  const tpl = el("span", { className: "muted" }, s.publicationTemplate ? s.publicationTemplate.name : "the app's own");
+  const pdfs = el("span", { className: "muted" }, s.libraryPdfs ? s.libraryPdfs.name : "a PDFs folder inside the library folder");
   const initials = el("input", { type: "text", value: s.reviewer ?? "", placeholder: "e.g. AB", maxLength: 12 });
   const dialog = el("dialog", { className: "modal" },
     el("div", { className: "mh" }, "Review settings"),
@@ -142,7 +144,13 @@ async function reviewSettings() {
       el("label", { className: "field" }, el("span", {}, "Path of this review folder inside the vault"), path),
       el("div", { className: "row" }, el("span", {}, "Library folder (publication notes): "), lib,
         button("Choose…", async () => { s.library = await window.showDirectoryPicker({ id: "library", mode: "readwrite" }); lib.textContent = s.library.name; }, "sm"),
-        button("None", () => { delete s.library; lib.textContent = "none"; }, "sm ghost"))),
+        button("None", () => { delete s.library; lib.textContent = "none"; }, "sm ghost")),
+      el("div", { className: "row" }, el("span", {}, "Publication template (for notes exported to the library): "), tpl,
+        button("Choose…", async () => { [s.publicationTemplate] = await window.showOpenFilePicker({ id: "template", types: [{ description: "Markdown note", accept: { "text/markdown": [".md"] } }] }); tpl.textContent = s.publicationTemplate.name; }, "sm"),
+        button("Default", () => { delete s.publicationTemplate; tpl.textContent = "the app's own"; }, "sm ghost")),
+      el("div", { className: "row" }, el("span", {}, "Folder for the exported PDFs: "), pdfs,
+        button("Choose…", async () => { s.libraryPdfs = await window.showDirectoryPicker({ id: "library-pdfs", mode: "readwrite" }); pdfs.textContent = s.libraryPdfs.name; }, "sm"),
+        button("Default", () => { delete s.libraryPdfs; pdfs.textContent = "a PDFs folder inside the library folder"; }, "sm ghost"))),
     el("div", { className: "mf" },
       button("Cancel", () => dialog.close(), ""),
       button("Save", async () => {
