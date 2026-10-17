@@ -2071,7 +2071,8 @@ function renderDraftBar() {
   bar.hidden = false;
   bar.classList.toggle("example", Boolean(backend.entry?.example));
   bar.replaceChildren(...[                                           // (replaceChildren would print an empty item as "null")
-    backend.entry?.example ? h("span", { class: "example-badge", title: `A real OpenAlex search (${S.flow.unique} records) screened down to ${S.flow.included} included studies. Decisions were made from titles and abstracts; risk of bias is left open. Try anything: it is reset each time the example is opened.` }, "📘 Example · not kept") : null,
+    backend.entry?.example ? h("span", { class: "example-badge", title: `Sit-stand desks and sitting at work: a real OpenAlex search (${S.flow.unique} records) screened down to ${S.flow.included} randomised trials, read in full, with risk of bias (RoB 2) and a meta-analysis. The open-access full texts come with it. Try anything: it is reset each time the example is opened.` }, "📘 Example · not kept") : null,
+    backend.entry?.example ? btn("💾 Save a copy…", e => busy(e.currentTarget, saveExampleCopy), "sm ghost", "Copy the whole example review (notes and PDFs) into a folder on your PC, e.g. to open it in Obsidian") : null,
     backend.entry?.example ? btn("← My review", () => switchReview(S.reviews[0]), "sm primary", "Back to your own review") : null,
     h("span", { id: "saveState", class: "save-state " + SAVE_STATE[0], title: "Everything you type is saved by itself" }, SAVE_STATE[1])].filter(Boolean));
 }
@@ -2086,6 +2087,15 @@ async function saveDraft() {
     const entry = await backend.saveDraft(name);
     await switchReview(entry.name);
     toast(`Saved: ${entry.name}. From now on every change is written there.`, "ok");
+  } catch (e) { if (e.name !== "AbortError") toast(e.message, "err"); }
+}
+
+// The finished example, copied to a folder of the user's choice: plain notes and PDFs, ready for Obsidian.
+async function saveExampleCopy() {
+  try {
+    const entry = await backend.saveExampleCopy();
+    await switchReview(entry.name);
+    toast(`Copied: "${entry.name}" in the folder you chose. Open that folder in Obsidian (Open folder as vault) to browse the notes. Changes you make here are now kept.`, "ok");
   } catch (e) { if (e.name !== "AbortError") toast(e.message, "err"); }
 }
 

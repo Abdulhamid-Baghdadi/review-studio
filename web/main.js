@@ -58,7 +58,10 @@ const text = path => fetch(new URL(path, import.meta.url)).then(r => r.text());
 const backend = new Backend({
   help: await fetch(new URL("help.json", import.meta.url)).then(r => r.json()),
   templates: { record: await text("templates/Review Record Template.md"), publication: await text("templates/Publication Template.md") },
-  example: () => fetch(new URL("example/example-review.json", import.meta.url)).then(r => r.json()),
+  example: async () => ({                         // the review as JSON; its full texts are separate files next to it
+    ...(await fetch(new URL("example/example-review.json", import.meta.url)).then(r => r.json())),
+    fetchLinked: path => fetch(new URL(`example/${path}`, import.meta.url)).then(r => { if (!r.ok) throw new Error(`${path}: ${r.status}`); return r.arrayBuffer(); }),
+  }),
   pdfjs,
 });
 window.backend = backend;

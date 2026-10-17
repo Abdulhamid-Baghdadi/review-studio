@@ -137,7 +137,24 @@ export class Backend {
     const folder = browserFolder(handle), ex = await this.loadExample();
     for (const [path, text] of Object.entries(ex.files)) await folder.writeText(path, text);
     for (const [path, b64] of Object.entries(ex.binary ?? {})) await folder.writeBytes(path, Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
+    await Promise.all(Object.entries(ex.linked ?? {}).map(async ([path, file]) => folder.writeBytes(path, new Uint8Array(await ex.fetchLinked(file)))));
     return { id: "example", name: Backend.EXAMPLE, handle, example: true, settings: { name: "Example review", recordsPath: `${EXAMPLE_DIR}/08 - Records`, reviewer: "EX" } };
+  }
+
+  /**
+   * Copies the finished example into a folder the user picks ("Example review records"), e.g. to open it in
+   * Obsidian, and opens that copy: from then on it is a review of their own.
+   * @returns {Promise<object>} the copy's entry
+   */
+  async saveExampleCopy() {
+    if (!this.entry?.example) throw new Error("Open the finished example first.");
+    const parent = await window.showDirectoryPicker({ id: "parent", mode: "readwrite" });
+    const handle = await parent.getDirectoryHandle(EXAMPLE_DIR, { create: true });
+    for await (const _ of handle.keys()) throw new Error(`"${EXAMPLE_DIR}" already exists there and is not empty. Choose another place.`);
+    await copyFolder(this.entry.handle, handle);
+    const entry = await rememberReview(handle, { recordsPath: `${EXAMPLE_DIR}/08 - Records` });
+    await this.open(entry);
+    return this.entry;
   }
 
   /**
