@@ -42,3 +42,24 @@ export class OpenAlexClient {
     throw new OpenAlexError("OpenAlex did not answer");
   }
 }
+
+const PAGE = 200;   // OpenAlex's largest page
+
+/**
+ * Every work matching `params.filter`, page by page. A batch of DOIs can match more works than it has DOIs
+ * (OpenAlex sometimes holds two works with one DOI), so one page the size of the batch would silently drop the
+ * last ones. Batches of up to 200 still take one request.
+ * @param {{get: (path: string, params: object) => Promise<any>}} openalex
+ * @param {object} params  filter, select, …
+ * @returns {Promise<object[]>}
+ */
+export async function allWorks(openalex, params) {
+  const works = [];
+  for (let page = 1; ; page++) {
+    const json = await openalex.get("works", { ...params, "per-page": PAGE, page });
+    const results = json?.results ?? [];
+    works.push(...results);
+    const count = json?.meta?.count;
+    if (results.length < PAGE || (Number.isFinite(count) && works.length >= count)) return works;
+  }
+}

@@ -7,6 +7,7 @@
  */
 import { citationGraph, citationSummary, shortId, withCitations, withoutUnlinked } from "../domain/library-citations.js";
 import { normalizeDoi } from "../domain/matching.js";
+import { allWorks } from "./openalex-client.js";
 
 const REFERENCES_FILE = "References.json";
 const BATCH = 50, ID_BATCH = 100;
@@ -24,23 +25,25 @@ export const libraryDois = library => new Map([...library.notes].map(([stem, p])
 
 /**
  * The OpenAlex works of the library's DOIs, and the DOIs of the works they cite. DOIs the filter syntax cannot
- * carry (":", ",", "|") are left out, as in Library Studio. @returns {Promise<CitationData>}
+ * carry (":", ",", "|") are left out, as in Library Studio. When OpenAlex holds two works with one DOI, the first
+ * keeps its id and gets the references of both. @returns {Promise<CitationData>}
  */
 export async function fetchLibraryWorks(library, openalex, onProgress = () => {}) {
   const dois = [...new Set([...libraryDois(library).values()].filter(d => d && !/[:,|]/.test(d)))];
   const works = new Map();
   for (let i = 0; i < dois.length; i += BATCH) {
     onProgress(`Asking OpenAlex for the library's papers (${i / BATCH + 1} of ${Math.ceil(dois.length / BATCH)})…`);
-    const json = await openalex.get("works", { filter: "doi:" + dois.slice(i, i + BATCH).join("|"), "per-page": BATCH, select: "id,doi,referenced_works" });
-    for (const w of json?.results ?? []) works.set(normalizeDoi(w.doi), { id: w.id, referenced: w.referenced_works ?? [] });
+    for (const w of await allWorks(openalex, { filter: "doi:" + dois.slice(i, i + BATCH).join("|"), select: "id,doi,referenced_works" })) {
+      const doi = normalizeDoi(w.doi), known = works.get(doi), referenced = w.referenced_works ?? [];
+      works.set(doi, known ? { id: known.id, referenced: [...new Set([...known.referenced, ...referenced])] } : { id: w.id, referenced });
+    }
   }
   const inLibrary = new Set([...works.values()].map(w => shortId(w.id)));
   const cited = [...new Set([...works.values()].flatMap(w => w.referenced.map(shortId)))].filter(id => /^W\d+$/.test(id) && !inLibrary.has(id));
   const refDois = new Map(cited.map(id => [id, ""]));
   for (let i = 0; i < cited.length; i += ID_BATCH) {
     onProgress(`Asking OpenAlex for the DOIs of the cited works (${i / ID_BATCH + 1} of ${Math.ceil(cited.length / ID_BATCH)})…`);
-    const json = await openalex.get("works", { filter: "openalex:" + cited.slice(i, i + ID_BATCH).join("|"), "per-page": ID_BATCH, select: "id,doi" });
-    for (const w of json?.results ?? []) refDois.set(shortId(w.id), normalizeDoi(w.doi));
+    for (const w of await allWorks(openalex, { filter: "openalex:" + cited.slice(i, i + ID_BATCH).join("|"), select: "id,doi" })) refDois.set(shortId(w.id), normalizeDoi(w.doi));
   }
   return { works, refDois };
 }

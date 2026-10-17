@@ -6,6 +6,8 @@ import assert from "node:assert/strict";
 import { citationGraph, UNLINKED, withCitations, withoutUnlinked } from "../../src/domain/library-citations.js";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
 import { openLibrary } from "../../src/services/library.js";
+import { fetchLibraryWorks } from "../../src/services/library-citations.js";
+import { allWorks } from "../../src/services/openalex-client.js";
 import { ReviewSession } from "../../src/services/review-session.js";
 
 const note = (doi, extra = "", eol = "\n") => [
@@ -92,4 +94,37 @@ test("a note OpenAlex does not return keeps its cites, also when OpenAlex answer
   await (await open(fakeOpenalex())).libraryCitations({ apply: true });
   assert.equal(await lib.readText("001 - A.md"), kept, "only 002 - B is found; 001 - A is untouched, its Unlinked block too");
   assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\ncategory:/m);
+});
+
+/** Answers like OpenAlex: `count` matching works, `per-page` of them per page. */
+const pagedOpenalex = all => {
+  const calls = [];
+  return { calls, get: async (path, params) => {
+    calls.push(params);
+    const keys = new Set(params.filter.replace(/^doi:/, "").split("|"));
+    const hits = all.filter(w => keys.has(w.doi.replace("https://doi.org/", "")));
+    const per = params["per-page"] ?? 25, page = params.page ?? 1;
+    return { meta: { count: hits.length }, results: hits.slice((page - 1) * per, page * per) };
+  } };
+};
+
+test("a batch of 50 DOIs that matches 51 works (one DOI, two works) loses none of them", async () => {
+  const all = Array.from({ length: 50 }, (_, i) => ({ id: `https://openalex.org/W${i}`, doi: `https://doi.org/10.1/${i}`, referenced_works: [`https://openalex.org/W${100 + i}`] }));
+  const lib = memoryFolder(Object.fromEntries(all.map((w, i) => [`${String(i).padStart(3, "0")} - P.md`, note(`10.1/${i}`)])));
+  all.splice(1, 0, { id: "https://openalex.org/W999", doi: "https://doi.org/10.1/0", referenced_works: ["https://openalex.org/W500"] });   // second work for 10.1/0, early in the answer
+  const openalex = pagedOpenalex(all);
+  const { works } = await fetchLibraryWorks(await openLibrary(lib), openalex);
+  assert.equal(works.size, 50, "every library DOI found, also 10.1/49, the 51st work of the answer");
+  assert.deepEqual(works.get("10.1/0"), { id: "https://openalex.org/W0", referenced: ["https://openalex.org/W100", "https://openalex.org/W500"] },
+    "the first work keeps its id and gets the references of both");
+  assert.equal(openalex.calls.filter(c => c.filter.startsWith("doi:")).length, 1, "still one request for the batch");
+});
+
+test("allWorks asks for the next page while works are missing", async () => {
+  const all = Array.from({ length: 201 }, (_, i) => ({ id: `https://openalex.org/W${i}`, doi: `https://doi.org/10.2/${i % 200}` }));
+  const openalex = pagedOpenalex(all);
+  const got = await allWorks(openalex, { filter: "doi:" + Array.from({ length: 200 }, (_, i) => `10.2/${i}`).join("|"), select: "id,doi" });
+  assert.equal(got.length, 201);
+  assert.deepEqual(openalex.calls.map(c => [c["per-page"], c.page]), [[200, 1], [200, 2]]);
+  assert.deepEqual(await allWorks({ get: async () => ({ results: [] }) }, { filter: "doi:10.9/x" }), [], "an answer without meta ends the paging");
 });

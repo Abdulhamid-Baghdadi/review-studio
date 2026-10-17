@@ -18,6 +18,7 @@ import * as frontmatter from "../domain/frontmatter.js";
 import { APP_GENERATOR, FILES, GUIDE_REASONS, screeningGuide, upgradeGuide } from "../domain/notes.js";
 import { addEntries, decodeExport, ReviewError } from "./review-commands.js";
 import { emptyLibrary, testSet } from "./library.js";
+import { allWorks } from "./openalex-client.js";
 import { STATE_FILE } from "./review-state.js";
 
 const recordStem = r => r.file.split("/").pop().replace(/\.md$/, "");
@@ -85,8 +86,7 @@ export async function pilotOpenalex(repo, st, openalex, library = emptyLibrary()
   const withDoi = new Map([...testSetNotes(repo, library)].filter(([, p]) => p.doi).map(([stem, p]) => [normalizeDoi(p.doi), stem]));
   const found = new Set(), dois = [...withDoi.keys()];
   for (let i = 0; i < dois.length; i += 50) {
-    const res = await openalex.get("works", { filter: `${filter},doi:${dois.slice(i, i + 50).join("|")}`, "per-page": 50, select: "doi" });
-    for (const w of res.results) if (w.doi) found.add(normalizeDoi(w.doi));
+    for (const w of await allWorks(openalex, { filter: `${filter},doi:${dois.slice(i, i + 50).join("|")}`, select: "doi" })) if (w.doi) found.add(normalizeDoi(w.doi));
   }
   const missed = [...withDoi].filter(([d]) => !found.has(d)).map(([, stem]) => stem).sort(compareCodePoints);
   const now = repo.clock.now();
@@ -199,12 +199,11 @@ export async function findOpenAccess(repo, st, openalex) {
   const dois = [...byDoi.keys()];
   let hits = 0;
   for (let i = 0; i < dois.length; i += 50) {
-    const res = await openalex.get("works", { filter: "doi:" + dois.slice(i, i + 50).join("|"), "per-page": 50, select: "doi,open_access" });
-    for (const w of res.results) {
+    for (const w of await allWorks(openalex, { filter: "doi:" + dois.slice(i, i + 50).join("|"), select: "doi,open_access" })) {
       const url = (w.open_access ?? {}).oa_url;
       const r = byDoi.get(normalizeDoi(w.doi));
-      if (r && url) {
-        const current = repo.records.get(r.id);
+      const current = r && repo.records.get(r.id);
+      if (current && url && !current.props.oa_url) {   // two works with one DOI: the first link counts
         repo.put({ ...current, props: { ...current.props, oa_url: url } });
         hits++;
       }
