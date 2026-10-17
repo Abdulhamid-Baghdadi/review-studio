@@ -58,6 +58,7 @@ const text = path => fetch(new URL(path, import.meta.url)).then(r => r.text());
 const backend = new Backend({
   help: await fetch(new URL("help.json", import.meta.url)).then(r => r.json()),
   templates: { record: await text("templates/Review Record Template.md"), publication: await text("templates/Publication Template.md") },
+  example: () => fetch(new URL("example/example-review.json", import.meta.url)).then(r => r.json()),
   pdfjs,
 });
 window.backend = backend;

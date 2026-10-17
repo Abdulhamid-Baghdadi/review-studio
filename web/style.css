@@ -484,3 +484,9 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .imp-row .grow { flex: 1; min-width: 0; }
 .imp-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-2); color: var(--accent); display: grid; place-items: center; font-weight: 700; font-size: 12.5px; margin-top: 2px; }
 .imp-card details > summary { margin: 2px 0 6px; }
+.home-example { margin-top: 14px; flex-wrap: nowrap; }
+.home-example > div:first-child { flex: 1 1 auto; }
+@media (max-width: 900px) { .home-example { flex-wrap: wrap; } }
+.draft-bar.example { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: linear-gradient(90deg, var(--accent-2), var(--surface)); }
+.draft-bar.example .draft-text { color: var(--text); }
+.example-badge { display: inline-block; font-weight: 700; color: var(--accent); background: var(--surface); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 99px; padding: 1px 10px; margin-right: 4px; }

@@ -883,7 +883,21 @@ PAGES.home = () => h("div", { class: "home" },
   card("See how it works", "A one-minute walk through a review: what you do, and where Claude can help (AI). Click a part of the circle to jump to it.", homeDemo()),
   h("div", { class: "home-tour" },
     h("div", {}, h("h3", {}, "🎓 New here? Take the tour"), h("p", { class: "sub" }, "One minute: what each part of the screen is for.")),
-    btn("Start the tour", () => startTour(), "primary tour-big")));
+    btn("Start the tour", () => startTour(), "primary tour-big")),
+  h("div", { class: "home-tour home-example" },
+    h("div", {}, h("h3", {}, "📘 See a finished example"),
+      h("p", { class: "sub" }, "A small systematic review from start to finish: a real search of 61 records, screened down to 10 included studies, with the data extracted and the PRISMA flow diagram. Look around or change things: the example is reset each time you open it.")),
+    btn("Open the example", openFinishedExample, "tour-big")));
+
+/** Opens the finished example review (backend.exampleEntry), on its Report step: the result first, Back walks through it. */
+async function openFinishedExample() {
+  const name = (S.reviews || []).find(r => r.startsWith("📘"));
+  if (!name) return toast("The example is not available in this version.", "err");
+  CUR = "report";
+  SC.filter = "all"; SC.stage = "ta";                      // a finished review: show every decision, not the empty to-do list
+  await switchReview(name);
+  go("report");
+}
 
 /** Switches the review to type `v` (asks first; after locking it is an amendment with a reason). */
 async function switchReviewType(v) {
@@ -1977,6 +1991,17 @@ $("#main").addEventListener("scroll", () => $("#topwrap").classList.toggle("scro
 // The draft (a review in the browser's own storage, where the app starts): save it to a folder, or open one.
 function renderDraftBar() {
   const bar = $("#draftBar");
+  if (backend.entry?.example) {                                     // the finished example: say what it is, and the way back
+    bar.hidden = false;
+    bar.classList.remove("has-content");
+    bar.classList.add("example");
+    bar.replaceChildren(
+      h("span", { class: "draft-text" }, h("span", { class: "example-badge" }, "📘 Finished example"),
+        ` A real OpenAlex search (${S.flow.unique} records) screened down to ${S.flow.included} included studies. Decisions were made from titles and abstracts; risk of bias is left open. Try anything: changes are not kept.`),
+      h("span", { class: "draft-actions" }, btn("← Back to my review", () => switchReview(S.reviews[0]), "sm primary")));
+    return;
+  }
+  bar.classList.remove("example");
   bar.hidden = !backend.entry?.draft || CUR === HOME;              // the Homepage is only an introduction
   bar.classList.toggle("has-content", draftHasContent());
   if (bar.hidden) return;

@@ -15,6 +15,7 @@ import { recordView, snapshot } from "./view-model.js";
 const REVIEW_MARKERS = ["review_state.json", "08 - Records", "07 - Searches.csv"];
 
 const DRAFT_DIR = "Draft review records";
+const EXAMPLE_DIR = "Example review records";
 
 /** Copies every file and folder of `from` into `to` (directory handles). */
 async function copyFolder(from, to) {
@@ -46,9 +47,11 @@ export class Backend {
    * @param {object} p
    * @param {object} p.help help texts (web/help.json) @param {{record: string, publication: string}} p.templates note templates
    * @param {object} p.pdfjs the pdf.js module
+   * @param {() => Promise<{files: Record<string, string>, binary: Record<string, string>}>} [p.example] loads the finished example review
    */
-  constructor({ help, templates, pdfjs }) {
+  constructor({ help, templates, pdfjs, example }) {
     this.help = help;
+    this.loadExample = example;
     this.templates = templates;
     this.pdfText = pdfjsText(pdfjs);
     this.openalex = new OpenAlexClient({ http: fetchHttp() });
@@ -80,7 +83,7 @@ export class Backend {
       settings: { name: s.name || entry.name.replace(/ records$/, ""), recordsPath: s.recordsPath || `${entry.name}/08 - Records`, template: this.templates.record,
         reviewer: s.reviewer || "" },
     });
-    this.entry = entry.draft ? entry : await rememberReview(entry.handle, s);
+    this.entry = entry.draft || entry.example ? entry : await rememberReview(entry.handle, s);
     if (!(await this.session.repo.folder.exists("review_state.json"))) {      // a new review: its first files
       await this.session.repo.log("init", "review workspace created");
       await this.session.save();
@@ -98,11 +101,12 @@ export class Backend {
 
   /** Names for the review menu: the draft, then the folders opened before. */
   async reviewNames() {
-    return [Backend.DRAFT, ...(await recentReviews()).map(r => r.name)];
+    return [Backend.DRAFT, ...(this.loadExample ? [Backend.EXAMPLE] : []), ...(await recentReviews()).map(r => r.name)];
   }
 
   async #reviewByName(name) {
     if (name === Backend.DRAFT) return this.draftEntry();
+    if (name === Backend.EXAMPLE) return this.exampleEntry();
     return (await recentReviews()).find(r => r.name === name) ?? null;
   }
 
@@ -115,6 +119,25 @@ export class Backend {
   async draftEntry() {
     const handle = await (await navigator.storage.getDirectory()).getDirectoryHandle(DRAFT_DIR, { create: true });
     return { id: "draft", name: Backend.DRAFT, handle, draft: true, settings: { name: "Draft review", recordsPath: `${DRAFT_DIR}/08 - Records` } };
+  }
+
+  // ------------------------------------------------------------ the finished example
+
+  /** The menu name of the finished example review (web/example, built by scripts/build-example.js). */
+  static EXAMPLE = "📘 Finished example";
+
+  /**
+   * The finished example: copied fresh into the browser's own storage each time it is opened, so whatever a
+   * visitor changes in it is gone the next time.
+   */
+  async exampleEntry() {
+    const root = await navigator.storage.getDirectory();
+    await root.removeEntry(EXAMPLE_DIR, { recursive: true }).catch(() => {});
+    const handle = await root.getDirectoryHandle(EXAMPLE_DIR, { create: true });
+    const folder = browserFolder(handle), ex = await this.loadExample();
+    for (const [path, text] of Object.entries(ex.files)) await folder.writeText(path, text);
+    for (const [path, b64] of Object.entries(ex.binary ?? {})) await folder.writeBytes(path, Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
+    return { id: "example", name: Backend.EXAMPLE, handle, example: true, settings: { name: "Example review", recordsPath: `${EXAMPLE_DIR}/08 - Records`, reviewer: "EX" } };
   }
 
   /**

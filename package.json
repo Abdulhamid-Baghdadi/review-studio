@@ -12,7 +12,8 @@
     "test": "node --test \"tests/unit/**/*.test.js\"",
     "check": "node scripts/check-architecture.js",
     "serve": "node scripts/serve.js",
-    "build": "node scripts/build-site.js"
+    "build": "node scripts/build-site.js",
+    "example": "node scripts/build-example.js"
   },
   "engines": {
     "node": ">=20"
