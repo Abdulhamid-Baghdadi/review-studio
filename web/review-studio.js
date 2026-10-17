@@ -274,64 +274,69 @@ function pilotChart(pilots) {
   return svg(W, H0, out);
 }
 
-// ================================================================ PRISMA flow map
-// A small PRISMA flow diagram at the top of every page, with live counts, that marks where the user is.
-// The boxes of the PRISMA diagram (identification, screening, included) sit between the planning before it and the
-// analysis and report after it, which are drawn dashed because they are not part of the PRISMA diagram itself.
+// ================================================================ the journey map: the page's navigation
+// One row at the top of every page: the planning steps, then the boxes of the PRISMA flow diagram with their live
+// counts (identification, screening, included), then the analysis steps and the report. Each box opens its step;
+// the box of the page on screen is marked "You are here". It replaces a sidebar: the page keeps its full width.
 
 /** Which box of the map the page on screen belongs to. */
 function flowHere() {
   if (CUR === HOME) return null;
   if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
-  return { idea: "plan", questions: "plan", concepts: "plan", queries: "plan", pilot: "plan", protocol: "plan", registration: "plan",
-    searches: "identified", snowballing: "identified", reviewer: "screened", retrieval: "sought",
-    charting: "analyse", appraisal: "analyse", synthesis: "analyse", report: "report" }[CUR] ?? null;
+  return { idea: "question", questions: "question", concepts: "search", queries: "search", pilot: "search", protocol: "rules", registration: "rules",
+    searches: "identified", snowballing: "citations", reviewer: "screened", retrieval: "sought",
+    charting: "extract", appraisal: "quality", synthesis: "synthesis", report: "report" }[CUR] ?? null;
 }
 
-function flowNodes() {
+function flowGroups() {
   const f = S.flow, sys = S.review_type.key === "systematic";
+  const step = key => S.steps.find(s => s.key === key);
+  const stepNode = (id, key, label) => step(key) && { id, step: step(key), label, go: () => goStep(step(key)) };
   const screen = st => () => { SC.stage = st; store.set("sc_stage", st); SC.id = null; go("screening"); };
   return [
-    { phase: "Plan", nodes: [{ id: "plan", label: "Plan", sub: "question · search", go: () => goStep(stepOf("questions")), outside: true }] },
-    { phase: "Identification", nodes: [{ id: "identified", label: "Records found", n: f.n_db + f.n_other,
-      minus: f.duplicates > 0 ? `${f.duplicates} duplicates` : "", go: () => go("searches"),
-      tip: `Found in databases (${f.n_db}) and other sources such as citation searching (${f.n_other}); duplicates are removed before screening.` }] },
-    { phase: "Screening", nodes: [
-      { id: "screened", label: "Titles & abstracts", n: f.unique, minus: f.ta_excluded ? `${f.ta_excluded} excluded` : "", open: f.ta_pending,
-        go: screen("ta"), tip: `Records screened on title and abstract (${f.ta_pending} still to do).` },
+    { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Inclusion rules")] },
+    { phase: "Identification", prisma: true, nodes: [
+      { id: "identified", step: step("import"), label: "Records found", n: f.n_db + f.n_other, minus: f.duplicates > 0 ? `${f.duplicates} duplicates` : "", go: () => go("searches"),
+        tip: `Search & import: records from the databases (${f.n_db}) and from citation searching (${f.n_other}); duplicates are removed before screening.` },
+      { ...stepNode("citations", "citations", "Citation search"), small: true }] },
+    { phase: "Screening", prisma: true, nodes: [
+      { id: "screened", step: step("screen"), label: "Titles & abstracts", n: f.unique, minus: f.ta_excluded ? `${f.ta_excluded} excluded` : "", open: f.ta_pending,
+        go: screen("ta"), tip: `Screen papers: titles and abstracts (${f.ta_pending} still to do).` },
       { id: "sought", label: "Full texts sought", n: f.sought, minus: f.not_retrieved ? `${f.not_retrieved} not found` : "", go: () => go("retrieval"),
-        tip: "Papers that passed the title and abstract check, whose full text you look for." },
+        tip: "Screen papers → Get full texts: the papers that passed the title and abstract check." },
       { id: "assessed", label: "Full texts read", n: f.assessed, minus: f.ft_excluded ? `${f.ft_excluded} excluded` : "", open: f.ft_pending,
-        go: screen("ft"), tip: `Full texts assessed for eligibility (${f.ft_pending} still to do).` }] },
-    { phase: "Included", nodes: [{ id: "included", label: sys ? "Studies included" : "Sources included", n: f.included, go: () => go("charting"), good: true,
+        go: screen("ft"), tip: `Screen papers: full texts (${f.ft_pending} still to do).` }] },
+    { phase: "Included", prisma: true, nodes: [{ id: "included", label: sys ? "Studies" : "Sources", n: f.included, good: true, go: screen("ft"),
       tip: "The papers your review is based on." }] },
-    { phase: "Analyse", nodes: [{ id: "analyse", label: "Analyse", sub: sys ? "extract · synthesise" : "chart · appraise",
-      go: () => go("charting"), outside: true }] },
-    { phase: "Report", nodes: [{ id: "report", label: "Report", sub: "write it up", go: () => go("report"), outside: true }] },
-  ];
+    { phase: "Analyse", nodes: [stepNode("extract", "extract", sys ? "Extract data" : "Chart the data"), stepNode("quality", "quality", sys ? "Risk of bias" : "Quality check"),
+      sys ? stepNode("synthesis", "synthesis", "Synthesis") : null] },
+    { phase: "Report", nodes: [stepNode("report", "report", "Report")] },
+  ].map(g => ({ ...g, nodes: g.nodes.filter(Boolean) }));
 }
 
 function flowMap() {
-  if (CUR === HOME || store.get("flowmap", "") === "hidden") return null;
-  const groups = flowNodes(), here = flowHere(), order = groups.flatMap(g => g.nodes.map(n => n.id)), hi = order.indexOf(here);
+  const groups = flowGroups(), here = flowHere();
   const node = n => {
-    const k = order.indexOf(n.id), where = k === hi ? "here" : k < hi ? "past" : "ahead";
-    return h("button", { class: `fm-node ${where} ${n.outside ? "outside" : ""} ${n.good ? "good" : ""}`, onclick: n.go,
-      title: (n.tip || n.sub || n.label) + (where === "here" ? " — you are here" : ""), "aria-current": where === "here" ? "step" : null },
-      where === "here" ? h("span", { class: "fm-here" }, "You are here") : null,
-      h("span", { class: "fm-label" }, n.label),
-      n.n === undefined ? h("span", { class: "fm-sub" }, n.sub) : h("span", { class: "fm-n" }, Number(n.n).toLocaleString(), n.open ? h("span", { class: "fm-open" }, ` · ${n.open} to do`) : null),
-      n.minus ? h("span", { class: "fm-minus" }, "− " + n.minus) : null);
+    const isHere = n.id === here, status = n.step && n.n === undefined ? stepStatus(n.step) : null, num = n.step ? S.steps.indexOf(n.step) + 1 : null;
+    return h("button", { class: `fm-node ${isHere ? "here" : ""} ${n.n === undefined ? "stepnode" : ""} ${n.small ? "small" : ""} ${n.good ? "good" : ""} ${status ?? ""}`,
+      onclick: n.go, title: (n.tip || (n.step ? `${n.step.title}: ${n.step.hint}` : n.label)) + (isHere ? " — you are here" : ""), "aria-current": isHere ? "step" : null },
+      h("span", { class: "fm-label" }, num ? h("span", { class: "fm-num" }, status === "done" ? "✓" : status === "skipped" ? "–" : String(num)) : null, n.label,
+        n.step && stepOptional(n.step) ? h("span", { class: "fm-opt" }, "optional") : null, n.step && !n.small ? aiMark(stepStages(n.step).map(s => s.key)) : null),
+      n.n === undefined ? null : h("span", { class: "fm-n" }, Number(n.n).toLocaleString(), n.open ? h("span", { class: "fm-open" }, ` · ${n.open} to do`) : null),
+      n.minus ? h("span", { class: "fm-minus" }, "− " + n.minus) : null,
+      isHere ? h("span", { class: "fm-here" }, "You are here") : null);
   };
   const arrow = () => h("span", { class: "fm-arrow", "aria-hidden": "true" }, "→");
-  return h("nav", { class: "flowmap", "aria-label": "Where you are in the PRISMA flow" },
+  // the planning and analysis steps as short lists; citation searching under the database records, as in PRISMA 2020
+  const nodesOf = g => !g.prisma || g.phase === "Identification"
+    ? h("div", { class: "fm-nodes stack" }, g.nodes.map(node))
+    : h("div", { class: "fm-nodes" }, g.nodes.flatMap((n, j) => [j ? arrow() : null, node(n)]));
+  return h("nav", { class: "flowmap", "aria-label": "Steps of the review, with the PRISMA flow" },
     h("div", { class: "fm-track" }, groups.flatMap((g, i) => [i ? arrow() : null,
-      h("div", { class: `fm-group ${g.nodes.some(n => n.outside) ? "outside" : "prisma"}` }, g.nodes.some(n => n.outside) ? null : h("div", { class: "fm-phase" }, g.phase),
-        h("div", { class: "fm-nodes" }, g.nodes.flatMap((n, j) => [j ? arrow() : null, node(n)])))])),
+      h("div", { class: `fm-group ${g.prisma ? "prisma" : "steps"}` }, h("div", { class: "fm-phase" }, g.phase), nodesOf(g))])),
     h("div", { class: "fm-tools" },
       iconBtn("⤢", "Show the full PRISMA flow diagram", () => modal({ title: "PRISMA flow diagram", wide: true,
-        body: h("div", {}, h("p", { class: "muted", style: "margin-top:0" }, "Live from your records; the box you are working on is highlighted."), flowDiagram(S.flow, here)) })),
-      iconBtn("✕", "Hide the flow map (show it again under ⚙ Settings)", () => { store.set("flowmap", "hidden"); render(); })));
+        body: h("div", {}, h("p", { class: "muted", style: "margin-top:0" }, "Live from your records; the box you are working on is highlighted."), flowDiagram(S.flow, here ?? undefined)) }))));
 }
 
 // ================================================================ chrome: sidebar, topbar, metrics
@@ -380,27 +385,13 @@ function aiMark(keys) {
   return h("span", { class: "ai-mark" + (on ? " on" : ""), title: on ? "AI assistance is on here" : "AI can help here (off; switch it on in the AI assistance card)" }, "AI");
 }
 
-function renderSidebar() {
+/** The review menu in the top bar (the draft, the example, the folders opened before). */
+function renderPicker() {
   const sel = $("#reviewSel");
   const label = r => /[\\/]/.test(r) ? "📂 " + r.split(/[\\/]/).pop().replace(/ records$/, "") : r;
   sel.title = /[\\/]/.test(REVIEW) ? REVIEW : "Review";
   sel.replaceChildren(...S.reviews.map(r => h("option", { value: r, selected: r === REVIEW }, label(r))),
     h("option", { value: "__open__" }, "📂 Open folder…"));
-  const nav = $("#stepper"), cur = CUR === HOME ? null : stepOf(CUR);
-  nav.replaceChildren(h("div", { class: `step home ${CUR === HOME ? "active" : ""}`, onclick: () => go(HOME), title: "What Review Studio is and how it works" },
-    h("span", { class: "dot" }, "⌂"), h("span", { class: "lbl" }, h("span", { class: "t" }, "Homepage"))));
-  let phase = null;
-  S.steps.forEach((st, i) => {
-    if (st.phase !== phase) nav.append(h("div", { class: "phase" }, phase = st.phase));
-    const status = stepStatus(st), opt = stepOptional(st);
-    nav.append(h("div", {
-      class: `step ${status} ${st === cur ? "active" : ""}`, onclick: () => goStep(st),
-      title: st.tabs.length > 1 ? `${st.hint}: ${st.tabs.map(t => t.label).join(" · ")}` : st.hint,
-    }, h("span", { class: "dot" }, status === "done" ? "✓" : status === "skipped" ? "–" : String(i + 1)),
-      h("span", { class: "lbl" }, h("span", { class: "t" }, st.title), h("span", { class: "hint" }, st.hint + (opt && !/optional/.test(st.hint) ? " · optional" : ""))),
-      aiMark(stepStages(st).map(s => s.key))));
-  });
-  nav.querySelector(".step.active")?.scrollIntoView({ block: "nearest", inline: "nearest" });   // narrow layout: keep the current step in view
 }
 
 // What a part of a split stage page is for (the stage's own description covers the rest)
@@ -413,7 +404,8 @@ function renderTop() {
   if (CUR === HOME) {
     $("#topbar").replaceChildren(
       h("div", { class: "titlerow" }, h("h1", {}, "Welcome to Review Studio")),
-      h("p", { class: "desc" }, `From your first idea to the finished report in ${S.steps.length} steps: a ${S.review_type.label.toLowerCase()}, reported to ${S.review_type.guideline}.`),
+      h("p", { class: "desc" }, `From your first idea to the finished report in ${S.steps.length} steps: a ${S.review_type.label.toLowerCase()}, reported to ${S.review_type.guideline}. Click a step in the map to open it.`),
+      flowMap(),
       h("div", { class: "home-badges" }, [
         ["📝 Plain Markdown", "Every record is a Markdown note with properties; the searches are a CSV table. Any text editor can read them."],
         ["🟣 Opens in Obsidian", "A review folder is an Obsidian vault as it is: the notes, links and the screening and charting tables (.base files) work there too."],
@@ -435,7 +427,7 @@ function renderTop() {
   const what = st.tabs.length > 1 ? `“${tab.label}”` : "this step";
   $("#topbar").replaceChildren(
     h("div", { class: "crumbs" }, `${REVIEW} · ${S.review_type.label}, reported to ${S.review_type.guideline} · ${st.phase} · step ${n + 1} of ${S.steps.length}`),
-    flowMap() || "",
+    flowMap(),
     h("div", { class: "titlerow" },
       h("h1", {}, st.title),
       st.tabs.length > 1 ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
@@ -557,7 +549,7 @@ function renderDevButton() {
     : "Developer mode: lift the protocol locks while you develop the review. Edits are still noted in the timeline.";
 }
 
-function renderChrome() { renderSidebar(); renderTop(); renderMetrics(); renderDevButton(); }
+function renderChrome() { renderPicker(); renderTop(); renderMetrics(); renderDevButton(); }
 
 function render() {
   renderChrome();
@@ -732,7 +724,7 @@ function openTimeline() {
 }
 
 function openKeys() {
-  const rows = [["?", "help for this page"], ["X", "example for this page"], ["G", "glossary"], ["T", "timeline"], ["[", "hide / show the steps"], ["Alt+↑ / Alt+↓", "previous / next page"],
+  const rows = [["?", "help for this page"], ["X", "example for this page"], ["G", "glossary"], ["T", "timeline"], ["Alt+↑ / Alt+↓", "previous / next page"],
     ["I / U / E", "include / unsure / exclude (screening)"], ["1–9", "exclusion reason (screening)"], ["← / →", "previous / next record"], ["Esc", "close panel"]];
   modal({ title: "Keyboard shortcuts", body: h("table", { class: "tbl" }, rows.map(([k, d]) => h("tr", {}, h("td", {}, h("kbd", {}, k)), h("td", {}, d)))) });
 }
@@ -1945,7 +1937,6 @@ document.addEventListener("keydown", e => {
   if (e.key === "?" && CUR !== HOME) { openHelp(CUR); return; }
   if (e.key.toLowerCase() === "x" && CUR !== HOME) { openExample(CUR); return; }
   if (e.key.toLowerCase() === "g") { openGlossary(); return; }
-  if (e.key === "[") { $("#btnNav").click(); return; }
   if (e.key.toLowerCase() === "t") { openTimeline(); return; }
   if (CUR !== "screening" || !SC.id) return;
   const k = e.key.toLowerCase();
@@ -1966,16 +1957,14 @@ $("#reviewSel").addEventListener("change", async e => {
 $("#btnTheme").onclick = () => { const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = t; store.set("theme", t); };
 $("#btnGlossary").onclick = openGlossary;
 $("#btnTypeMenu").onclick = openReviewType;
-$("#btnFlowMap").onclick = () => { store.set("flowmap", store.get("flowmap", "") === "hidden" ? "" : "hidden"); render(); };
 $("#btnClaude").onclick = openClaudeGuide;
 $("#btnTimeline").onclick = openTimeline;
 $("#btnType").onclick = openReviewType;
 $("#btnKeys").onclick = openKeys;
 $("#btnScr").onclick = () => openChecklist();
 // The sidebar folds away (☰ or [) to give the content the whole width; remembered in this browser
-function setNav(open) { $("#app").classList.toggle("nav-hidden", !open); $("#btnNav").setAttribute("aria-expanded", String(open)); store.set("nav", open ? "" : "hidden"); }
-$("#btnNav").onclick = () => setNav($("#app").classList.contains("nav-hidden"));
-setNav(store.get("nav", "") !== "hidden");
+$("#btnHome").onclick = () => go(HOME);
+window.addEventListener("hashchange", () => { if (location.hash === "#example" && S) openFinishedExample(); });   // …/web/#example while the app is open
 $("#main").addEventListener("scroll", () => $("#topwrap").classList.toggle("scrolled", $("#main").scrollTop > 4));
 
 // Settings menu (theme, developer mode): opens on click, closes on Escape, outside click or after a choice
@@ -2082,8 +2071,8 @@ setInterval(checkOutside, 15000);
 const TOUR = [
   { title: "Welcome to Review Studio 👋",
     text: "This app guides you through a systematic review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
-  { target: "#stepper", title: "Your review, step by step",
-    text: "Plan (question, search, inclusion rules), find and select papers, analyse them, report. Each step says in one line what it is for. Steps marked AI are where Claude can help, if you want. Click any step to open it." },
+  { target: ".flowmap", title: "Your review, step by step",
+    text: "The map shows the whole review: plan (question, search, inclusion rules), the PRISMA flow with your live counts (records found, screened, included), then analysis and the report. Click any box to open that step; \"You are here\" marks the page on screen. Steps marked AI are where Claude can help, if you want." },
   { target: "#topbar", title: "One step at a time",
     text: "Some steps have tabs for their parts. Each page says what to do; ? Help explains the method with a filled-in example, ✓ Mark done ticks it off, and Next at the bottom takes you on." },
   { target: "#draftBar", title: "Your files stay on your PC",

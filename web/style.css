@@ -24,7 +24,7 @@ a { color: var(--accent); }
 ::selection { background: var(--accent-2); }
 
 /* ---------- layout ---------- */
-.app { display: grid; grid-template-columns: 284px 1fr; height: 100vh; }
+.app { display: grid; grid-template-columns: minmax(0, 1fr); height: 100vh; }
 .sidebar { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 10px; font-weight: 700; font-size: 16px; }
 .brand .logo { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), #06b6d4); display: grid; place-items: center; color: #fff; }
@@ -436,33 +436,6 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
   .steptab { padding: 7px 10px; }
 }
 
-/* ---------- PRISMA flow map: where the page on screen sits in the flow ---------- */
-.flowmap { display: flex; align-items: stretch; gap: 8px; margin: 10px 0 12px; padding: 6px 10px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
-.fm-track { display: flex; align-items: flex-end; gap: 4px; overflow-x: auto; flex: 1; min-width: 0; padding-bottom: 2px; }
-.fm-group { display: flex; flex-direction: column; gap: 3px; flex: none; }
-.fm-group.prisma { background: color-mix(in srgb, var(--accent) 5%, transparent); border-radius: 10px; padding: 3px 4px 4px; }
-.fm-phase { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); font-weight: 600; padding-left: 4px; }
-.fm-nodes { display: flex; align-items: stretch; gap: 4px; }
-.fm-arrow { color: var(--faint); align-self: center; font-size: 13px; flex: none; }
-.fm-group + .fm-arrow, .fm-track > .fm-arrow { margin-top: 14px; }
-.fm-node { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; padding: 4px 8px; border: 1.5px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; line-height: 1.25; }
-.fm-node:hover { border-color: var(--accent); }
-.fm-node.outside { border-style: dashed; background: transparent; }
-.fm-node.past { opacity: .62; }
-.fm-node.here { border: 2px solid var(--accent); background: var(--accent-2); opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
-.fm-node.good:not(.ahead) .fm-n { color: var(--ok); }
-.fm-here { order: 9; margin-top: 3px; align-self: flex-start; background: var(--accent); color: var(--accent-ink); font-size: 9.5px; font-weight: 700; letter-spacing: .02em; border-radius: 99px; padding: 1px 6px; white-space: nowrap; }
-.fm-label { font-size: 11.5px; color: var(--muted); font-weight: 550; white-space: nowrap; }
-.fm-node.here .fm-label { color: var(--text); }
-.fm-n { font-size: 15px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
-.fm-open { font-size: 11px; font-weight: 500; color: var(--muted); }
-.fm-sub { font-size: 11px; color: var(--faint); white-space: nowrap; }
-.fm-minus { font-size: 10.5px; color: var(--bad); white-space: nowrap; }
-.fm-tools { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; gap: 2px; flex: none; }
-.fm-tools .btn.sm { padding: 3px 8px; font-size: 12px; }
-.fm-tools .btn.icon { padding: 0 6px; font-size: 13px; }
-.fm-group.outside { align-self: flex-end; }
-.step.in-progress .dot { background: var(--accent-2); border-color: var(--accent); color: var(--accent); }
 
 /* ---------- step 4: illustrated round trip and one card per database ---------- */
 .imp-strip { display: flex; align-items: center; gap: 6px; overflow-x: auto; }
@@ -490,3 +463,59 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .draft-bar.example { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: linear-gradient(90deg, var(--accent-2), var(--surface)); }
 .draft-bar.example .draft-text { color: var(--text); }
 .example-badge { display: inline-block; font-weight: 700; color: var(--accent); background: var(--surface); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 99px; padding: 1px 10px; margin-right: 4px; }
+
+/* ---------- top bar: the logo (Homepage) and the review menu, in place of a sidebar ---------- */
+.brand-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; font: inherit; font-weight: 700; font-size: 15px; color: var(--text); cursor: pointer; padding: 4px 8px 4px 2px; border-radius: 8px; }
+.brand-btn:hover { background: var(--surface-2); }
+.brand-btn .logo { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #06b6d4); display: grid; place-items: center; color: #fff; }
+.review-sel { width: auto; max-width: 240px; padding: 4px 8px; font-size: 13px; margin-right: 6px; }
+
+/* ---------- the journey map: steps and the PRISMA flow, the page's navigation ---------- */
+.flowmap { display: flex; align-items: stretch; gap: 8px; margin: 10px 0 12px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.fm-track { display: flex; align-items: center; gap: 4px; overflow-x: auto; flex: 1; min-width: 0; padding-bottom: 2px; }
+.fm-group { display: flex; flex-direction: column; gap: 3px; flex: none; align-self: stretch; border-radius: 10px; padding: 3px 4px 4px; }
+.fm-group.prisma { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.fm-group.steps { background: var(--surface-2); }
+.fm-phase { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); font-weight: 600; padding-left: 4px; }
+.fm-nodes { display: flex; align-items: stretch; gap: 4px; flex: 1; }
+.fm-nodes.stack { flex-direction: column; }
+.fm-arrow { color: var(--faint); align-self: center; font-size: 13px; flex: none; }
+.fm-node { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; padding: 5px 9px; border: 1.5px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; line-height: 1.25; }
+.fm-node:hover { border-color: var(--accent); }
+.fm-node.small { padding: 2px 8px; }
+.fm-node.small .fm-label { font-size: 11px; color: var(--faint); }
+.fm-node.here { border: 2px solid var(--accent); background: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.fm-node.good .fm-n { color: var(--ok); }
+.fm-label { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); font-weight: 550; white-space: nowrap; }
+.fm-node.stepnode .fm-label { color: var(--text); font-size: 12.5px; }
+.fm-node.here .fm-label { color: var(--text); }
+.fm-num { width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 700; border: 1.5px solid var(--border); color: var(--faint); flex: none; }
+.fm-node.done .fm-num { background: var(--ok); border-color: var(--ok); color: #fff; }
+.fm-node.in-progress .fm-num { border-color: var(--accent); color: var(--accent); background: var(--accent-2); }
+.fm-node.skipped .fm-num { border-style: dashed; }
+.fm-opt { font-size: 9.5px; font-weight: 500; color: var(--faint); border: 1px solid var(--border); border-radius: 99px; padding: 0 5px; }
+.fm-node .ai-mark { font-size: 9.5px; font-weight: 600; color: var(--faint); border: 1px solid var(--border); border-radius: 99px; padding: 0 5px; }
+.fm-node .ai-mark.on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: var(--accent-2); }
+.fm-n { font-size: 15px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+.fm-open { font-size: 11px; font-weight: 500; color: var(--muted); }
+.fm-minus { font-size: 10.5px; color: var(--bad); white-space: nowrap; }
+.fm-here { margin-top: 2px; background: var(--accent); color: var(--accent-ink); font-size: 9.5px; font-weight: 700; letter-spacing: .02em; border-radius: 99px; padding: 1px 6px; white-space: nowrap; }
+.fm-tools { display: flex; flex-direction: column; justify-content: flex-start; flex: none; }
+.fm-tools .btn.icon { padding: 0 6px; font-size: 13px; }
+.fm-group.steps .fm-node { padding: 2px 8px 2px 4px; border-radius: 7px; flex-direction: row; align-items: center; gap: 6px; }
+.fm-group.steps .fm-node .fm-here { margin: 0; }
+.fm-group.steps .fm-nodes.stack { gap: 3px; justify-content: center; }
+.fm-nodes.stack .fm-node { width: 100%; }
+.fm-group.prisma .fm-node { min-width: 0; }
+.fm-group.steps .fm-node { justify-content: flex-start; flex: 0 0 auto; }
+.fm-track { justify-content: space-between; }
+.fm-group.prisma .fm-nodes { align-items: stretch; }
+@media (max-width: 1300px) {
+  .fm-group.prisma .fm-label { white-space: normal; max-width: 92px; }
+  .fm-group.prisma .fm-node { padding: 4px 7px; max-width: 112px; }
+  .fm-group.steps .fm-node { font-size: 12px; }
+  .flowmap { padding: 6px 6px; gap: 4px; }
+}
+.flowmap { position: relative; }
+.fm-tools { position: absolute; top: 4px; right: 4px; }
+.fm-track { padding-right: 18px; }

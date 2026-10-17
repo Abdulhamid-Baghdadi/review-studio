@@ -6,7 +6,7 @@
 
 Review Studio walks you through a systematic review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
 
-![Review Studio: screening a record, with the review's steps in the sidebar](docs/screenshot.png)
+![Review Studio: screening a record, with the map of the review's steps and the PRISMA flow at the top](docs/screenshot.png)
 
 *Screening in Review Studio (example data). Search terms are highlighted in the abstract; I / U / E decide.*
 
@@ -37,11 +37,11 @@ Review Studio walks you through a systematic review from the first idea to the P
 
 1. Open **https://abdulhamid-baghdadi.github.io/review-studio/** in **Chrome or Edge** on a computer.
 2. You start on the **Homepage**: a one-minute animated walk through a review, and the **🎓 tour** of the screen.
-3. Pick a step in the sidebar. Your work starts as a **draft** kept in the browser, so you can begin with your idea and research questions right away.
+3. Pick a step in the map at the top of the page. Your work starts as a **draft** kept in the browser, so you can begin with your idea and research questions right away.
 4. When you want to keep it, press **💾 Save to a folder…** in the bar at the top, give the review a name and pick a place on your PC. From then on every change is written to that folder.
 5. Next time, the same bar offers **📂 Open a review folder…** and your recent reviews. The browser asks once per visit before the app may edit a folder.
 
-Handy: **☰** (or the **[** key) folds the sidebar away while you work; **⚙ Settings** has light/dark, the glossary and the keyboard shortcuts.
+Handy: click **Review Studio** (top left) for the Homepage; **⚙ Settings** has light/dark, the glossary and the keyboard shortcuts.
 
 ## Three ways to use it
 
@@ -65,7 +65,7 @@ The launcher starts the app on your computer and opens it at **http://localhost:
 
 ## The 10 steps
 
-A new review is a **systematic review, reported to PRISMA 2020**. The sidebar shows ten steps in plain words; steps with more than one part show them as tabs at the top of the page.
+A new review is a **systematic review, reported to PRISMA 2020**. A map at the top of every page shows the ten steps in plain words; steps with more than one part show them as tabs on their page.
 
 | # | Step | Tabs | What you do |
 |---:|---|---|---|
@@ -80,7 +80,7 @@ A new review is a **systematic review, reported to PRISMA 2020**. The sidebar sh
 | 9 | **Synthesis** | | Narrative synthesis or meta-analysis (forest and funnel plots, R script) and the certainty of the evidence (GRADE). |
 | 10 | **Report** | | PRISMA flow diagram, PRISMA 2020 checklist, report draft and exports. |
 
-**Where you are in the PRISMA flow.** A small PRISMA flow diagram at the top of every page shows the live counts (records found, screened, full texts sought and read, studies included) and marks the box you are working on. Click a box to go there, or ⤢ for the full diagram; ⚙ Settings → *Show / hide the flow map* turns it off.
+**The map is the navigation.** It runs from the planning steps through the boxes of the PRISMA flow diagram, with your live counts (records found, titles and abstracts screened, full texts sought and read, studies included), to the analysis steps and the report. *You are here* marks the page on screen; click any box to open it, or ⤢ for the full PRISMA diagram.
 
 **A finished example.** [Open it directly](https://abdulhamid-baghdadi.github.io/review-studio/web/#example) (the link `…/web/#example`), or click *Open the example* on the Homepage or *📘 Show me an example* at the top of any page. It opens a small systematic review that is finished up to the report: a real OpenAlex search (61 records, string and date logged), screened down to 10 included studies, with data extracted and the PRISMA flow diagram. The decisions and extracted values come from the titles and abstracts, and risk of bias is left open because it needs the full texts. The example is copied fresh into the browser each time it is opened, so visitors can change anything. It is built by `npm run example` from the saved search in `web/example/openalex-search.json`.
 
