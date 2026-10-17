@@ -12,11 +12,11 @@ export const AI_STEPS = Object.freeze({
     skill: "review-screen-abstracts", skills: { "suggest-ft": "review-screen-fulltexts" },
     modes: [
       ["off", "Off", "You screen every record yourself."],
-      ["suggest", "AI suggests", "The AI suggests a title/abstract decision per record; you confirm or change each one in the Suggested queue. Decisions are recorded as yours."],
-      ["suggest-ft", "AI suggests (+ full text)", "As 'AI suggests', and the AI also reads each retrieved full text and suggests a full-text decision with page locators; you confirm each one in the Suggested queue of the Full text tab."],
+      ["suggest", "AI suggests", "The AI suggests a title/abstract decision per record. In the Suggested queue you read each record, then its suggestion under the abstract: Enter accepts it, I, U or E decides otherwise. Decisions are recorded as yours, noting whether you kept the suggestion."],
+      ["suggest-ft", "AI suggests (+ full text)", "As 'AI suggests', and the AI also reads each retrieved full text and suggests a full-text decision with page locators; you review each one the same way in the Suggested queue of the Full text tab."],
     ],
-    checks: ["Open the abstract (or PDF, at full text) of every suggested exclusion you are unsure about.",
-      "Change any suggestion you disagree with before confirming the batch.",
+    checks: ["Read each record before its suggestion; at full text, open the PDF of every suggested exclusion you are unsure about.",
+      "Decide yourself (I, U or E) wherever you disagree; Z undoes your last decision.",
       "Report the AI assistance in the methods (PRISMA-ScR 9; PRISMA 2020 item 8 names automation tools explicitly)."],
   },
   reviewer: {

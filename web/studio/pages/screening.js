@@ -7,18 +7,21 @@ import { h, store } from "../core/dom.js";
 import { D, REVIEW, S, SC } from "../core/state.js";
 import { PAGE_KEYS, PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
-import { bar, btn, decDot, decKind, field, highlight, labelBy, openNote, pill, segmented } from "../ui/components.js";
+import { bar, btn, decDot, decKind, field, highlight, openNote, pill, segmented } from "../ui/components.js";
 import { announce, confirmBox } from "../ui/dialogs.js";
 
-// The screening keys: I include, U unsure (title/abstract), E then 1–9 exclude with a reason, Z undo, ← → move.
+// The screening keys: I include, U unsure (title/abstract), E then 1–9 exclude with a reason, Z undo, ← → move;
+// in the Suggested queue, Enter accepts Claude's suggestion (not while a button or link has focus: Enter is theirs).
 PAGE_KEYS.screening = (e, typing) => {
-  if (typing || e.ctrlKey || e.metaKey || e.altKey || !SC.id) return false;
+  if (typing || e.ctrlKey || e.metaKey || e.altKey) return false;
   const k = e.key.toLowerCase();
+  if (k === "z" && lastDecision()) { undo(); return true; }   // also when the last record of a queue was just decided
+  if (!SC.id) return false;
   if (k === "i") decide("include");
   else if (k === "u" && SC.stage === "ta") decide("unsure");
   else if (k === "e") { SC.excl = true; render(); }
   else if (/^[1-9]$/.test(k) && SC.excl) { const r = S.reasons[SC.stage][+k - 1]; if (r) decide("exclude", r.split(" ")[0]); }
-  else if (k === "z" && lastDecision()) undo();
+  else if (e.key === "Enter" && SC.filter === "suggest" && !e.target.closest?.("button, a, summary, [role=button]")) acceptSuggestion();
   else if (e.key === "ArrowRight") move(1);
   else if (e.key === "ArrowLeft") move(-1);
   else return false;
@@ -47,13 +50,24 @@ async function decide(decision, reason = "") {
   const q = queue(), i = q.findIndex(r => r.record_id === SC.id);
   if (i < 0) return;
   const rec = q[i], [dkey, rkey] = KEYS(SC.stage), next = q[i + 1] || q[i - 1];
-  const before = { decision: rec[dkey] ?? "", reason: rec[rkey] ?? "" };
-  await api("decide", { record_id: SC.id, stage: SC.stage, decision, reason }, { silent: true });
-  SC.last = { review: REVIEW, id: rec.record_id, stage: SC.stage, before, decision, reason };   // what Undo puts back
-  announce(`${rec.record_id} ${DONE[decision]}${reason ? ", " + reason : ""}. Z to undo.`);
+  const before = { decision: rec[dkey] ?? "", reason: rec[rkey] ?? "", notes: rec.notes ?? "" };
+  // in the Suggested queue every decision is a reviewed AI suggestion: the log says so, and the record's note says
+  // whether the reviewer kept Claude's suggestion or changed it
+  const ai = SC.filter === "suggest" && rec[aiKey("decision")] ? rec : null;
+  const kept = ai && decision === ai[aiKey("decision")] && (decision === "exclude" ? reason : "") === (decision === "exclude" ? ai[aiKey("reason")] || "" : "");
+  if (ai) await api("apply_decisions", { items: [{ id: rec.record_id, decision, reason }], stage: SC.stage }, { silent: true });
+  else await api("decide", { record_id: SC.id, stage: SC.stage, decision, reason }, { silent: true });
+  SC.last = { review: REVIEW, id: rec.record_id, stage: SC.stage, before, decision, reason, ai: Boolean(ai) };   // what Undo puts back
+  announce(`${rec.record_id} ${DONE[decision]}${reason ? ", " + reason : ""}${ai ? (kept ? ", as Claude suggested" : ", not as Claude suggested") : ""}. Z to undo.`);
   SC.excl = false;
-  if (SC.filter === "todo") SC.id = next ? next.record_id : null;
+  if (SC.filter === "todo" || SC.filter === "suggest") SC.id = next ? next.record_id : null;
   render();
+}
+
+/** Enter in the Suggested queue: Claude's suggestion becomes the reviewer's decision (still a reviewed suggestion). */
+function acceptSuggestion() {
+  const rec = S.records.find(r => r.record_id === SC.id), d = rec?.[aiKey("decision")];
+  if (d) decide(d, d === "exclude" ? rec[aiKey("reason")] || "" : "");
 }
 
 /** The reviewer's last decision in this review, while its record is still there. */
@@ -66,7 +80,8 @@ const lastDecision = () => SC.last && SC.last.review === REVIEW && S.records.som
 async function undo() {
   const l = lastDecision();
   if (!l) return;
-  await api("decide", { record_id: l.id, stage: l.stage, decision: l.before.decision, reason: l.before.reason, undo: true }, { silent: true });
+  await api("decide", { record_id: l.id, stage: l.stage, decision: l.before.decision, reason: l.before.reason, undo: true,
+    ...(l.ai ? { notes: l.before.notes } : {}) }, { silent: true });   // a reviewed suggestion also wrote to the note
   SC.last = null; SC.stage = l.stage; SC.id = l.id; SC.excl = false;
   announce(`Undone: ${l.id} is ${["", "pending"].includes(l.before.decision) ? "open" : DONE[l.before.decision]} again.`);
   if (!queue().some(r => r.record_id === l.id)) SC.filter = "all";
@@ -97,7 +112,7 @@ PAGES.screening = () => {
   const head = h("div", { class: "row", style: "margin-bottom:14px" },
     segmented([["ta", "Title / abstract"], ["ft", "Full text"]], SC.stage, v => { SC.stage = v; store.set("sc_stage", v); SC.id = null; if (SC.filter === "suggest" && !suggested(v).length) SC.filter = "todo"; render(); }, "Screening stage"),
     segmented([["todo", "To do"], ["all", "All"], ...(S.records.some(r => (r.notes || "").includes("[pilot]")) ? [["pilot", "Pilot"]] : []),
-      ...(suggested().length ? [["suggest", `Suggested (${suggested().length})`]] : []),
+      ...(suggested().length || SC.filter === "suggest" ? [["suggest", `Suggested (${suggested().length})`]] : []),
       ...(SC.stage === "ta" && S.records.some(r => r.presort && r.ta_decision === "pending") ? [["presort", `Pre-sorted (${S.records.filter(r => r.presort && r.ta_decision === "pending").length})`]] : [])],
       SC.filter, v => { SC.filter = v; render(); }, "Show records"),
     h("div", { style: "flex:1;min-width:160px" }, bar(total ? done / total : 0), h("div", { class: "small muted" }, `${done} of ${total} decided`)),
@@ -105,14 +120,13 @@ PAGES.screening = () => {
     btn("Open Screening.base", () => openNote("08 - Screening.base"), "ghost"));
 
   let main;
-  if (SC.filter === "suggest") {
-    main = suggestView(q);
-  } else if (SC.filter === "presort") {
+  if (SC.filter === "presort") {
     main = presortView(q);
   } else if (!rec) {
     main = h("div", { class: "card empty" }, h("div", { class: "big" }, total ? "🎉" : "📭"),
-      h("h2", {}, total ? "Nothing left to screen here" : "No records yet"),
-      h("p", {}, total ? "Switch to 'All' to review earlier decisions, or continue with the next step." : "Import a database export first (step Search & import)."));
+      h("h2", {}, SC.filter === "suggest" ? "All of Claude's suggestions are reviewed" : total ? "Nothing left to screen here" : "No records yet"),
+      h("p", {}, total ? "Switch to 'All' to review earlier decisions, or continue with the next step." : "Import a database export first (step Search & import)."),
+      lastDecisionLine());
   } else {
     const absBox = h("div", { class: "abstract" }, h("span", { class: "muted" }, "Loading abstract…"));
     const showAbs = r => absBox.innerHTML = r.abstract ? highlight(r.abstract) : `<span class="muted">No abstract in the export. Open the DOI to read it.</span>`;
@@ -139,6 +153,7 @@ PAGES.screening = () => {
         rec.oa_url ? h("a", { href: rec.oa_url, target: "_blank", class: "btn sm" }, "Open access ↗") : null,
         SC.stage === "ft" ? pill(rec.pdf_status ? "PDF: " + rec.pdf_status : "PDF: not checked", rec.pdf_status === "found" ? "ok" : rec.pdf_status ? "bad" : "") : null),
       absBox,
+      SC.filter === "suggest" && rec[aiKey("decision")] ? suggestionBox(rec) : null,
       h("div", { style: "margin-top:12px" }, field("Note (optional)", notes)),
       decisionHistory(rec.record_id),
       decisionBar(rec, cur, reasonRow));
@@ -167,14 +182,18 @@ PAGES.screening = () => {
  * The decision buttons, kept in view at the foot of the window while the abstract is read (sticky), so a decision
  * never needs a scroll first (Fitts). Above them: the last decision with its Undo, and Previous / Next.
  */
-function decisionBar(rec, cur, reasonRow) {
+/** The last decision with its Undo button (also shown when the queue has just been emptied). */
+function lastDecisionLine() {
   const last = lastDecision();
+  return last ? h("span", { class: "last-decision" }, decDot(last.decision), h("span", {}, h("b", {}, last.id), ` ${DONE[last.decision]}${last.reason ? " · " + last.reason : ""}`),
+    btn(["↶ Undo ", h("kbd", {}, "Z")], undo, "sm ghost", `Put back the decision ${last.id} had before`)) : null;
+}
+
+function decisionBar(rec, cur, reasonRow) {
   const pressed = d => ({ "aria-pressed": String(cur === d) });
   return h("div", { class: "decide-bar" },
     h("div", { class: "decide-top" },
-      last ? h("span", { class: "last-decision" }, decDot(last.decision), h("span", {}, h("b", {}, last.id), ` ${DONE[last.decision]}${last.reason ? " · " + last.reason : ""}`),
-        btn(["↶ Undo ", h("kbd", {}, "Z")], undo, "sm ghost", `Put back the decision ${last.id} had before`))
-        : h("span", { class: "kbdhint" }, "I include · U unsure · E exclude, then 1–9 reason · Z undo · ←/→ previous / next"),
+      lastDecisionLine() ?? h("span", { class: "kbdhint" }, `${SC.filter === "suggest" ? "Enter accept · " : ""}I include · U unsure · E exclude, then 1–9 reason · Z undo · ←/→ previous / next`),
       h("span", { class: "spacer" }),
       btn("← Previous", () => move(-1), "sm ghost", "Previous record (←)"), btn("Next →", () => move(1), "sm ghost", "Next record (→)")),
     h("div", { class: "decide" },
@@ -185,43 +204,20 @@ function decisionBar(rec, cur, reasonRow) {
     reasonRow);
 }
 
-function suggestView(q) {
-  const batch = q.slice(0, 50);
-  if (!batch.length) return h("div", { class: "card empty" }, h("div", { class: "big" }, "🎉"), h("h2", {}, "All suggestions reviewed"));
-  const choice = D.sugg ??= {};
-  const dec = r => r[aiKey("decision")], why = r => r[aiKey("why")], rsn = r => r[aiKey("reason")] || "";                       // record id -> "include" | "unsure" | "exclude:E1" …
-  const opts = [["include", "Include"], ["unsure", "Unsure"], ...S.reasons[SC.stage].map(r => ["exclude:" + r.split(" ")[0], "Exclude " + r])];
-  const val = r => choice[r.record_id] ?? (dec(r) === "exclude" ? "exclude:" + rsn(r) : dec(r));
-  const order = { include: 0, unsure: 1, exclude: 2 };
-  const rows = [...batch].sort((a, b) => order[dec(a)] - order[dec(b)] || rsn(a).localeCompare(rsn(b)));
-  const counts = Counter => rows.reduce((m, r) => (m[val(r).split(":")[0]] = (m[val(r).split(":")[0]] || 0) + 1, m), {});
-  const c = counts();
-  const suggestHead = ["", "Record", "Claude suggests", "Your decision"].map(t => h("th", {}, t));
-  return h("div", {},
-    h("div", { class: "callout", style: "margin-bottom:12px" }, `Batch of ${batch.length} of ${q.length} remaining. Claude read each ${SC.stage === "ta" ? "abstract" : "full text"} and suggests a decision (cautious: unsure when in doubt). Check the suggestions — click a title to see the abstract — change any you disagree with, then confirm the batch. The decisions are recorded as yours; changes to suggestions are noted per record.`),
-    h("div", { class: "row", style: "margin-bottom:10px" }, pill(`${c.include || 0} include`, "ok"), pill(`${c.unsure || 0} unsure`, "warn"), pill(`${c.exclude || 0} exclude`, "bad"),
-      h("span", { style: "flex:1" }),
-      btn(`✓ Confirm these ${batch.length} decisions`, async e => {
-        if (!(await confirmBox("Confirm batch", `Save ${batch.length} decisions as yours?`, "Save"))) return;
-        const items = batch.map(r => { const [d, reason] = val(r).split(":"); return { id: r.record_id, decision: d, reason: reason || "" }; });
-        busy(e.target, () => api("apply_decisions", { items, stage: SC.stage }).then(() => { for (const r of batch) delete choice[r.record_id]; }));
-      }, "primary")),
-    h("table", { class: "tbl" }, h("tr", {}, suggestHead),
-      rows.map(r => {
-        const changed = choice[r.record_id] !== undefined && choice[r.record_id] !== (dec(r) === "exclude" ? "exclude:" + rsn(r) : dec(r));
-        const id = h("b", { style: "font-family:var(--mono);font-size:12px" }, r.record_id);   // the choice is named by its column and this record
-        const sel = labelBy(h("select", { onchange: e => { choice[r.record_id] = e.target.value; render(); } }, opts.map(([v, t]) => h("option", { value: v, selected: v === val(r) }, t))), [suggestHead[3], id]);
-        const abs = h("div", { class: "small muted", style: "display:none;margin-top:6px;max-width:640px" });
-        return h("tr", {},
-          h("td", {}, decDot(val(r).split(":")[0])),
-          h("td", { style: "max-width:560px" }, h("a", { href: "#", onclick: async e => {
-            e.preventDefault();
-            if (abs.style.display === "none") { if (!abs.textContent) { const j = await api("record_abstract", { record_id: r.record_id }, { silent: true }); abs.innerHTML = highlight(j.record.abstract || "No abstract."); } abs.style.display = ""; }
-            else abs.style.display = "none";
-          } }, id, " ", r.title), h("div", { class: "small muted" }, [r.year, r.journal].filter(Boolean).join(" · ")), abs),
-          h("td", { style: "max-width:260px" }, pill(dec(r) + (rsn(r) ? " " + rsn(r) : ""), decKind(dec(r))), h("div", { class: "small muted" }, why(r))),
-          h("td", {}, sel, changed ? h("div", { class: "small", style: "color:var(--warn)" }, "changed by you") : null));
-      })));
+/**
+ * Claude's suggestion for the record on screen, under its abstract: read the record first, then the suggestion
+ * (a cognitive forcing order against automation bias; Buçinca et al. 2021). Nothing is preselected: Enter accepts,
+ * I / U / E decide otherwise, and either way the decision is the reviewer's.
+ */
+function suggestionBox(rec) {
+  const d = rec[aiKey("decision")], code = rec[aiKey("reason")] || "", why = rec[aiKey("why")] || "";
+  const reason = d === "exclude" ? S.reasons[SC.stage].find(r => r.split(" ")[0] === code) ?? code : "";
+  return h("div", { class: "ai-suggestion", role: "note", "aria-label": "Claude's suggestion" },
+    h("div", { class: "row" }, h("span", { class: "ai-label" }, "🤖 Claude suggests"), decDot(d), h("b", {}, { include: "Include", exclude: "Exclude", unsure: "Unsure" }[d] ?? d),
+      h("span", { class: "spacer" }), btn(["Accept ", h("kbd", {}, "Enter")], acceptSuggestion, "sm", "Make Claude's suggestion your decision")),
+    reason ? h("div", { class: "ai-reason" }, reason) : null,
+    why ? h("p", {}, why) : null,
+    h("div", { class: "small muted" }, "Enter accepts · I, U or E decides otherwise · the log notes whether you kept the suggestion"));
 }
 
 function presortView(q) {

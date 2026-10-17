@@ -37,4 +37,4 @@ All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `-
 
 4. **Repeat** while `remaining` > 0 and the user wants more. Batches of 40 keep each judgement careful.
 
-5. **Report:** how many records you suggested (include / unsure / exclude per reason), anything that made the criteria hard to apply, and a reminder to confirm the batches in Review Studio. Criteria problems belong to the reviewer; a change after the protocol lock is an amendment.
+5. **Report:** how many records you suggested (include / unsure / exclude per reason), anything that made the criteria hard to apply, and a reminder to review the suggestions in Review Studio (Screen papers › Suggested): one record at a time, the suggestion under the abstract, Enter to accept or I/U/E to decide otherwise. Criteria problems belong to the reviewer; a change after the protocol lock is an amendment.

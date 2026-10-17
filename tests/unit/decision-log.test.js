@@ -44,6 +44,20 @@ test("undoing a decision puts the one before back, and the log says it was undon
   assert.equal((await s.repo.decisionLog.verify()).intact, true);
 });
 
+test("a reviewed AI suggestion is logged as such, and undoing it also restores the record's note", async () => {
+  const s = await review();
+  const rec = s.repo.records.get("R0001");
+  s.repo.put({ ...rec, props: { ...rec.props, ai_decision: "exclude", ai_reason: "E2", ai_why: "Not randomised" } });
+  const note = s.repo.records.get("R0001").props.notes ?? "";
+  await s.applyDecisions([{ id: "R0001", decision: "exclude", reason: "E2" }], "ta");      // Enter in the Suggested queue
+  assert.match(s.repo.records.get("R0001").props.notes, /AI suggestion confirmed by reviewer/);
+  await s.decide("R0001", "ta", "pending", { undo: true, notes: note });                   // Z
+  assert.equal(s.repo.records.get("R0001").props.ta_decision, "pending");
+  assert.equal(s.repo.records.get("R0001").props.notes ?? "", note);
+  const h = await s.repo.decisionLog.history("R0001");
+  assert.deepEqual(h.map(r => [r.from, r.to, r.how]), [["pending", "exclude", HOW.ai], ["exclude", "pending", HOW.undo]]);
+});
+
 test("a decision changed in Obsidian is found when the review is opened again", async () => {
   const s = await review();
   await s.decide("R0003", "ta", "include");

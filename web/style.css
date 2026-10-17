@@ -167,6 +167,14 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .decide-bar { position: sticky; bottom: 0; z-index: 2; margin: 18px -28px -24px; padding: 10px 28px 16px; background: var(--surface);
   border-top: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); box-shadow: 0 -12px 20px -16px rgb(15 23 42 / .45); }
 .decide-bar .decide { margin-top: 8px; }
+/* Claude's suggestion, under the abstract in the Suggested queue: read after the record, never preselected */
+.ai-suggestion { margin-top: 16px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); border-left: 4px solid var(--accent);
+  border-radius: 10px; background: var(--accent-2); max-width: 80ch; }
+.ai-suggestion .row { gap: 8px; }
+.ai-suggestion .ai-label { font-weight: 600; color: var(--accent); }
+.ai-suggestion .spacer { flex: 1; }
+.ai-suggestion p { margin: 6px 0 4px; font-size: 13.5px; }
+.ai-suggestion .ai-reason { margin-top: 4px; font-weight: 600; }
 .decide-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 30px; }
 .decide-top .spacer { flex: 1; }
 .last-decision { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
