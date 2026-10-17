@@ -78,7 +78,7 @@ async function openReview(entry) {
   remember("review", entry.name);
   $("#start").hidden = true;
   $("#app").hidden = false;
-  await import("./review-studio.js");
+  await import("./studio/app.js");
   $("#btnReviewSettings").onclick = reviewSettings;
   await window.studioReady;                                              // the first page is drawn
   showOpenTiming({ review: entry.name, notes, readSeconds: (read - started) / 1000, totalSeconds: (performance.now() - started) / 1000 });
