@@ -23,9 +23,12 @@ PAGES.charting = () => {
 
   // field editor (rarely needed; protocol amendments) — collapsed
   const fl = h("div", { class: "stack" });
-  const drawF = () => fl.replaceChildren(...fields.map((f, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
-    h("input", { type: "text", value: f.name, placeholder: "field_name", style: "max-width:200px;font-family:var(--mono)", oninput: e => f.name = e.target.value }),
-    h("input", { type: "text", value: f.description, placeholder: "What to record", oninput: e => f.description = e.target.value }),
+  const drawF = () => fl.replaceChildren(
+    fields.length ? h("div", { class: "row small muted", style: "flex-wrap:nowrap;font-weight:600" },
+      h("span", { style: "width:200px" }, "Field name"), h("span", {}, "What to record")) : null,
+    ...fields.map((f, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
+    h("input", { type: "text", value: f.name, placeholder: "field_name", "aria-label": `Field name ${i + 1}`, style: "max-width:200px;font-family:var(--mono)", oninput: e => f.name = e.target.value }),
+    h("input", { type: "text", value: f.description, placeholder: "e.g. study design", "aria-label": `What to record, field ${i + 1}`, oninput: e => f.description = e.target.value }),
     iconBtn("✕", "Remove field", () => { fields.splice(i, 1); drawF(); fieldSaver.schedule(); }))), btn("+ Add field", () => { fields.push({ name: "", description: "" }); drawF(); }, "sm"));
   drawF();
 

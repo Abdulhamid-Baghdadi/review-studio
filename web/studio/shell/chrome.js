@@ -200,23 +200,4 @@ export function render() {
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
   const page = $("#page");
   page.replaceChildren(PAGES[CUR](), CUR === HOME ? "" : pageNav());
-  nameFields(page);
-}
-
-function nameFields(root) {
-  for (const el of root.querySelectorAll("input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea")) {
-    if (el.closest("label") || el.getAttribute("aria-label") || el.id && root.querySelector(`label[for="${el.id}"]`)) continue;
-    let n = el, text = "";
-    const td = el.closest("td"), tr = td?.closest("table")?.querySelector("tr");
-    if (td && tr) text = [tr.children[td.cellIndex]?.innerText, td.parentElement.cells[0]?.innerText].filter(Boolean).join(" — ").trim();
-    else if (el.parentElement?.children.length > 1)                    // a row of fields: name / description…
-      text = el.placeholder || "";
-    while (n && n !== root && !/\w/.test(text)) {           // nearest text before the field: hint, heading, label-like span
-      let sib = n.previousElementSibling;
-      while (sib && !/\w/.test(text)) { text = sib.innerText?.trim().split("\n")[0] || ""; sib = sib.previousElementSibling; }
-      n = n.parentElement;
-    }
-    const name = (text || el.placeholder || "").slice(0, 120);
-    if (name) el.setAttribute("aria-label", name);
-  }
 }

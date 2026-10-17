@@ -7,7 +7,7 @@ import { autoSave } from "../core/autosave.js";
 import { debounce, h } from "../core/dom.js";
 import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
-import { btn, card, chipsInput, copy, hlQuery, iconBtn, segmented } from "../ui/components.js";
+import { btn, card, chipsInput, copy, field, hlQuery, iconBtn, segmented } from "../ui/components.js";
 
 PAGES.concepts = () => {
   const d = D.concepts ??= JSON.parse(JSON.stringify(S.state.concepts));
@@ -30,13 +30,13 @@ PAGES.concepts = () => {
     list.replaceChildren(...d.flatMap((c, i) => [i ? h("div", { class: "joiner" }, c.role === "NOT" ? "AND NOT" : "AND") : [],
       h("div", { class: "concept " + (c.role === "NOT" ? "not" : "and") },
         h("div", { class: "head" },
-          h("input", { type: "text", value: c.name, placeholder: "Concept name", oninput: e => { c.name = e.target.value; refresh(); } }),
+          h("input", { type: "text", value: c.name, placeholder: "Concept name", "aria-label": `Name of keyword block ${i + 1}`, oninput: e => { c.name = e.target.value; refresh(); } }),
           segmented([["AND", "AND"], ["NOT", "NOT"]], c.role || "AND", v => { c.role = v; draw(); refresh(); }, "How this block joins the search"),
           h("span", { class: "spacer", style: "flex:1" }),
           Object.assign(iconBtn("↑", "Move this block up", () => { if (i) { [d[i - 1], d[i]] = [d[i], d[i - 1]]; draw(); refresh(); } }), { disabled: !i }),
           Object.assign(iconBtn("↓", "Move this block down", () => { if (i < d.length - 1) { [d[i + 1], d[i]] = [d[i], d[i + 1]]; draw(); refresh(); } }), { disabled: i === d.length - 1 }),
           iconBtn("🗑", `Delete the block “${c.name || "unnamed"}”`, () => { d.splice(i, 1); draw(); refresh(); }, "danger")),
-        chipsInput(c.terms, () => refresh()),
+        chipsInput(c.terms, () => refresh(), undefined, `Add a term to “${c.name || `block ${i + 1}`}”`),
         h("div", { class: "small muted", style: "margin-top:5px" }, `${c.terms.length} term(s) · joined with OR · * = any ending, e.g. repairab* → repairable, repairability`))]));
   };
   draw(); drawPreview(); refresh();
@@ -46,7 +46,8 @@ PAGES.concepts = () => {
         list, h("div", { class: "row", style: "margin-top:12px" },
           btn("+ Add concept", () => { d.push({ name: "", role: "AND", terms: [] }); draw(); }, ""),
           h("span", { class: "small muted" }, "Saved as you type.")),
-        h("input", { type: "text", placeholder: "Why it changed (optional; kept with this version)", value: D.cwhy || "", style: "margin-top:8px", oninput: e => { D.cwhy = e.target.value; saver.schedule(); } })),
+        h("div", { style: "margin-top:8px" }, field("Why it changed (optional; kept with this version)",
+          h("input", { type: "text", placeholder: "e.g. added synonyms found in the first papers", value: D.cwhy || "", oninput: e => { D.cwhy = e.target.value; saver.schedule(); } })))),
         conceptHistory()),
       h("div", {}, card("Live search string", "Updates as you type. The final strings, and hand edits, are on the Search strings tab.", tabs, preview,
         h("div", { class: "row end", style: "margin-top:10px" }, btn("Copy", () => copy(preview.textContent), "sm"))))));

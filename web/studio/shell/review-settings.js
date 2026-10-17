@@ -32,8 +32,8 @@ export function openReviewSettings() {
     if (reload) location.reload();
     else { setS(await getJSON(`/api/state?review=${encodeURIComponent(REVIEW)}`)); render(); }   // the draft or the example
   };
-  const dialog = h("dialog", { class: "modal" },
-    h("div", { class: "mh" }, "Review settings"),
+  const dialog = h("dialog", { class: "modal", "aria-labelledby": "reviewSettingsTitle" },
+    h("h2", { class: "mh", id: "reviewSettingsTitle" }, "Review settings"),
     h("div", { class: "mb stack" },
       field("Your initials (written with each of your decisions in the decision log)", initials),
       field("Obsidian vault name (to open notes in Obsidian)", vault),

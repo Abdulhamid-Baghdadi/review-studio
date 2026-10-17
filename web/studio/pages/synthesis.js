@@ -8,7 +8,7 @@ import { h } from "../core/dom.js";
 import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
-import { autosize, btn, card, field, openNote, pill } from "../ui/components.js";
+import { autosize, btn, card, field, labelBy, openNote, pill } from "../ui/components.js";
 import { confirmBox } from "../ui/dialogs.js";
 
 PAGES.synthesis = () => {
@@ -62,6 +62,7 @@ function outcomeResult(o, res) {
     saveOutcome({ ...o, grade });
   };
   const levelText = l => (l === 0 ? "not serious" : l === -1 ? "serious (−1)" : "very serious (−2)");
+  const gradeHead = ["GRADE domain", "Judgement", "Reason", ""].map(t => h("th", {}, t));
   return h("div", { class: "card", style: "margin:10px 0" },
     h("div", { class: "row" }, h("h2", { style: "flex:1;margin:0" }, o.name),
       pill(`${g.symbol} ${g.label}${g.confirmed ? "" : " · suggested"}`, g.confirmed ? "ok" : "warn"),
@@ -74,13 +75,14 @@ function outcomeResult(o, res) {
     res.studies.length ? plot(res.forest) : h("div", { class: "empty" }, "No study data yet: use Edit data."),
     res.funnel ? h("details", {}, h("summary", {}, `Funnel plot and Egger's test${res.egger ? ` (p ${res.egger.p}${res.egger.k < 10 ? "; fewer than 10 studies, little power" : ""})` : ""}`), plot(res.funnel)) : null,
     h("table", { class: "tbl", style: "margin-top:10px" },
-      h("tr", {}, ["GRADE domain", "Judgement", "Reason", ""].map(t => h("th", {}, t))),
+      h("tr", {}, gradeHead),
       opt.domains.map(([key, label]) => {
         const d = g.domains[key], sug = d.suggested ?? { level: 0, reason: "" };
-        const reason = h("input", { type: "text", value: d.reason, onchange: e => setDomain(key, { level: d.level, reason: e.target.value }) });
-        return h("tr", {}, h("td", { style: "width:150px" }, label),
-          h("td", { style: "width:170px" }, h("select", { onchange: e => setDomain(key, { level: Number(e.target.value), reason: d.reason }) },
-            [0, -1, -2].map(l => h("option", { value: l, selected: d.level === l }, levelText(l))))),
+        const domain = h("td", { style: "width:150px" }, label);   // each field is named by its column and this domain
+        const reason = labelBy(h("input", { type: "text", value: d.reason, onchange: e => setDomain(key, { level: d.level, reason: e.target.value }) }), [gradeHead[2], domain]);
+        return h("tr", {}, domain,
+          h("td", { style: "width:170px" }, labelBy(h("select", { onchange: e => setDomain(key, { level: Number(e.target.value), reason: d.reason }) },
+            [0, -1, -2].map(l => h("option", { value: l, selected: d.level === l }, levelText(l)))), [gradeHead[1], domain])),
           h("td", {}, reason, !d.confirmed ? null : sug.level !== d.level ? h("div", { class: "small muted" }, `Suggested: ${levelText(sug.level)}. ${sug.reason}`) : null),
           h("td", { style: "width:110px" }, d.confirmed ? h("div", { class: "row" }, pill("confirmed", "ok"), btn("Undo", () => setDomain(key, null), "sm ghost"))
             : h("div", { class: "row" }, pill("suggested", "warn"), btn("Confirm", () => setDomain(key, { level: d.level, reason: d.reason }), "sm"))));
@@ -109,17 +111,24 @@ function outcomeEditor() {
       field("Data", sel("type", Object.entries(opt.types).map(([k, t]) => [k, t.label]), () => { o.measure = opt.types[o.type].measures[0]; })),
       field("Effect measure", sel("measure", opt.types[o.type].measures.map(m => [m, opt.measures[m].label]))),
       field("Model", sel("model", [["random", "Random effects (DerSimonian–Laird)"], ["fixed", "Fixed effect (inverse variance)"]])),
-      o.model === "random" ? field("CI method", h("label", { class: "row small" }, h("input", { type: "checkbox", checked: o.hk, onchange: e => o.hk = e.target.checked }), "Hartung–Knapp (recommended with few studies)")) : null,
+      o.model === "random" ? h("div", { class: "field" }, h("span", {}, "CI method"),       // not field(): a label may not hold another label
+        h("label", { class: "row small" }, h("input", { type: "checkbox", checked: o.hk, onchange: e => o.hk = e.target.checked }), "Hartung–Knapp (recommended with few studies)")) : null,
       field("Study design", sel("design", [["rct", "Randomised trials (GRADE starts high)"], ["obs", "Observational (GRADE starts low)"]]))),
-    included.length ? h("div", { style: "overflow-x:auto" }, h("table", { class: "tbl" },
-      h("tr", {}, h("th", {}, "Study"), ...cols.map(c => h("th", {}, opt.columns[c]))),
-      included.map(r => h("tr", {}, h("td", { title: r.title }, h("b", {}, r.record_id), " ", label(r)),
-        ...cols.map(c => h("td", { style: "width:90px" }, h("input", { type: "text", inputmode: "decimal", value: rows.get(r.record_id)?.[c] ?? "",
+    included.length ? (() => {
+      const head = Object.fromEntries(cols.map(c => [c, h("th", {}, opt.columns[c])]));
+      return h("div", { style: "overflow-x:auto" }, h("table", { class: "tbl" },
+      h("tr", {}, h("th", {}, "Study"), ...cols.map(c => head[c])),
+      included.map(r => {
+        const study = h("td", { title: r.title }, h("b", {}, r.record_id), " ", label(r));   // a cell is named by its column and study
+        return h("tr", {}, study,
+        ...cols.map(c => h("td", { style: "width:90px" }, labelBy(h("input", { type: "text", inputmode: "decimal", value: rows.get(r.record_id)?.[c] ?? "",
           oninput: e => {      // kept on the draft, so switching the data type or measure keeps what was typed
             let row = rows.get(r.record_id);
             if (!row) { row = { record_id: r.record_id }; rows.set(r.record_id, row); (o.rows ??= []).push(row); }
             row[c] = e.target.value;
-          } })))))))
+          } }), [head[c], study]))));
+      })));
+    })()
       : h("div", { class: "empty" }, "No included studies yet."),
     h("div", { class: "row end", style: "margin-top:10px" }, btn("Cancel", () => { delete D.outcome; render(); }, "ghost"), btn("Save and analyse", save, "primary")));
 }

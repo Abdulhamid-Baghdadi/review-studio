@@ -133,7 +133,7 @@ export function openClaudeGuide() {
 
 export function openGlossary() {
   const num = {}, list = h("div", {});
-  const search = h("input", { type: "text", placeholder: "Search terms…", oninput: () => draw() });
+  const search = h("input", { type: "text", placeholder: "Search terms…", "aria-label": "Search the glossary", oninput: () => draw() });
   const draw = () => {
     const q = search.value.toLowerCase();
     list.replaceChildren(...Object.keys(H.terms).sort((a, b) => a.localeCompare(b))

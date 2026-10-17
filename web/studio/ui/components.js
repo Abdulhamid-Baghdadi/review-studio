@@ -10,7 +10,24 @@ import { toast } from "./dialogs.js";
 /** The library folder chosen in Settings (e.g. "00 - Library"). */
 export const libraryName = () => S.library_name || "your library folder";
 export const pill = (text, kind = "") => h("span", { class: "pill " + kind }, text);
-export const field = (label, input, hint) => h("label", { class: "field" }, h("span", {}, label), input, hint ? h("div", { class: "small muted", style: "margin-top:3px" }, hint) : null);
+let ids = 0;
+const idOf = el => el.id || (el.id = `lbl-${++ids}`);
+const isField = el => ["INPUT", "SELECT", "TEXTAREA"].includes(el?.tagName);
+/** A field with its visible label around it; the hint under it is linked as the field's description. */
+export function field(label, input, hint) {
+  const note = hint ? h("div", { class: "small muted", style: "margin-top:3px" }, hint) : null;
+  if (note && isField(input)) input.setAttribute("aria-describedby", idOf(note));
+  return h("label", { class: "field" }, h("span", {}, label), input, note);
+}
+/**
+ * Names a field by text already visible on the page (a card title, a table's column and row): the field points to
+ * those elements (aria-labelledby), and to its hint (aria-describedby). @returns {HTMLElement} the field
+ */
+export function labelBy(input, labels, hint) {
+  input.setAttribute("aria-labelledby", [labels].flat().filter(Boolean).map(idOf).join(" "));
+  if (hint) input.setAttribute("aria-describedby", idOf(hint));
+  return input;
+}
 export const card = (title, sub, ...kids) => h("div", { class: "card" }, title ? h("h2", {}, title) : null, sub ? h("p", { class: "sub" }, sub) : null, ...kids);
 export const btn = (label, onclick, cls = "", title) => h("button", { class: "btn " + cls, onclick, title }, label);
 /** A button that shows only a symbol: its words are its name (read out) and its tooltip. */
@@ -52,7 +69,8 @@ export function dropzone(label, accept, onFile) {
   return z;
 }
 
-export function chipsInput(terms, onchange, placeholder = "type a term, press Enter") {
+/** Terms as removable chips, with a field to add more; `label` names that field (e.g. "Add a term to “Workplace”"). */
+export function chipsInput(terms, onchange, placeholder = "type a term, press Enter", label = "Add a term") {
   const wrap = h("div", { class: "chips" });
   const draw = () => {
     wrap.replaceChildren(
@@ -61,7 +79,7 @@ export function chipsInput(terms, onchange, placeholder = "type a term, press En
       input);
   };
   const input = h("input", {
-    type: "text", placeholder,
+    type: "text", placeholder, "aria-label": label,
     onkeydown: e => {
       if ((e.key === "Enter" || e.key === ",") && input.value.trim()) {
         e.preventDefault();

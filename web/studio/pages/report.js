@@ -7,7 +7,7 @@ import { h } from "../core/dom.js";
 import { S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
 import { flowDiagram } from "../ui/charts.js";
-import { bar, btn, card, libraryName, openNote, pill } from "../ui/components.js";
+import { bar, btn, card, labelBy, libraryName, openNote, pill } from "../ui/components.js";
 import { confirmBox, modal, toast } from "../ui/dialogs.js";
 
 // Citations between the papers of the library (formerly Library Studio's Citations page): preview, then write.
@@ -34,6 +34,7 @@ function citationsCard() {
 PAGES.report = () => {
   const auto = S.checklist_auto;
   const kept = S.records.filter(r => r.ft_decision === "include");
+  const checklistHead = ["#", "Item", "Evidence in the vault", "Location in manuscript", "Reported"].map(t => h("th", {}, t));
   return h("div", {},
     kept.length ? card("Export to your Obsidian library", `When the review is finished, the papers you kept become publication notes in ${libraryName()}, with their PDFs; then the citations between your library papers are updated ('cites'). Everything else stays in this review's folder.`,
       h("div", { class: "row" }, h("span", { class: "small muted", style: "flex:1" },
@@ -81,14 +82,15 @@ PAGES.report = () => {
             h("div", { class: "small muted", style: "margin-top:4px" }, `${S.review_type.guideline} items marked as reported` + (required.length < S.checklist_items.length ? " (optional items not counted)" : "")));
         })()))),
     card(`${S.review_type.guideline} checklist`, "Tick each item and note where it is reported. 'Evidence' is what the tool can see in the vault.",
-      h("table", { class: "tbl" }, h("tr", {}, ["#", "Item", "Evidence in the vault", "Location in manuscript", "Reported"].map(t => h("th", {}, t))),
+      h("table", { class: "tbl" }, h("tr", {}, checklistHead),
         S.checklist_items.map(it => {
           const c = S.state.checklist[it.n] || {};
-          const loc = h("input", { type: "text", value: c.location || "", placeholder: "e.g. Methods 2.1" });
-          const ok = h("input", { type: "checkbox", checked: !!c.done });
+          const item = h("b", {}, it.item);            // both fields of a row are named by their column and this item
+          const loc = labelBy(h("input", { type: "text", value: c.location || "", placeholder: "e.g. Methods 2.1" }), [checklistHead[3], item]);
+          const ok = labelBy(h("input", { type: "checkbox", checked: !!c.done }), [checklistHead[4], item]);
           const save = () => api("checklist", { n: it.n, location: loc.value, done: ok.checked }, { render: false, silent: true });
           loc.addEventListener("change", save); ok.addEventListener("change", save);
-          return h("tr", {}, h("td", { class: "num" }, it.n), h("td", {}, h("b", {}, it.item), it.optional ? [" ", pill("optional", "info")] : null, h("div", { class: "small muted" }, it.desc)),
+          return h("tr", {}, h("td", { class: "num" }, it.n), h("td", {}, item, it.optional ? [" ", pill("optional", "info")] : null, h("div", { class: "small muted" }, it.desc)),
             h("td", { class: "small" }, auto[String(it.n)] ? pill(auto[String(it.n)], "info") : h("span", { class: "muted" }, "—")),
             h("td", { style: "width:200px" }, loc), h("td", { style: "text-align:center" }, h("label", { class: "check" }, ok)));
         }))));

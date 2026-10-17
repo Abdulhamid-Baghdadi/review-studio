@@ -17,7 +17,7 @@ PAGE_KEYS.idea = e => {
 };
 
 PAGES.idea = () => {
-  const ta = autosize(h("textarea", { placeholder: exampleFor("idea", "Note") || "What do you want to find out, and why? What did you read or discuss? What changed?", rows: 4, value: D.idea || "", oninput: e => D.idea = e.target.value }));
+  const ta = autosize(h("textarea", { "aria-label": "New idea note", placeholder: exampleFor("idea", "Note") || "What do you want to find out, and why? What did you read or discuss? What changed?", rows: 4, value: D.idea || "", oninput: e => D.idea = e.target.value }));
   const ideas = [...S.state.idea].reverse();
   return h("div", {},
     card("New idea note", "Short and dated. It is fine to be vague here — the Question tab makes it precise.", ta,

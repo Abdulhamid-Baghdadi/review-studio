@@ -7,7 +7,7 @@ import { h, store } from "../core/dom.js";
 import { D, REVIEW, S, SC } from "../core/state.js";
 import { PAGE_KEYS, PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
-import { bar, btn, decDot, decKind, highlight, openNote, pill, segmented } from "../ui/components.js";
+import { bar, btn, decDot, decKind, field, highlight, labelBy, openNote, pill, segmented } from "../ui/components.js";
 import { announce, confirmBox } from "../ui/dialogs.js";
 
 // The screening keys: I include, U unsure (title/abstract), E then 1–9 exclude with a reason, Z undo, ← → move.
@@ -122,7 +122,7 @@ PAGES.screening = () => {
     const reasonRow = h("div", { class: "reasons", style: SC.excl || cur === "exclude" ? "" : "display:none" },
       h("span", { class: "small muted", style: "align-self:center" }, "Reason:"),
       reasons.map((r, i) => h("button", { class: rec[rkey] && r.split(" ")[0] === rec[rkey].split(" ")[0] ? "on" : "", onclick: () => decide("exclude", r.split(" ")[0]) }, h("kbd", {}, i + 1), " ", r)));
-    const notes = h("input", { type: "text", placeholder: "Note (optional) — e.g. 'other version of R0012'", value: rec.notes || "",
+    const notes = h("input", { type: "text", placeholder: "e.g. other version of R0012", value: rec.notes || "",
       onchange: e => api("set_record", { record_id: rec.record_id, fields: { notes: e.target.value } }, { render: false, silent: true }) });
     main = h("div", { class: "card rec" },
       h("div", { class: "meta" }, h("b", { style: "font-family:var(--mono)" }, rec.record_id), rec.year ? pill(rec.year) : null, rec.journal ? h("span", {}, rec.journal) : null,
@@ -139,7 +139,7 @@ PAGES.screening = () => {
         rec.oa_url ? h("a", { href: rec.oa_url, target: "_blank", class: "btn sm" }, "Open access ↗") : null,
         SC.stage === "ft" ? pill(rec.pdf_status ? "PDF: " + rec.pdf_status : "PDF: not checked", rec.pdf_status === "found" ? "ok" : rec.pdf_status ? "bad" : "") : null),
       absBox,
-      h("div", { style: "margin-top:12px" }, notes),
+      h("div", { style: "margin-top:12px" }, field("Note (optional)", notes)),
       decisionHistory(rec.record_id),
       decisionBar(rec, cur, reasonRow));
   }
@@ -196,6 +196,7 @@ function suggestView(q) {
   const rows = [...batch].sort((a, b) => order[dec(a)] - order[dec(b)] || rsn(a).localeCompare(rsn(b)));
   const counts = Counter => rows.reduce((m, r) => (m[val(r).split(":")[0]] = (m[val(r).split(":")[0]] || 0) + 1, m), {});
   const c = counts();
+  const suggestHead = ["", "Record", "Claude suggests", "Your decision"].map(t => h("th", {}, t));
   return h("div", {},
     h("div", { class: "callout", style: "margin-bottom:12px" }, `Batch of ${batch.length} of ${q.length} remaining. Claude read each ${SC.stage === "ta" ? "abstract" : "full text"} and suggests a decision (cautious: unsure when in doubt). Check the suggestions — click a title to see the abstract — change any you disagree with, then confirm the batch. The decisions are recorded as yours; changes to suggestions are noted per record.`),
     h("div", { class: "row", style: "margin-bottom:10px" }, pill(`${c.include || 0} include`, "ok"), pill(`${c.unsure || 0} unsure`, "warn"), pill(`${c.exclude || 0} exclude`, "bad"),
@@ -205,10 +206,11 @@ function suggestView(q) {
         const items = batch.map(r => { const [d, reason] = val(r).split(":"); return { id: r.record_id, decision: d, reason: reason || "" }; });
         busy(e.target, () => api("apply_decisions", { items, stage: SC.stage }).then(() => { for (const r of batch) delete choice[r.record_id]; }));
       }, "primary")),
-    h("table", { class: "tbl" }, h("tr", {}, ["", "Record", "Claude suggests", "Your decision"].map(t => h("th", {}, t))),
+    h("table", { class: "tbl" }, h("tr", {}, suggestHead),
       rows.map(r => {
         const changed = choice[r.record_id] !== undefined && choice[r.record_id] !== (dec(r) === "exclude" ? "exclude:" + rsn(r) : dec(r));
-        const sel = h("select", { onchange: e => { choice[r.record_id] = e.target.value; render(); } }, opts.map(([v, t]) => h("option", { value: v, selected: v === val(r) }, t)));
+        const id = h("b", { style: "font-family:var(--mono);font-size:12px" }, r.record_id);   // the choice is named by its column and this record
+        const sel = labelBy(h("select", { onchange: e => { choice[r.record_id] = e.target.value; render(); } }, opts.map(([v, t]) => h("option", { value: v, selected: v === val(r) }, t))), [suggestHead[3], id]);
         const abs = h("div", { class: "small muted", style: "display:none;margin-top:6px;max-width:640px" });
         return h("tr", {},
           h("td", {}, decDot(val(r).split(":")[0])),
@@ -216,7 +218,7 @@ function suggestView(q) {
             e.preventDefault();
             if (abs.style.display === "none") { if (!abs.textContent) { const j = await api("record_abstract", { record_id: r.record_id }, { silent: true }); abs.innerHTML = highlight(j.record.abstract || "No abstract."); } abs.style.display = ""; }
             else abs.style.display = "none";
-          } }, h("b", { style: "font-family:var(--mono);font-size:12px" }, r.record_id), " ", r.title), h("div", { class: "small muted" }, [r.year, r.journal].filter(Boolean).join(" · ")), abs),
+          } }, id, " ", r.title), h("div", { class: "small muted" }, [r.year, r.journal].filter(Boolean).join(" · ")), abs),
           h("td", { style: "max-width:260px" }, pill(dec(r) + (rsn(r) ? " " + rsn(r) : ""), decKind(dec(r))), h("div", { class: "small muted" }, why(r))),
           h("td", {}, sel, changed ? h("div", { class: "small", style: "color:var(--warn)" }, "changed by you") : null));
       })));

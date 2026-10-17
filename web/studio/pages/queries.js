@@ -8,7 +8,7 @@ import { h } from "../core/dom.js";
 import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
-import { autosize, btn, card, chipsInput, copy, decDot, hlQuery, pill } from "../ui/components.js";
+import { autosize, btn, card, chipsInput, copy, decDot, field, hlQuery, pill } from "../ui/components.js";
 
 PAGES.queries = () => {
   const dbs = [...S.state.queries.databases];
@@ -17,7 +17,7 @@ PAGES.queries = () => {
   const drawBox = () => {
     const q = S.queries[db] || "", manual = S.manual.includes(db);
     const editing = D.qedit === db;
-    const ta = autosize(h("textarea", { class: "code", rows: 5, value: q }));
+    const ta = autosize(h("textarea", { class: "code", rows: 5, value: q, "aria-label": `Search string for ${db}` }));
     const saver = autoSave("query:" + db, () => api("save_manual_query", { db, text: ta.value }, { render: false, silent: true }), "queries");
     if (editing) saver.watch(ta);
     box.replaceChildren(
@@ -31,7 +31,7 @@ PAGES.queries = () => {
   };
   drawBox();
   const dbSaver = autoSave("databases", () => api("save_databases", { databases: dbs }, { render: false, silent: true }));
-  const chips = chipsInput(dbs, () => dbSaver.schedule(), "add a database, press Enter");
+  const chips = chipsInput(dbs, () => dbSaver.schedule(), "add a database, press Enter", "Add a database");
   return h("div", {},
     card("Search strings", "Copy each string into the database's advanced search. Syntax differs per database; the tool translates it.", box),
     card("Databases", "Which sources this review searches. At least two bibliographic databases is the usual minimum (see Help). Saved as you add or remove one.", chips));
@@ -84,6 +84,6 @@ export function testSetCard() {
     h("summary", { style: "font-weight:700;font-size:15.5px;color:var(--text)" }, `Test set · ${S.test_set.size} paper(s)`,
       h("span", { class: "muted small", style: "font-weight:400" }, " — papers you already know are relevant; a good search finds them")),
     h("div", { style: "margin-top:10px" }, chosen),
-    h("div", { style: "margin-top:10px" }, search), results,
+    h("div", { style: "margin-top:10px" }, field("Find a paper in your library", search)), results,
     h("div", { class: "row end", style: "margin-top:8px" }, h("span", { class: "small muted" }, "Papers without a DOI can only be checked by hand."), saveBtn));
 }
