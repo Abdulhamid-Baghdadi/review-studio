@@ -98,6 +98,17 @@ export function toNote(props) {
   return out;
 }
 
+/**
+ * The shared properties in the library's format: `url` is the DOI link when there is a DOI, and an OpenAlex link
+ * becomes the `openalex` id. Returns the properties unchanged (same object) when there is nothing to fix.
+ */
+export function libraryFormat(props) {
+  const id = props.openalex || openalexId(/openalex\.org/.test(String(props.url ?? "")) ? props.url : "");
+  const url = props.doi ? `https://doi.org/${props.doi}` : props.url;
+  if (id === (props.openalex ?? "") && url === props.url) return props;
+  return { ...props, url, ...(id ? { openalex: id } : {}) };
+}
+
 /** Whether a note still uses the older short names. @param {Record<string, unknown>} disk */
 export const hasShortNames = disk => Object.keys(disk).some(k => FULL_NAMES[k] || k.startsWith(CHART));
 

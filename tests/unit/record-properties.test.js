@@ -34,6 +34,8 @@ record_id: "${id}"
 title: "Paper ${id}"
 authors: "Doe, Jane"
 year: 2020
+doi: "10.1/${id}"
+url: "https://openalex.org/W100000${id.slice(1)}"
 ta_decision: "${ta}"
 ta_reason: "${ta === "exclude" ? "E1" : ""}"
 ft_decision: "${ft}"
@@ -71,6 +73,7 @@ test("an older review opens unchanged in meaning and its notes are rewritten in 
   const text = await folder.readText("08 - Records/R0001 - 2020 - Doe - Paper R0001.md");
   assert.match(text, /^title_abstract_decision: "include"$/m);
   assert.match(text, /^extracted_design: "RCT"$/m);
+  assert.match(text, /^url: "https:\/\/doi\.org\/10\.1\/R0001"\nopenalex: "W1000000001"$/m, "url is the DOI link; the OpenAlex id has its own property");
   assert.match(text, /^notes: "typed in Obsidian"$/m);
   assert.match(text, /My own words\./);
   assert.doesNotMatch(text, /^(ta_|ft_|r2_|sample_|chart_|pdf_status|second_reviewer)/m);

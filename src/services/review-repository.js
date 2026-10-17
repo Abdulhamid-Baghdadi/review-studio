@@ -9,7 +9,7 @@ import { FILES, GUIDE_REASONS, logHeader, logRow, screeningBase, screeningGuide,
 import { DecisionLog } from "./decision-log.js";
 import { compareCodePoints } from "../domain/text-rules.js";
 import { parseRecord, RECORDS_DIR, recordText } from "../domain/records.js";
-import { hasShortNames } from "../domain/record-properties.js";
+import { hasShortNames, libraryFormat } from "../domain/record-properties.js";
 import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "../domain/vocabulary.js";
 
 export const SEARCH_COLUMNS = Object.freeze(["id", "kind", "database", "date", "query", "filters", "export", "records", "new", "duplicates"]);
@@ -82,7 +82,11 @@ export class ReviewRepository {
    * in the shared order. Only the properties change; the values and the note text stay. @returns {Promise<number>}
    */
   async upgradeNotes() {
-    for (const [id, base] of this.#base) if (hasShortNames(frontmatter.parse(base.text)[0])) this.#changed.add(id);
+    for (const [id, base] of this.#base) {
+      const r = this.records.get(id), props = libraryFormat(r.props);
+      if (props !== r.props) this.put({ ...r, props });
+      else if (hasShortNames(frontmatter.parse(base.text)[0])) this.#changed.add(id);
+    }
     return this.save();
   }
 
