@@ -1507,7 +1507,7 @@ PAGES.screening = () => {
         rec.sample_ta && SC.stage === "ta" ? pill("in 2nd-reviewer sample", "info") : null),
       h("h2", {}, rec.title),
       h("button", { class: "file", style: "margin:-2px 0 6px", title: "This paper's note — your decision is written here", onclick: () => openNote(S.record_files[rec.record_id]) },
-        "📝 ", S.record_files[rec.record_id] || "", h("span", { class: "muted" }, ` · ${dkey} is saved here`)),
+        "📝 ", S.record_files[rec.record_id] || "", h("span", { class: "muted" }, ` · ${SC.stage === "ta" ? "title_abstract_decision" : "full_text_decision"} is saved here`)),
       h("div", { class: "authors" }, rec.authors),
       h("div", { class: "row", style: "margin-top:8px" },
         rec.doi ? h("a", { href: "https://doi.org/" + rec.doi, target: "_blank", class: "btn sm" }, "DOI ↗") : null,

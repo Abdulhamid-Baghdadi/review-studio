@@ -152,8 +152,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .drop.has { border-style: solid; border-color: var(--ok); background: var(--ok-bg); color: var(--text); }
 
 /* ---------- screening ---------- */
-.screen { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
-@media (max-width: 1100px) { .screen { grid-template-columns: 1fr; } }
+.screen { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+@media (max-width: 1100px) { .screen { grid-template-columns: minmax(0, 1fr); } }
 .rec { padding: 24px 28px; }
 .rec .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 13px; }
 .rec h2 { font-size: 21px; line-height: 1.35; margin: 10px 0 6px; letter-spacing: -.01em; }
@@ -623,3 +623,6 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* narrow windows (e.g. a browser pane beside another app): the top bar wraps instead of pushing buttons off screen */
 @media (max-width: 1100px) { .toolbar { flex-wrap: wrap; row-gap: 4px; } }
+/* a long note name must not widen the screening card past the window */
+.rec { min-width: 0; }
+.rec .file { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
