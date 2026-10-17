@@ -22,10 +22,12 @@ export const shortId = id => String(id ?? "").replace(/^https?:\/\/openalex\.org
  * @param {Map<string, string>} dois  note name → normalised DOI ("" when none)
  * @param {Map<string, {id: string, referenced: string[]}>} works  normalised DOI → OpenAlex work (ids as given)
  * @param {Map<string, string[]>} [refsPdf]  note name → note names it cites according to its PDF (`references_pdf`)
+ * @param {Set<string>} [knownIds]  OpenAlex ids of library papers found another way (by title, `openalex` property):
+ *   a reference to one of them is not listed as unlinked
  * @returns {{refs: Map<string, string[]>, cited: Map<string, string[]>, external: Map<string, string[]>, found: number}}
  *   refs and external only for notes found in OpenAlex; cited for every note
  */
-export function citationGraph(dois, works, refsPdf = new Map()) {
+export function citationGraph(dois, works, refsPdf = new Map(), knownIds = new Set()) {
   const stemOfId = new Map();
   for (const [stem, doi] of dois) if (doi && works.has(doi)) stemOfId.set(shortId(works.get(doi).id), stem);
   const refs = new Map(), external = new Map();
@@ -34,7 +36,7 @@ export function citationGraph(dois, works, refsPdf = new Map()) {
     const inside = new Set(), outside = new Set();
     for (const r of works.get(doi).referenced) {
       const s = stemOfId.get(shortId(r));
-      if (s) { if (s !== stem) inside.add(s); } else outside.add(shortId(r));
+      if (s) { if (s !== stem) inside.add(s); } else if (!knownIds.has(shortId(r))) outside.add(shortId(r));
     }
     refs.set(stem, [...inside].sort(compareCodePoints));
     external.set(stem, [...outside].sort());

@@ -4,7 +4,9 @@
  * written until the reviewer confirms the preview.
  * @module services/library-citations
  */
-import { citationGraph, citationSummary, withCitations, withUnlinked } from "../domain/library-citations.js";
+import { citationGraph, citationSummary, shortId, withCitations, withUnlinked } from "../domain/library-citations.js";
+
+const REFERENCES_FILE = "References.json";
 import { normalizeDoi } from "../domain/matching.js";
 
 const BATCH = 50;
@@ -37,7 +39,7 @@ export async function fetchLibraryWorks(library, openalex, onProgress = () => {}
 export async function planLibraryCitations(library, works) {
   const dois = libraryDois(library);
   const refsPdf = new Map([...library.notes].map(([stem, p]) => [stem, asList(p.references_pdf).map(linkTarget)]));
-  const graph = citationGraph(dois, works, refsPdf);
+  const graph = citationGraph(dois, works, refsPdf, await knownLibraryIds(library));
   const changes = [];
   for (const stem of library.notes.keys()) {
     const text = await library.folder.readText(`${stem}.md`);
@@ -46,6 +48,20 @@ export async function planLibraryCitations(library, works) {
     if (next !== text) changes.push({ stem, text, next });
   }
   return { summary: citationSummary(dois, graph), changes };
+}
+
+/**
+ * OpenAlex ids of library papers known without a DOI lookup: the notes' `openalex` property, and the papers in
+ * References.json (written by Library Studio's enrich, which also matches by title).
+ */
+async function knownLibraryIds(library) {
+  const ids = new Set([...library.notes.values()].map(p => shortId(p.openalex)).filter(Boolean));
+  if (await library.folder.exists(REFERENCES_FILE)) {
+    try {
+      for (const p of Object.values(JSON.parse(await library.folder.readText(REFERENCES_FILE)).papers ?? {})) if (p?.openalex) ids.add(shortId(p.openalex));
+    } catch { /* an unreadable file adds nothing */ }
+  }
+  return ids;
 }
 
 /** Writes the planned notes. @returns {Promise<number>} notes written */
