@@ -66,6 +66,42 @@ async function api(action, args = {}, opts = {}) {
   return j;
 }
 
+// ---------- saving as you type: like an online document, there is no Save button
+// Each field saves itself a second after you stop typing (and when you leave it). After the protocol is locked, a
+// change to a protected part (questions, concepts, strings, protocol text, exclusion reasons, extraction form) is an
+// amendment that needs a reason: those fields save when you leave them, and ask for the reason once.
+const PENDING = new Map();                 // what is waiting to be saved: key -> {timer, save}
+let SAVE_STATE = ["", ""];
+const lockedFor = guard => Boolean(guard && S?.state.protocol.locked && !S.dev_mode);
+function setSaveState(state, text) {
+  SAVE_STATE = [state, text];
+  const el = $("#saveState");
+  if (el) { el.className = "save-state " + state; el.textContent = text; }
+}
+async function runSave(key, save) {
+  const p = PENDING.get(key);
+  if (p?.timer) clearTimeout(p.timer);
+  PENDING.delete(key);
+  setSaveState("saving", "Saving…");
+  try { await save(); setSaveState("saved", "✓ Saved"); }
+  catch (e) { setSaveState("error", e.message === "cancelled" ? "Not saved: no reason given" : "Not saved"); }
+}
+/** A saver for one part of a page: `watch(el)` saves el's edits; `schedule()` / `commit()` for edits made in code. */
+function autoSave(key, save, guard = null) {
+  const schedule = () => {
+    const old = PENDING.get(key);
+    if (old?.timer) clearTimeout(old.timer);
+    if (lockedFor(guard)) { PENDING.set(key, { timer: null, save }); setSaveState("locked", "🔒 Saved when you leave the field: it is an amendment"); return; }
+    setSaveState("saving", "Saving…");
+    PENDING.set(key, { timer: setTimeout(() => runSave(key, save), 1000), save });
+  };
+  const commit = () => { const p = PENDING.get(key); if (p) runSave(key, p.save); };
+  return { schedule, commit, watch: el => { el.addEventListener("input", schedule); el.addEventListener("focusout", commit); return el; } };
+}
+/** Saves whatever is still waiting (before leaving a page, switching review or hiding the window). */
+function flushSaves() { for (const [key, p] of [...PENDING]) runSave(key, p.save); }
+document.addEventListener("visibilitychange", () => { if (document.hidden) flushSaves(); });
+
 async function upload(file) {
   return backend.upload(file);
 }
@@ -582,7 +618,7 @@ function render() {
   renderChrome();
   renderDraftBar();
   for (const id of ["btnTimeline", "btnScr"]) $("#" + id).hidden = CUR === HOME;   // the Homepage is only an introduction
-  $("#btnHomeLink").classList.toggle("on", CUR === HOME);
+  $("#btnHome").classList.toggle("on", CUR === HOME);
   $("#btnType").textContent = `🧭 ${S.review_type.label} · ${S.review_type.guideline}`;
   $("#btnType").hidden = S.review_type.key !== "scoping" || CUR === HOME;   // systematic is the standard; only a scoping review shows its type
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
@@ -609,7 +645,7 @@ function nameFields(root) {
   }
 }
 
-function go(key) { CUR = key; store.set("stage", key); if (key !== HOME) store.set("last_stage", key); if (key !== HOME) { const st = stepOf(key), t = curTab(); if (st && t) store.set("tab_" + st.key, `${t.stage}:${t.part ?? ""}`); } history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
+function go(key) { flushSaves(); CUR = key; store.set("stage", key); if (key !== HOME) store.set("last_stage", key); if (key !== HOME) { const st = stepOf(key), t = curTab(); if (st && t) store.set("tab_" + st.key, `${t.stage}:${t.part ?? ""}`); } history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
 
 async function skipStage() {
   const r = await promptText("Skip this part", "Skipping is fine for optional parts, but the reason is reported in the timeline and the reporting checklist.", "e.g. not planned in the protocol", true);
@@ -962,17 +998,18 @@ PAGES.questions = () => {
   const q = S.state.questions, rt = S.review_type, Q = rt.question;
   const d = D.questions ??= { population: q.population, concept: q.concept, context: q.context, outcome: q.outcome ?? "", main: q.main, sub: [...q.sub], why: "" };
   const bind = k => e => d[k] = e.target.value;
+  const saver = autoSave("questions", () => api("save_questions", { q: { ...d, sub: d.sub.filter(x => x.trim()) }, why: d.why }, { render: false, silent: true }), "questions");
   const subs = h("div", { class: "stack" });
   const drawSubs = () => subs.replaceChildren(...d.sub.map((s, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
     h("span", { class: "muted", style: "width:22px" }, `${i + 1}.`), h("input", { type: "text", value: s, placeholder: exampleFor("questions", "Sub-questions", i), oninput: e => d.sub[i] = e.target.value }),
-    iconBtn("✕", "Remove sub-question", () => { d.sub.splice(i, 1); drawSubs(); }))), btn("+ Add sub-question", () => { d.sub.push(""); drawSubs(); }, "sm"));
+    iconBtn("✕", "Remove sub-question", () => { d.sub.splice(i, 1); drawSubs(); saver.schedule(); }))), btn("+ Add sub-question", () => { d.sub.push(""); drawSubs(); }, "sm"));
   drawSubs();
   const pcc = (k, label, hint, color) => h("div", { class: "card", style: `border-top:3px solid ${color};margin:0` },
     h("h3", {}, label), h("p", { class: "sub" }, hint), autosize(h("textarea", { rows: 2, value: d[k], placeholder: exampleFor("questions", label), oninput: bind(k) })));
   const hints = rt.key === "systematic"
     ? { population: "Who or what is studied, with the conditions that define it", concept: "The intervention or exposure being evaluated", context: "What it is compared with (another intervention, usual care, none)", outcome: "The outcomes measured, with the main outcome first" }
     : { population: "What is studied? (products, systems, people…)", concept: "The core phenomenon, method or intervention", context: "Setting, domain, period, publication types" };
-  return h("div", {},
+  return saver.watch(h("div", {},
     h("div", { class: Q.outcome ? "grid4" : "grid3", style: "margin-bottom:16px" },
       pcc("population", Q.population, hints.population, "#4f46e5"),
       pcc("concept", Q.concept, hints.concept, "#0891b2"),
@@ -982,22 +1019,22 @@ PAGES.questions = () => {
       field("Main question", autosize(h("textarea", { rows: 2, value: d.main, placeholder: exampleFor("questions", "Main question"), oninput: bind("main") }))),
       h("div", { style: "margin-top:12px" }, h("span", { class: "small muted", style: "font-weight:600" }, "Sub-questions"), subs),
       h("div", { class: "hr" }),
-      h("div", { class: "row", style: "flex-wrap:nowrap" },
-        h("input", { type: "text", placeholder: "What changed and why? (kept with this version)", value: d.why, oninput: bind("why") }),
-        btn("Save new version", e => busy(e.currentTarget, () => api("save_questions", { q: { ...d, sub: d.sub.filter(s => s.trim()) }, why: d.why }).then(() => delete D.questions)), "primary"))),
+      field("Why it changed (optional; kept with this version)", h("input", { type: "text", placeholder: "e.g. narrowed to household appliances after reading the first papers", value: d.why, oninput: bind("why") }),
+        "Saved as you type. A new version is kept each time you come back to edit after a pause.")),
     q.history.length ? card("Earlier versions", `${q.history.length} version(s), newest first`,
       [...q.history].reverse().map(v => h("details", { style: "padding:6px 0;border-bottom:1px solid var(--border)" },
         h("summary", {}, h("b", {}, v.when), " — ", v.why || "no reason given"),
-        h("div", { class: "small", style: "padding:6px 0 0 14px" }, h("div", {}, "Main: ", v.main || "—"), h("div", { class: "muted" }, `${Q.population}: ${v.population || "—"} · ${Q.concept}: ${v.concept || "—"} · ${Q.context}: ${v.context || "—"}` + (Q.outcome ? ` · ${Q.outcome}: ${v.outcome || "—"}` : "")))))) : null);
+        h("div", { class: "small", style: "padding:6px 0 0 14px" }, h("div", {}, "Main: ", v.main || "—"), h("div", { class: "muted" }, `${Q.population}: ${v.population || "—"} · ${Q.concept}: ${v.concept || "—"} · ${Q.context}: ${v.context || "—"}` + (Q.outcome ? ` · ${Q.outcome}: ${v.outcome || "—"}` : "")))))) : null));
 };
 
 PAGES.concepts = () => {
   const d = D.concepts ??= JSON.parse(JSON.stringify(S.state.concepts));
-  const list = h("div", {}), preview = h("div", { class: "code" }), dirty = h("span", { class: "pill warn", style: "display:none" }, "unsaved changes");
+  const list = h("div", {}), preview = h("div", { class: "code" });
   const tabs = h("div", { class: "tabs" });
   let db = D.previewDb || S.state.queries.databases[0];
+  const saver = autoSave("concepts", () => api("save_concepts", { concepts: d, why: D.cwhy || "" }, { render: false, silent: true }), "concepts");
   const refresh = debounce(async () => {
-    dirty.style.display = JSON.stringify(d) === JSON.stringify(S.state.concepts) ? "none" : "";
+    if (JSON.stringify(d) !== JSON.stringify(S.state.concepts)) saver.schedule();
     try {
       const r = await api("preview_queries", { concepts: d }, { silent: true, quietError: true });
       D.previews = r.queries; drawPreview();
@@ -1021,17 +1058,17 @@ PAGES.concepts = () => {
         h("div", { class: "small muted", style: "margin-top:5px" }, `${c.terms.length} term(s) · joined with OR · * = any ending, e.g. repairab* → repairable, repairability`))]));
   };
   draw(); drawPreview(); refresh();
-  return h("div", {},
+  const page = h("div", { onfocusout: saver.commit },
     h("div", { class: "grid2" },
       h("div", {}, card("Keyword blocks", "One block per idea in your question. A paper needs any word from a block (OR) and a match in every block (AND).",
         list, h("div", { class: "row", style: "margin-top:12px" },
           btn("+ Add concept", () => { d.push({ name: "", role: "AND", terms: [] }); draw(); }, ""),
-          h("span", { style: "flex:1" }), dirty,
-          btn("Save concepts", e => busy(e.currentTarget, () => api("save_concepts", { concepts: d, why: D.cwhy || "" }).then(() => { delete D.concepts; D.cwhy = ""; })), "primary")),
-        h("input", { type: "text", placeholder: "What changed and why? (kept with this version)", value: D.cwhy || "", style: "margin-top:8px", oninput: e => D.cwhy = e.target.value })),
+          h("span", { class: "small muted" }, "Saved as you type.")),
+        h("input", { type: "text", placeholder: "Why it changed (optional; kept with this version)", value: D.cwhy || "", style: "margin-top:8px", oninput: e => { D.cwhy = e.target.value; saver.schedule(); } })),
         conceptHistory()),
       h("div", {}, card("Live search string", "Updates as you type. The final strings, and hand edits, are on the Search strings tab.", tabs, preview,
         h("div", { class: "row end", style: "margin-top:10px" }, btn("Copy", () => copy(preview.textContent), "sm"))))));
+  return page;
 };
 
 function conceptHistory() {
@@ -1051,21 +1088,23 @@ PAGES.queries = () => {
     const q = S.queries[db] || "", manual = S.manual.includes(db);
     const editing = D.qedit === db;
     const ta = autosize(h("textarea", { class: "code", rows: 5, value: q }));
+    const saver = autoSave("query:" + db, () => api("save_manual_query", { db, text: ta.value }, { render: false, silent: true }), "queries");
+    if (editing) saver.watch(ta);
     box.replaceChildren(
       h("div", { class: "tabs" }, dbs.map(x => h("button", { class: x === db ? "on" : "", onclick: () => { db = D.qdb = x; D.qedit = null; drawBox(); } }, x, S.manual.includes(x) ? " ✎" : ""))),
       h("div", { class: "row", style: "margin-bottom:8px" }, pill(manual ? "edited by hand" : "generated from the concept table", manual ? "warn" : "accent"),
         db === "OpenAlex" ? pill("OpenAlex: no wildcards — stems completed to full words", "info") : null),
       editing ? ta : h("div", { class: "code", html: hlQuery(q || "(no concepts yet)") }),
       h("div", { class: "row end", style: "margin-top:10px" },
-        editing ? [btn("Cancel", () => { D.qedit = null; drawBox(); }, "ghost"), btn("Save manual version", e => busy(e.currentTarget, () => api("save_manual_query", { db, text: ta.value }).then(() => D.qedit = null)), "primary")]
+        editing ? [h("span", { class: "small muted" }, "Saved as you type."), btn("✓ Done", async () => { await runSave("query:" + db, () => api("save_manual_query", { db, text: ta.value }, { silent: true })); D.qedit = null; render(); }, "primary")]
           : [manual ? btn("Use generated", () => api("save_manual_query", { db, text: null }), "ghost") : null, btn("✎ Edit by hand", () => { D.qedit = db; drawBox(); }), dbLink(db), btn("⧉ Copy", () => copy(q), "primary")]));
   };
   drawBox();
-  const chips = chipsInput(dbs, () => {}, "add a database, press Enter");
+  const dbSaver = autoSave("databases", () => api("save_databases", { databases: dbs }, { render: false, silent: true }));
+  const chips = chipsInput(dbs, () => dbSaver.schedule(), "add a database, press Enter");
   return h("div", {},
     card("Search strings", "Copy each string into the database's advanced search. Syntax differs per database; the tool translates it.", box),
-    card("Databases", "Which sources this review searches. At least two bibliographic databases is the usual minimum (see Help).", chips,
-      h("div", { class: "row end", style: "margin-top:10px" }, btn("Save databases", e => busy(e.currentTarget, () => api("save_databases", { databases: dbs })), "primary"))));
+    card("Databases", "Which sources this review searches. At least two bibliographic databases is the usual minimum (see Help). Saved as you add or remove one.", chips));
 };
 
 // Advanced-search pages of the databases (opened from the pilot and search-string pages)
@@ -1097,8 +1136,8 @@ function testSetCard() {
   const results = h("div", { class: "queue", style: "max-height:220px" });
   const chosen = h("div", { class: "row", style: "gap:6px" });
   const dirty = () => JSON.stringify([...sel].sort()) !== JSON.stringify(S.library.filter(x => x.test).map(x => x.stem).sort());
-  const saveBtn = btn("Save test set", null, "primary");
-  saveBtn.onclick = e => busy(e.currentTarget, () => api("set_test_set", { stems: [...sel] }).then(() => delete D.testsel));
+  const saveBtn = h("span", { class: "small muted" }, "Saved as you pick.");
+  const tsSaver = autoSave("testset", () => api("set_test_set", { stems: [...sel] }, { render: false, silent: true }));
   const draw = () => {
     chosen.replaceChildren(...[...sel].sort().map(stem => h("span", { class: "chip", style: "font-family:var(--font)" }, stem.slice(0, 60),
       h("button", { title: "Remove", onclick: () => { sel.delete(stem); draw(); } }, "×"))),
@@ -1107,7 +1146,7 @@ function testSetCard() {
     results.replaceChildren(...(q ? S.library.filter(x => x.stem.toLowerCase().includes(q)) : []).slice(0, 40).map(x =>
       h("div", { class: "qitem" + (sel.has(x.stem) ? " cur" : ""), onclick: () => { sel.has(x.stem) ? sel.delete(x.stem) : sel.add(x.stem); draw(); } },
         h("span", { class: "dec-dot " + (sel.has(x.stem) ? "include" : "") }), h("span", { class: "t" }, x.stem), x.doi ? null : h("span", { class: "pill warn" }, "no DOI"))));
-    saveBtn.style.display = dirty() ? "" : "none";
+    if (dirty()) tsSaver.schedule();
   };
   const search = h("input", { type: "text", placeholder: "Search your library (author, year, title words)…", oninput: draw });
   draw();
@@ -1187,10 +1226,12 @@ PAGES.protocol = () => {
   const d = D.protocol ??= { ...S.state.protocol_text };
   const r = D.reasons ??= { ta: [...S.reasons.ta], ft: [...S.reasons.ft] };
   const rules = (PART.protocol ?? "rules") === "rules";
+  const textSaver = autoSave("protocol_text", () => api("save_protocol_text", { text: d }, { render: false, silent: true }), "protocol_text");
+  const reasonSaver = autoSave("reasons", () => api("save_reasons", r, { render: false, silent: true }), "criteria");
   const reasonList = key => {
     const wrap = h("div", { class: "stack" });
     const draw = () => wrap.replaceChildren(...r[key].map((x, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
-      h("input", { type: "text", value: x, oninput: e => r[key][i] = e.target.value }), iconBtn("✕", "Remove", () => { r[key].splice(i, 1); draw(); }))),
+      h("input", { type: "text", value: x, oninput: e => r[key][i] = e.target.value }), iconBtn("✕", "Remove", () => { r[key].splice(i, 1); draw(); reasonSaver.schedule(); }))),
       btn("+ Add reason", () => { r[key].push(`E${r[key].length + 1} `); draw(); }, "sm"));
     draw(); return wrap;
   };
@@ -1199,22 +1240,22 @@ PAGES.protocol = () => {
     h("div", { style: "margin-top:8px" }, autosize(h("textarea", { rows: rules ? 6 : 3, value: d[sct.key] || "", placeholder: exampleFor("protocol", sct.key) || exampleFor("protocol", sct.title), oninput: e => d[sct.key] = e.target.value })),
       ((S.state.protocol_meta || {})[sct.key] || {}).by === "claude" ? h("div", { class: "row end", style: "margin-top:6px" },
         btn("✓ Approve as is", () => api("approve_section", { key: sct.key }), "sm")) : null));
-  const saveRow = (...extra) => h("div", { class: "row end", style: "margin-top:12px" }, ...extra,
-    btn("Save", e => busy(e.currentTarget, () => api("save_protocol_text", { text: d }).then(() => delete D.protocol)), rules ? "primary" : ""),
-    rules ? null : btn("Save & generate Protocol", e => busy(e.currentTarget, () => api("save_protocol_text", { text: d, generate: true }).then(() => delete D.protocol)), "primary"));
+  const saveRow = (...extra) => h("div", { class: "row end", style: "margin-top:12px" }, h("span", { class: "small muted", style: "margin-right:auto" }, "Saved as you type."), ...extra,
+    rules ? null : btn("Generate the Protocol note", async e => { flushSaves(); await busy(e.currentTarget, () => api("save_protocol_text", { text: d, generate: true })); }, "primary",
+      "Writes 05 - Protocol.md from your question, search, rules and these sections"));
   if (rules) {
     const elig = S.protocol_sections.find(sct => sct.key === "eligibility");
     return h("div", {},
-      card("Who is in, who is out", "Describe the papers you want (include) and the ones you don't (exclude), with a short reason for each rule. Your question's parts are a good checklist: who or what, which topic, which setting, which publication types.",
-        elig ? section({ ...elig, title: elig.title.replace(/^Eligibility criteria/, "Inclusion and exclusion criteria") }, true) : null, saveRow()),
-      card("Exclusion reasons for screening", "The only reasons you can choose when you exclude a paper. Short code first (E1, E2 …), so screeners can type just the code.",
+      textSaver.watch(card("Who is in, who is out", "Describe the papers you want (include) and the ones you don't (exclude), with a short reason for each rule. Your question's parts are a good checklist: who or what, which topic, which setting, which publication types.",
+        elig ? section({ ...elig, title: elig.title.replace(/^Eligibility criteria/, "Inclusion and exclusion criteria") }, true) : null, saveRow())),
+      reasonSaver.watch(card("Exclusion reasons for screening", "The only reasons you can choose when you exclude a paper. Short code first (E1, E2 …), so screeners can type just the code.",
         h("div", { class: "grid2" }, h("div", {}, h("b", {}, "Title and abstract"), reasonList("ta")), h("div", {}, h("b", {}, "Full text"), reasonList("ft"))),
-        h("div", { class: "row end", style: "margin-top:12px" }, btn("Save reasons", e => busy(e.currentTarget, () => api("save_reasons", r).then(() => delete D.reasons)), "primary"))));
+        h("div", { class: "row end small muted", style: "margin-top:12px" }, "Saved as you type."))));
   }
   return h("div", {},
     h("div", { class: "callout", style: "margin-bottom:16px" }, "Your question, search strings, test results and inclusion rules are added to the protocol automatically. Write the remaining sections below, then generate the Protocol note."),
-    card("Method sections", null, S.protocol_sections.filter(sct => sct.key !== "eligibility").map(sct => section(sct, !d[sct.key])),
-      saveRow(btn("Open Protocol in Obsidian", () => openNote("05 - Protocol.md"), "ghost"))));
+    textSaver.watch(card("Method sections", null, S.protocol_sections.filter(sct => sct.key !== "eligibility").map(sct => section(sct, !d[sct.key])),
+      saveRow(btn("Open Protocol in Obsidian", () => openNote("05 - Protocol.md"), "ghost")))));
 };
 
 function lockReadiness() {
@@ -1695,6 +1736,7 @@ PAGES.retrieval = () => {
 
 PAGES.charting = () => {
   const fields = D.fields ??= S.state.charting.fields.map(f => ({ ...f }));
+  const fieldSaver = autoSave("fields", () => api("save_fields", { fields }, { render: false, silent: true }), "charting");
   const inc = S.records.filter(r => r.ft_decision === "include");
   const kind = r => (r.chart.checked_by || "").toLowerCase() === "reviewer" ? "me" : (r.chart.basis || "").toLowerCase() === "full text" ? "ft" : "abs";
   const n = k => inc.filter(r => kind(r) === k).length;
@@ -1707,7 +1749,7 @@ PAGES.charting = () => {
   const drawF = () => fl.replaceChildren(...fields.map((f, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
     h("input", { type: "text", value: f.name, placeholder: "field_name", style: "max-width:200px;font-family:var(--mono)", oninput: e => f.name = e.target.value }),
     h("input", { type: "text", value: f.description, placeholder: "What to record", oninput: e => f.description = e.target.value }),
-    iconBtn("✕", "Remove field", () => { fields.splice(i, 1); drawF(); }))), btn("+ Add field", () => { fields.push({ name: "", description: "" }); drawF(); }, "sm"));
+    iconBtn("✕", "Remove field", () => { fields.splice(i, 1); drawF(); fieldSaver.schedule(); }))), btn("+ Add field", () => { fields.push({ name: "", description: "" }); drawF(); }, "sm"));
   drawF();
 
   const next = () => {                                  // next paper in the current filter that you have not checked
@@ -1739,7 +1781,8 @@ PAGES.charting = () => {
       r.notes ? h("details", { class: "small", style: "margin-bottom:10px" }, h("summary", { class: "muted" }, "Notes on this record"), h("div", { class: "muted", style: "margin-top:4px;white-space:pre-wrap" }, r.notes)) : null,
       ...(hasCols ? S.state.charting.fields.filter(f => f.name !== "checked_by").map(f => field(f.name, autosize(h("textarea", {
         rows: 2, value: r.chart[f.name] || "", placeholder: exampleFor("charting", f.name),
-        onchange: e => { r.chart[f.name] = e.target.value; api("set_record", { record_id: r.record_id, fields: { ["chart_" + f.name]: e.target.value } }, { render: false, silent: true }).then(() => toast("Saved", "ok")); },
+        oninput: e => { r.chart[f.name] = e.target.value; const v = e.target.value;
+          autoSave(`chart:${r.record_id}:${f.name}`, () => api("set_record", { record_id: r.record_id, fields: { ["chart_" + f.name]: v } }, { render: false, silent: true })).schedule(); },
       })), f.description)) : [h("div", { class: "callout warn" }, "Add the charting columns first (Charting form, below).")]));
   };
   drawForm();
@@ -1757,8 +1800,8 @@ PAGES.charting = () => {
       card(null, null, form)),
     h("details", { class: "card", style: "margin-top:16px" },
       h("summary", { style: "font-weight:700;color:var(--text)" }, "Charting form (fields)", h("span", { class: "muted small", style: "font-weight:400" }, ` — the data items (${S.review_type.refs.dataItems}); changing them after locking is an amendment`)),
-      h("div", { style: "margin-top:10px" }, fl), h("div", { class: "row end", style: "margin-top:10px" },
-        btn("Save form", e => busy(e.currentTarget, () => api("save_fields", { fields }).then(() => delete D.fields)), ""),
+      h("div", { style: "margin-top:10px" }, fieldSaver.watch(fl)), h("div", { class: "row end", style: "margin-top:10px" },
+        h("span", { class: "small muted", style: "margin-right:auto" }, "Saved as you type."),
         btn("Add columns to included records", e => busy(e.currentTarget, () => api("prepare_charting", {})), "primary"))));
 };
 
@@ -1788,21 +1831,21 @@ PAGES.appraisal = () => {
 
 PAGES.synthesis = () => {
   const sy = D.synthesis ??= { ...(S.state.synthesis ?? {}) };
+  const saver = autoSave("synthesis", () => api("save_synthesis", { fields: sy }, { render: false, silent: true }));
   const area = (k, label, hint, rows = 2) => field(label, autosize(h("textarea", { rows, value: sy[k] || "", placeholder: hint, oninput: e => sy[k] = e.target.value })));
   const line = (k, label, hint) => field(label, h("input", { type: "text", value: sy[k] || "", placeholder: hint, oninput: e => sy[k] = e.target.value }));
   return h("div", {},
     D.outcome ? outcomeEditor() : metaAnalysisCard(),
     h("div", { class: "callout" }, "Record what you did. These answers feed PRISMA 2020 items 13–15 and 20–22; for outcomes analysed above, the notes in 14 - Synthesis and the R scripts are your results file."),
-    card("Synthesis", "PRISMA 2020 items 12–13 (methods) and 20 (results).",
+    saver.watch(card("Synthesis", "PRISMA 2020 items 12–13 (methods) and 20 (results).",
       area("approach", "Approach", "e.g. random-effects meta-analysis of mean differences; narrative synthesis (SWiM) where studies could not be pooled", 3),
       line("software", "Software", "e.g. R 4.4, metafor 4.6"),
       line("results_file", "Results file", "e.g. Analysis/forest plots.pdf, or a link to the analysis code"),
-      area("heterogeneity", "Heterogeneity and sensitivity", "e.g. I², τ²; subgroups by setting; leave-one-out")),
-    card("Reporting bias and certainty", "PRISMA 2020 items 14–15 (methods) and 21–22 (results).",
+      area("heterogeneity", "Heterogeneity and sensitivity", "e.g. I², τ²; subgroups by setting; leave-one-out"))),
+    saver.watch(card("Reporting bias and certainty", "PRISMA 2020 items 14–15 (methods) and 21–22 (results).",
       area("reporting_bias", "Reporting bias", "e.g. funnel plot and Egger's test for outcomes with ≥ 10 studies"),
       area("certainty", "Certainty of the evidence", "e.g. GRADE per outcome, summary-of-findings table"),
-      area("notes", "Notes", "Anything else a reader needs to reproduce the synthesis", 2)),
-    h("div", { class: "row end" }, btn("Save", e => busy(e.currentTarget, () => api("save_synthesis", { fields: sy }).then(() => delete D.synthesis)), "primary")));
+      area("notes", "Notes", "Anything else a reader needs to reproduce the synthesis", 2))));
 };
 
 // ---------------------------------------------------------------- meta-analysis and GRADE (synthesis stage)
@@ -2002,7 +2045,6 @@ $("#btnType").onclick = openReviewType;
 $("#btnKeys").onclick = openKeys;
 $("#btnScr").onclick = () => openChecklist();
 $("#btnHome").onclick = () => go(HOME);
-$("#btnHomeLink").onclick = () => go(HOME);
 window.addEventListener("hashchange", () => { if (location.hash === "#example" && S) openFinishedExample(); });   // …/web/#example while the app is open
 $("#main").addEventListener("scroll", () => $("#topwrap").classList.toggle("scrolled", $("#main").scrollTop > 4));
 
@@ -2019,32 +2061,16 @@ $("#main").addEventListener("scroll", () => $("#topwrap").classList.toggle("scro
 // The draft (a review in the browser's own storage, where the app starts): save it to a folder, or open one.
 function renderDraftBar() {
   const bar = $("#draftBar");
-  bar.classList.remove("example", "has-content");
-  if (backend.entry?.example) {                                     // the finished example: what it is, and the way back
-    bar.hidden = false;
-    bar.classList.add("example");
-    bar.replaceChildren(
-      h("span", { class: "example-badge", title: `A real OpenAlex search (${S.flow.unique} records) screened down to ${S.flow.included} included studies. Decisions were made from titles and abstracts; risk of bias is left open. Try anything: changes are not kept.` }, "📘 Example · not kept"),
-      btn("← My review", () => switchReview(S.reviews[0]), "sm primary", "Back to your own review"));
-    return;
-  }
-  bar.hidden = !backend.entry?.draft;
-  if (bar.hidden) return;
-  const content = draftHasContent();
-  bar.classList.toggle("has-content", content);
+  bar.hidden = false;
+  bar.classList.toggle("example", Boolean(backend.entry?.example));
   bar.replaceChildren(
-    h("span", { class: "unsaved-badge", title: content ? "This draft exists only in this browser. Save it to a folder on your PC to keep it." : "You are in a draft kept in this browser; save it to a folder on your PC when you want to keep it." }, "● Not saved"),
-    btn("💾 Save…", e => busy(e.currentTarget, saveDraft), content ? "sm primary" : "sm", "Save this draft to a folder on your PC"));
+    backend.entry?.example ? h("span", { class: "example-badge", title: `A real OpenAlex search (${S.flow.unique} records) screened down to ${S.flow.included} included studies. Decisions were made from titles and abstracts; risk of bias is left open. Try anything: it is reset each time the example is opened.` }, "📘 Example · not kept") : null,
+    backend.entry?.example ? btn("← My review", () => switchReview(S.reviews[0]), "sm primary", "Back to your own review") : null,
+    h("span", { id: "saveState", class: "save-state " + SAVE_STATE[0], title: "Everything you type is saved by itself" }, SAVE_STATE[1]));
 }
 
-// Closing or leaving the page with a draft that has content: the browser asks first (it shows its own wording).
-// The draft is kept in the browser either way, but only a saved folder is safe from clearing the browser's data.
-const draftHasContent = () => Boolean(backend.entry?.draft && S && (S.events.length || S.records.length || S.state.idea?.length));
-window.addEventListener("beforeunload", e => {
-  if (!draftHasContent()) return;
-  e.preventDefault();
-  e.returnValue = "";
-});
+// Leaving the page: whatever is still waiting is saved first.
+window.addEventListener("beforeunload", () => flushSaves());
 
 async function saveDraft() {
   const name = (await promptText("Save the draft", "Name of the review. A folder \"<name> records\" is made in the place you choose next.", "e.g. Repairability review"))?.trim();
@@ -2065,6 +2091,7 @@ async function openReviewFolder() {
 }
 
 async function switchReview(name) {
+  flushSaves();
   try {
     S = await getJSON(`/api/state?review=${encodeURIComponent(name)}`);
     REVIEW = name; store.set("review", name);

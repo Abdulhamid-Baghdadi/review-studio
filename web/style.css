@@ -609,3 +609,14 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .rm-check { width: 14px; color: var(--accent); flex: none; }
 .rm-note { margin-left: auto; padding-left: 12px; font-size: 11.5px; color: var(--faint); font-weight: 400; }
 .rm-line { height: 1px; background: var(--border); margin: 4px 2px; }
+
+/* ---------- the logo is the Home button; the save indicator replaces "Not saved / Save" ---------- */
+.brand-btn.on { background: var(--accent-2); }
+.brand-btn::after { content: "Home"; font-size: 11px; font-weight: 600; color: var(--faint); border: 1px solid var(--border); border-radius: 99px; padding: 0 7px; margin-left: 2px; }
+.brand-btn.on::after { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.save-state { font-size: 12px; color: var(--faint); white-space: nowrap; transition: opacity .3s; }
+.save-state:empty { display: none; }
+.save-state.saved { color: var(--ok); }
+.save-state.saving { color: var(--muted); }
+.save-state.locked { color: var(--warn); }
+.save-state.error { color: var(--bad); font-weight: 600; }

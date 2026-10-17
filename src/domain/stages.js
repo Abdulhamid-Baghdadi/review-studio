@@ -104,8 +104,20 @@ export function restoreState(saved) {
 
 /** Adds a dated event to the timeline. */
 export function event(st, stage, text, now) {
+  const last = st.events.at(-1);
+  if (last && last.stage === stage && last.text === text && sameSession(last.when, now)) { last.when = now; return; }   // saved again while typing
   st.events.push({ when: now, stage, text });
 }
+
+/** Minutes from `a` to `b`, both "YYYY-MM-DD HH:MM" (NaN when either is not a time). */
+export function minutesBetween(a, b) {
+  const t = x => { const m = /^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)/.exec(String(x ?? "")); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) / 60000 : NaN; };
+  return t(b) - t(a);
+}
+
+/** Edits less than this many minutes apart belong to one editing session: one version, one timeline entry. */
+export const SESSION_MINUTES = 30;
+export const sameSession = (earlier, now) => { const d = minutesBetween(earlier, now); return d >= 0 && d < SESSION_MINUTES; };
 
 /** A stage that has not started becomes in progress. */
 export function touch(st, stage, now) {
@@ -166,12 +178,17 @@ export function saveQuestions(st, { population, concept, context, outcome, main,
   if (!reviewType(st).question.outcome && !next.outcome) delete next.outcome;    // PCC has no outcome: keep scoping histories as they were
   const old = Object.fromEntries(Object.keys(next).map(k => [k, q[k]]));
   if (sameValue(next, old)) return false;
-  if (needsAmendment(st, devMode)) amend(st, "questions", amendment || why, now);
+  const amendment_ = needsAmendment(st, devMode);
+  if (amendment_) amend(st, "questions", amendment || why, now);
   else devNote(st, "questions", devMode, now);
-  q.history.push({ when: now, why: strip(why), ...copy(old) });
+  // saved while typing: a new version only when an editing session starts (or for an amendment)
+  if (amendment_ || !sameSession(q.edited, now)) {
+    q.history.push({ when: now, why: strip(why), ...copy(old) });
+    event(st, "questions", `questions revised — ${strip(why) || "no reason given"}`, now);
+  } else if (strip(why) && q.history.length) q.history.at(-1).why = strip(why);   // the reason typed later in the session
   Object.assign(q, next);
+  q.edited = now;
   touch(st, "questions", now);
-  event(st, "questions", `questions revised — ${strip(why) || "no reason given"}`, now);
   return true;
 }
 

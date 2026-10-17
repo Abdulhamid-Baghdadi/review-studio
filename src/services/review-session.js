@@ -10,7 +10,7 @@ import { FILES, screeningGuide } from "../domain/notes.js";
 import { PROTOCOL_FILE } from "../domain/protocol.js";
 import { buildQuery } from "../domain/queries.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
-import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameValue, saveQuestions, setReviewType, setStatus, touch } from "../domain/stages.js";
+import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setReviewType, setStatus, touch } from "../domain/stages.js";
 import { checkScreening, drawSample, importSearch, importSecondReviewer, addPaper, writeReport, ReviewError } from "./review-commands.js";
 import { addKeptToLibrary, applyLibrarySync, emptyLibrary, planLibrarySync } from "./library.js";
 import { loadState, saveState } from "./review-state.js";
@@ -135,9 +135,13 @@ export class ReviewSession {
     const next = concepts.filter(c => strip(c.name)).map(c => ({ name: strip(c.name), role: c.role ?? "AND", terms: c.terms.map(strip).filter(Boolean) }));
     const old = this.st.concepts;
     if (this.#guarded("concepts", next, amendment, "concept table")) {
-      if (old.length) (this.st.concepts_history ??= []).push({ when: this.now, why: strip(why || amendment || ""), concepts: old });
+      // saved while typing: a new version only when an editing session starts (or for an amendment)
+      if (strip(amendment ?? "") || !sameSession(this.st.concepts_edited, this.now)) {
+        if (old.length) (this.st.concepts_history ??= []).push({ when: this.now, why: strip(why || amendment || ""), concepts: old });
+        event(this.st, "concepts", `concept table saved` + (strip(why || "") ? ` — ${strip(why)}` : ""), this.now);
+      }
+      this.st.concepts_edited = this.now;
       touch(this.st, "concepts", this.now);
-      event(this.st, "concepts", `concept table saved (${next.length} concepts)` + (strip(why || "") ? ` — ${strip(why)}` : ""), this.now);
     }
     await this.save();
     return "Concepts saved.";

@@ -37,8 +37,8 @@ Review Studio walks you through a systematic review from the first idea to the P
 
 1. Open **https://abdulhamid-baghdadi.github.io/review-studio/** in **Chrome or Edge** on a computer.
 2. You start on the **Homepage**: a one-minute animated walk through a review, and the **🎓 tour** of the screen.
-3. Pick a step in the map at the top of the page. Your work starts as a **draft** kept in the browser, so you can begin with your idea and research questions right away.
-4. When you want to keep it, press **💾 Save to a folder…** in the bar at the top, give the review a name and pick a place on your PC. From then on every change is written to that folder.
+3. Pick a step in the map at the top of the page. Your work starts as **My review**, kept in the browser, so you can begin with your idea and research questions right away. There is no Save button: everything you type is saved as you go (*✓ Saved* in the top bar).
+4. To keep it as files on your PC, open the review menu (top left, next to the logo) → **💾 Save my review to a folder…**, give it a name and pick a place. From then on every change is written to that folder. Once the protocol is locked, a change to it is an amendment: those fields save when you leave them and ask for the reason.
 5. Next time, the same bar offers **📂 Open a review folder…** and your recent reviews. The browser asks once per visit before the app may edit a folder.
 
 Handy: **⌂ Home** (top left) explains the app and offers three ways in: start or continue your review, see the finished example, or take the tour. The map under the top bar is folded to one line while you work (**Map ▾** unfolds it); **⚙ Settings** has light/dark, the glossary and the keyboard shortcuts.
