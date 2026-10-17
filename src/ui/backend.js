@@ -40,6 +40,12 @@ async function readAccess(handle) {
   return (await handle.queryPermission({ mode: "read" })) === "granted" || (await handle.requestPermission({ mode: "read" })) === "granted";
 }
 
+/**
+ * Access to a folder or file chosen in Review settings, without failing: when the review opens straight from the
+ * address bar there was no click yet, and Chrome only asks for a permission after one ("user activation").
+ */
+const optional = async ask => { try { return await ask(); } catch { return false; } };
+
 export class Backend {
   /** @type {ReviewSession|null} */ session = null;
   /** @type {import("../adapters/browser-store.js").SavedReview|null} */ entry = null;
@@ -81,11 +87,8 @@ export class Backend {
       throw new Error("Chrome did not allow the app to edit files in this folder. Click the folder icon in the address bar (or Site settings → File editing) and allow it, then try again.");
     }
     const s = entry.settings ?? {};
-    let library = emptyLibrary();
-    if (s.library && (await requestAccess(s.library))) library = await openLibrary(browserFolder(s.library));
-    if (library.folder && s.libraryPdfs && (await requestAccess(s.libraryPdfs))) library.pdfFolder = browserFolder(s.libraryPdfs);
-    this.publicationTemplate = null;                    // the vault's own template, when one was chosen in the settings
-    if (s.publicationTemplate && (await readAccess(s.publicationTemplate))) this.publicationTemplate = await (await s.publicationTemplate.getFile()).text();
+    const library = await this.#library(s);
+    this.#settingsConnected = Boolean(library.folder || !s.library);
     const clock = { today: () => new Date().toLocaleDateString("sv"), now: () => new Date().toLocaleString("sv").slice(0, 16) };
     this.session = await ReviewSession.open(browserFolder(entry.handle), {
       clock, library, openalex: this.openalex, devMode: false, onProgress,
@@ -100,6 +103,29 @@ export class Backend {
     this.#stamp = await this.#stateStamp();
     return this.session;
   }
+
+  /**
+   * The library and the publication template chosen in Review settings, as far as the browser allows access now
+   * (an empty library otherwise; they are asked for again on the next click, see #connectSettings).
+   */
+  async #library(s) {
+    let library = emptyLibrary();
+    if (s.library && (await optional(() => requestAccess(s.library)))) library = await openLibrary(browserFolder(s.library));
+    if (library.folder && s.libraryPdfs && (await optional(() => requestAccess(s.libraryPdfs)))) library.pdfFolder = browserFolder(s.libraryPdfs);
+    this.publicationTemplate = null;                    // the vault's own template, when one was chosen in the settings
+    if (s.publicationTemplate && (await optional(() => readAccess(s.publicationTemplate)))) this.publicationTemplate = await (await s.publicationTemplate.getFile()).text();
+    return library;
+  }
+
+  /** On the first action after opening without access (a click: Chrome may ask now), connects the library. */
+  async #connectSettings() {
+    if (this.#settingsConnected || !this.session) return;
+    this.#settingsConnected = true;                     // asked once per opening; Review settings can choose again
+    const library = await this.#library(this.entry?.settings ?? {});
+    if (library.folder) this.session.library = library;
+  }
+
+  #settingsConnected = true;
 
   /** Lets the user pick a review folder (or an empty folder for a new review) and remembers it. */
   async pickFolder() {
@@ -280,6 +306,7 @@ export class Backend {
   async action(action, args = {}) {
     try {
       if (!action.startsWith("preview")) await this.refreshIfChanged();    // never save over changes made outside meanwhile
+      await this.#connectSettings();
       this.#busy++;
       let result;
       try { result = await this.#run(action, args); } finally { this.#stamp = await this.#stateStamp(); this.#busy--; }
