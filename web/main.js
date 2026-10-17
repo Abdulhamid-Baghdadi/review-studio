@@ -2,7 +2,7 @@
 // the start screen (recent reviews, open a folder, new review), then loads the Review Studio page.
 import * as pdfjs from "pdfjs";
 import { Backend } from "../src/ui/backend.js";
-import { forgetReview, recentReviews, rememberReview } from "../src/adapters/browser-store.js";
+import { forgetReview, recentReviews, rememberFixedSettings, rememberReview } from "../src/adapters/browser-store.js";
 import { stages } from "../src/index.js";
 
 pdfjs.GlobalWorkerOptions.workerSrc = import.meta.resolve("pdfjs/worker");
@@ -157,6 +157,12 @@ async function reviewSettings() {
       button("Cancel", () => dialog.close(), ""),
       button("Save", async () => {
         Object.assign(s, { exportStatus: exportStatus.value.trim(), reviewer: initials.value.trim(), vault: vault.value.trim(), recordsPath: `${path.value.trim() || entry.name}/08 - Records` });
+        if (entry.draft || entry.example) {             // no folder of its own: keep the settings, stay on this review
+          await rememberFixedSettings(entry.id, s);
+          await backend.open({ ...entry, settings: s });
+          dialog.close();
+          return window.refreshReview?.();
+        }
         await backend.open(await rememberReview(entry.handle, s));
         dialog.close();
         location.reload();

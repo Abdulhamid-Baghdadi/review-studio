@@ -5,7 +5,7 @@
  * @module ui/backend
  */
 import { browserFolder, requestAccess } from "../adapters/browser-folder.js";
-import { getReview, recentReviews, rememberReview } from "../adapters/browser-store.js";
+import { fixedSettings, getReview, recentReviews, rememberReview } from "../adapters/browser-store.js";
 import { fetchHttp } from "../adapters/fetch-http.js";
 import { pdfjsText } from "../adapters/pdfjs-text.js";
 import { AmendmentRequired, emptyLibrary, openLibrary, OpenAlexClient, ReviewSession } from "../index.js";
@@ -127,7 +127,7 @@ export class Backend {
   /** The draft review: needs no folder and no permission, so the app can open on it straight away. */
   async draftEntry() {
     const handle = await (await navigator.storage.getDirectory()).getDirectoryHandle(DRAFT_DIR, { create: true });
-    return { id: "draft", name: Backend.DRAFT, handle, draft: true, settings: { name: "Draft review", recordsPath: `${DRAFT_DIR}/08 - Records` } };
+    return { id: "draft", name: Backend.DRAFT, handle, draft: true, settings: { ...(await fixedSettings("draft")), name: "Draft review", recordsPath: `${DRAFT_DIR}/08 - Records` } };
   }
 
   // ------------------------------------------------------------ the finished example
@@ -147,7 +147,7 @@ export class Backend {
     for (const [path, text] of Object.entries(ex.files)) await folder.writeText(path, text);
     for (const [path, b64] of Object.entries(ex.binary ?? {})) await folder.writeBytes(path, Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
     await Promise.all(Object.entries(ex.linked ?? {}).map(async ([path, file]) => folder.writeBytes(path, new Uint8Array(await ex.fetchLinked(file)))));
-    return { id: "example", name: Backend.EXAMPLE, handle, example: true, settings: { name: "Example review", recordsPath: `${EXAMPLE_DIR}/08 - Records`, reviewer: "EX" } };
+    return { id: "example", name: Backend.EXAMPLE, handle, example: true, settings: { reviewer: "EX", ...(await fixedSettings("example")), name: "Example review", recordsPath: `${EXAMPLE_DIR}/08 - Records` } };
   }
 
   /**

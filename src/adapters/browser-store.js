@@ -35,7 +35,7 @@ async function run(mode, fn) {
  */
 
 /** Recent reviews, most recently opened first. @returns {Promise<SavedReview[]>} */
-export const recentReviews = async () => ((await run("readonly", s => s.getAll())) ?? []).sort((a, b) => b.opened - a.opened);
+export const recentReviews = async () => ((await run("readonly", s => s.getAll())) ?? []).filter(r => r.handle).sort((a, b) => b.opened - a.opened);
 
 /** Adds or updates a review (matched by its folder handle). @returns {Promise<SavedReview>} */
 export async function rememberReview(handle, settings = {}) {
@@ -45,6 +45,13 @@ export async function rememberReview(handle, settings = {}) {
   await run("readwrite", s => s.put(entry));
   return entry;
 }
+
+/**
+ * Settings of the reviews that have no folder of their own (the draft, the finished example), kept under
+ * "settings:<id>" so that they survive reopening. @returns {Promise<object>}
+ */
+export const fixedSettings = async id => (await run("readonly", s => s.get(`settings:${id}`)))?.settings ?? {};
+export const rememberFixedSettings = (id, settings) => run("readwrite", s => s.put({ id: `settings:${id}`, settings }));
 
 export const getReview = id => run("readonly", s => s.get(id));
 export const forgetReview = id => run("readwrite", s => s.delete(id));

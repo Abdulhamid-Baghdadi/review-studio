@@ -2237,6 +2237,9 @@ function startTour(i = 0) {
   card.querySelector(".btn.primary")?.focus();
 }
 
+/** Shows the open review again after its settings changed (main.js, Review settings of the draft or the example). */
+window.refreshReview = async () => { S = await getJSON(`/api/state?review=${encodeURIComponent(REVIEW)}`); render(); };
+
 // main.js waits for this to time how long opening a review takes
 window.studioReady = (async function start() {
   try {
