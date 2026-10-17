@@ -463,3 +463,24 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .fm-tools .btn.icon { padding: 0 6px; font-size: 13px; }
 .fm-group.outside { align-self: flex-end; }
 .step.in-progress .dot { background: var(--accent-2); border-color: var(--accent); color: var(--accent); }
+
+/* ---------- step 4: illustrated round trip and one card per database ---------- */
+.imp-strip { display: flex; align-items: center; gap: 6px; overflow-x: auto; }
+.imp-pic { margin: 0; flex: 1 1 0; min-width: 130px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.imp-pic svg { width: 100%; max-width: 170px; height: auto; display: block; }
+.imp-pic figcaption { display: flex; flex-direction: column; gap: 1px; margin-top: 4px; font-size: 13px; }
+.imp-pic figcaption span { color: var(--faint); font-size: 12px; }
+.imp-arrow { color: var(--accent); font-size: 20px; font-weight: 700; flex: none; }
+.imp-card .imp-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.imp-card .imp-head h3 { margin: 0; }
+.imp-card .imp-head .spacer { flex: 1; }
+.imp-card.done { border-left: 4px solid var(--ok); }
+.imp-track { display: flex; gap: 4px; flex-wrap: wrap; }
+.imp-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--faint); padding: 2px 8px 2px 3px; border-radius: 99px; border: 1px solid var(--border); }
+.imp-dot i { font-style: normal; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 700; border: 1.5px solid var(--border); }
+.imp-dot.on { color: var(--text); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: var(--ok-bg); }
+.imp-dot.on i { background: var(--ok); border-color: var(--ok); color: #fff; }
+.imp-row { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.imp-row .grow { flex: 1; min-width: 0; }
+.imp-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-2); color: var(--accent); display: grid; place-items: center; font-weight: 700; font-size: 12.5px; margin-top: 2px; }
+.imp-card details > summary { margin: 2px 0 6px; }
