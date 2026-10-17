@@ -674,6 +674,8 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 @media (max-width: 600px) {
   .draft-bar, .draft-bar.has-content, .draft-bar.example { flex: 0 1 auto; flex-wrap: wrap; min-width: 0; max-width: 100%; }
   .draft-bar > * { min-width: 0; max-width: 100%; white-space: normal; }
+  .decide { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .decide button { min-width: 0; padding: 10px 6px; white-space: normal; }
 }
 /* a long note name must not widen the screening card past the window */
 .rec { min-width: 0; }

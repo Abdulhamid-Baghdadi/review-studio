@@ -74,7 +74,7 @@ function outcomeResult(o, res) {
       res.pooled && res.pooled.k > 1 ? ` Heterogeneity: I² = ${res.pooled.i2}%, τ² = ${res.pooled.tau2}, Q = ${res.pooled.q} (df ${res.pooled.df}, p ${res.pooled.pQ}).` : ""),
     res.studies.length ? plot(res.forest) : h("div", { class: "empty" }, "No study data yet: use Edit data."),
     res.funnel ? h("details", {}, h("summary", {}, `Funnel plot and Egger's test${res.egger ? ` (p ${res.egger.p}${res.egger.k < 10 ? "; fewer than 10 studies, little power" : ""})` : ""}`), plot(res.funnel)) : null,
-    h("table", { class: "tbl", style: "margin-top:10px" },
+    h("div", { class: "tbl-scroll" }, h("table", { class: "tbl", style: "margin-top:10px" },
       h("tr", {}, gradeHead),
       opt.domains.map(([key, label]) => {
         const d = g.domains[key], sug = d.suggested ?? { level: 0, reason: "" };
@@ -86,7 +86,7 @@ function outcomeResult(o, res) {
           h("td", {}, reason, !d.confirmed ? null : sug.level !== d.level ? h("div", { class: "small muted" }, `Suggested: ${levelText(sug.level)}. ${sug.reason}`) : null),
           h("td", { style: "width:110px" }, d.confirmed ? h("div", { class: "row" }, pill("confirmed", "ok"), btn("Undo", () => setDomain(key, null), "sm ghost"))
             : h("div", { class: "row" }, pill("suggested", "warn"), btn("Confirm", () => setDomain(key, { level: d.level, reason: d.reason }), "sm"))));
-      })),
+      }))),
     h("p", { class: "small muted" }, `Certainty starts ${o.design === "obs" ? "low (observational studies)" : "high (randomised trials)"} and goes down one level per serious concern. The suggestions are rules of thumb: confirm or change each one and give your reason.`));
 }
 
