@@ -8,6 +8,7 @@ import { REVIEW_TYPES } from "./review-types.js";
 import * as frontmatter from "./frontmatter.js";
 import { formatFixed, formatPercent } from "./text-rules.js";
 import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "./vocabulary.js";
+import { RECORDS_DIR } from "./records.js";
 
 /**
  * How generated notes name the tool that wrote them.
@@ -81,12 +82,28 @@ export const screeningGuide = (reviewLink, generator = APP_GENERATOR) =>
   + guideBody(generator.commands);
 
 /**
- * 08 - Screening.base: the Obsidian Bases table over the records.
- * @param {string} recordsPath path of the records folder from the root of the Obsidian vault
+ * Filters that find this review's records wherever its folder sits: in a larger vault, or opened as a vault of its
+ * own (as a saved copy of the example is). `this` is the .base file, which lives in the review folder; at the vault
+ * root its folder is "/" (or empty), and then every record folder of the vault is this review's.
  */
-export function screeningBase(recordsPath) {
+export const RECORD_FILTERS = Object.freeze([
+  `file.folder.endsWith("${RECORDS_DIR}")`,
+  'if(this.file.folder == "/" || this.file.folder == "", true, file.inFolder(this.file.folder))',
+]);
+
+/** The generated filter line of older .base files, which only worked from the vault the review was made in. */
+export const oldRecordFilter = recordsPath => `        - file.inFolder("${recordsPath}")\n`;
+
+/** An older generated .base file with its folder filter replaced; null if it has none (left as it is). */
+export function upgradeBase(text, recordsPath) {
+  const old = oldRecordFilter(recordsPath);
+  return text.includes(old) ? text.replaceAll(old, RECORD_FILTERS.map(f => `        - ${f}\n`).join("")) : null;
+}
+
+/** 08 - Screening.base: the Obsidian Bases table over the records. */
+export function screeningBase() {
   const view = (name, extra, order) => {
-    const filters = [`file.inFolder("${recordsPath}")`, 'type == "review-record"', ...extra].map(x => `        - ${x}`).join("\n");
+    const filters = [...RECORD_FILTERS, 'type == "review-record"', ...extra].map(x => `        - ${x}`).join("\n");
     const columns = order.map(x => `      - ${x}`).join("\n");
     return `  - type: table
     name: ${name}
@@ -104,14 +121,14 @@ ${columns}
   };
   const ta = ["file.name", "year", "journal", "ta_decision", "ta_reason", "notes", "sources"];
   const ft = ["file.name", "year", "publication", "pdf_status", "ft_decision", "ft_reason", "notes"];
-  return "views:\n" + [
+  return "views:\n" + [                                 // "All records" first: the base never opens on an empty to-do list
+    view("All records", [], ["file.name", "year", "journal", "doi", "sources", "publication", "ta_decision", "ft_decision", "screened_on"]),
     view("1 · Title-abstract to screen", ['ta_decision == "pending"'], ta),
     view("2 · Full text to screen", ['ft_decision == "pending"'], ft),
     view("Unsure at title-abstract", ['ta_decision == "unsure"'], [...ta, "ft_decision"]),
     view("Included", ['ft_decision == "include"'], ["file.name", "year", "journal", "publication", "sources"]),
     view("Excluded", ['ta_decision == "exclude" || ft_decision == "exclude"'], ["file.name", "year", "ta_decision", "ta_reason", "ft_decision", "ft_reason"]),
     view("Second-reviewer sample", ["sample_ta == true || sample_ft == true"], ["file.name", "ta_decision", "r2_ta_decision", "ft_decision", "r2_ft_decision"]),
-    view("All records", [], ["file.name", "year", "journal", "doi", "sources", "publication", "ta_decision", "ft_decision", "screened_on"]),
   ].join("");
 }
 

@@ -5,7 +5,7 @@
  */
 import * as csv from "../domain/csv.js";
 import * as frontmatter from "../domain/frontmatter.js";
-import { FILES, logHeader, logRow, screeningBase, screeningGuide } from "../domain/notes.js";
+import { FILES, logHeader, logRow, screeningBase, screeningGuide, upgradeBase } from "../domain/notes.js";
 import { DecisionLog } from "./decision-log.js";
 import { compareCodePoints } from "../domain/text-rules.js";
 import { RECORDS_DIR, recordText } from "../domain/records.js";
@@ -148,6 +148,16 @@ export class ReviewRepository {
     await this.folder.makeDir(RECORDS_DIR);
     if (!(await this.folder.exists(FILES.searches))) await this.writeSearches([]);
     if (!(await this.folder.exists(FILES.guide))) await this.folder.writeText(FILES.guide, screeningGuide(this.link, this.settings.generator));
-    if (!(await this.folder.exists(FILES.base))) await this.folder.writeText(FILES.base, screeningBase(this.settings.recordsPath));
+    if (!(await this.folder.exists(FILES.base))) await this.folder.writeText(FILES.base, screeningBase());
+    await this.upgradeBases();
+  }
+
+  /** Older .base files filtered on the folder path from the vault root; they show nothing in a copy opened as its own vault. */
+  async upgradeBases() {
+    for (const file of [FILES.base, "12 - Charting.base"]) {
+      if (!(await this.folder.exists(file))) continue;
+      const next = upgradeBase(await this.folder.readText(file), this.settings.recordsPath);
+      if (next) await this.folder.writeText(file, next);
+    }
   }
 }

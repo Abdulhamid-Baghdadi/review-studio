@@ -4,6 +4,7 @@
  * @module domain/stage-notes
  */
 import { writeRows } from "./csv.js";
+import { RECORD_FILTERS } from "./notes.js";
 import * as frontmatter from "./frontmatter.js";
 import { buildQuery } from "./queries.js";
 import { chars, strip } from "./text-rules.js";
@@ -110,11 +111,11 @@ export function checklistNote({ reviewName, reviewLink, st, today, evidence }) {
 }
 
 /** 12 - Charting.base: the charting form as a table over the included records (and appraisal, if used). */
-export function chartingBase(st, recordsPath, withAppraisal) {
+export function chartingBase(st, withAppraisal) {
   const views = [["Charting", ["file.name", "year", ...st.charting.fields.map(f => `chart_${f.name}`)]]];
   if (withAppraisal) views.push(["Appraisal", ["file.name", "year", "chart_study_type", "appraisal", "appraisal_note"]]);
   return "views:\n" + views.map(([name, order]) =>
-    `  - type: table\n    name: ${name}\n    filters:\n      and:\n        - file.inFolder("${recordsPath}")\n        - ft_decision == "include"\n    order:\n`
+    `  - type: table\n    name: ${name}\n    filters:\n      and:\n${RECORD_FILTERS.map(f => `        - ${f}\n`).join("")}        - ft_decision == "include"\n    order:\n`
     + order.map(c => `      - ${c}\n`).join("")
     + "    sort:\n      - property: file.name\n        direction: ASC\n    columnSize:\n      file.name: 380\n").join("");
 }

@@ -53,6 +53,7 @@ export class ReviewSession {
   static async open(folder, deps) {
     const repo = await ReviewRepository.open(folder, deps.clock, deps.settings, { onProgress: deps.onProgress });
     await repo.logDecisions();          // decisions changed elsewhere since the last row (or the first rows of a new log)
+    await repo.upgradeBases();          // older .base files that only worked from the vault the review was made in
     return new ReviewSession(repo, await loadState(folder), deps);
   }
 

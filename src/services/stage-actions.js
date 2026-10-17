@@ -249,7 +249,7 @@ export async function prepareCharting(repo, st, { appraisal = false } = {}) {
 }
 
 export const writeChartingBase = (repo, st, withAppraisal) =>
-  repo.folder.writeText(STAGE_FILES.chartingBase, chartingBase(st, repo.settings.recordsPath, withAppraisal));
+  repo.folder.writeText(STAGE_FILES.chartingBase, chartingBase(st, withAppraisal));
 
 /** Charting table of the included records as CSV in 07 - Exports. @returns {Promise<string>} path */
 export async function exportCharting(repo, st) {
