@@ -408,13 +408,21 @@ function aiMark(keys) {
   return h("span", { class: "ai-mark" + (on ? " on" : ""), title: on ? "AI assistance is on here" : "AI can help here (off; switch it on in the AI assistance card)" }, "AI");
 }
 
-/** The review menu in the top bar (the draft, the example, the folders opened before). */
+/** A review's name as people say it: "My review" (the draft), "Example review", or the folder's name. */
+const reviewLabel = r => r.startsWith("📘") ? "Example review" : r === S.reviews[0] ? "My review" : r.split(/[\\/]/).pop().replace(/ records$/, "");
+
+/** The review button in the top bar: the review's name; its menu switches review, opens a folder or saves the draft. */
 function renderPicker() {
-  const sel = $("#reviewSel");
-  const label = r => /[\\/]/.test(r) ? "📂 " + r.split(/[\\/]/).pop().replace(/ records$/, "") : r;
-  sel.title = /[\\/]/.test(REVIEW) ? REVIEW : "Review";
-  sel.replaceChildren(...S.reviews.map(r => h("option", { value: r, selected: r === REVIEW }, label(r))),
-    h("option", { value: "__open__" }, "📂 Open folder…"));
+  const b = $("#btnReview"), menu = $("#reviewMenu");
+  const icon = backend.entry?.example ? "📘" : backend.entry?.draft ? "📝" : "📁";
+  b.replaceChildren(h("span", { class: "rb-icon", "aria-hidden": "true" }, icon), h("span", { class: "rb-name" }, reviewLabel(REVIEW)), h("span", { class: "rb-caret", "aria-hidden": "true" }, "▾"));
+  b.title = /[\\/]/.test(REVIEW) ? `${REVIEW} — switch review, open a folder, save` : "Your reviews: switch, open a folder, save";
+  const item = r => h("button", { class: "btn ghost" + (r === REVIEW ? " current" : ""), onclick: () => r !== REVIEW && switchReview(r) },
+    h("span", { class: "rm-check" }, r === REVIEW ? "✓" : ""), r.startsWith("📘") ? "📘 " : r === S.reviews[0] ? "📝 " : "📁 ", reviewLabel(r),
+    r === S.reviews[0] ? h("span", { class: "rm-note" }, "in this browser") : r.startsWith("📘") ? h("span", { class: "rm-note" }, "finished, not kept") : null);
+  menu.replaceChildren(h("div", { class: "rm-head" }, "Your reviews"), ...S.reviews.map(item), h("div", { class: "rm-line" }),
+    backend.entry?.draft ? btn("💾 Save my review to a folder…", e => busy(e.currentTarget, saveDraft), "ghost") : null,
+    btn("📂 Open a review folder…", openReviewFolder, "ghost"));
 }
 
 // What a part of a split stage page is for (the stage's own description covers the rest)
@@ -1976,11 +1984,15 @@ document.addEventListener("keydown", e => {
 });
 
 // ================================================================ start
-$("#reviewSel").addEventListener("change", async e => {
-  if (e.target.value !== "__open__") return switchReview(e.target.value);
-  e.target.value = REVIEW;
-  openReviewFolder();
-});
+// The review menu: opens on click, closes on Escape, outside click or after a choice
+{
+  const rb = $("#btnReview"), menu = $("#reviewMenu");
+  const show = on => { menu.hidden = !on; rb.setAttribute("aria-expanded", on); if (on) menu.querySelector("button")?.focus(); };
+  rb.onclick = e => { e.stopPropagation(); show(menu.hidden); };
+  menu.addEventListener("click", () => show(false));
+  document.addEventListener("click", e => { if (!menu.hidden && !menu.contains(e.target)) show(false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !menu.hidden) { show(false); rb.focus(); } });
+}
 $("#btnTheme").onclick = () => { const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = t; store.set("theme", t); };
 $("#btnGlossary").onclick = openGlossary;
 $("#btnTypeMenu").onclick = openReviewType;
@@ -1989,7 +2001,6 @@ $("#btnTimeline").onclick = openTimeline;
 $("#btnType").onclick = openReviewType;
 $("#btnKeys").onclick = openKeys;
 $("#btnScr").onclick = () => openChecklist();
-// The sidebar folds away (☰ or [) to give the content the whole width; remembered in this browser
 $("#btnHome").onclick = () => go(HOME);
 $("#btnHomeLink").onclick = () => go(HOME);
 window.addEventListener("hashchange", () => { if (location.hash === "#example" && S) openFinishedExample(); });   // …/web/#example while the app is open

@@ -595,3 +595,17 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
   .topbar { padding-left: 16px; padding-right: 16px; }
   .content { padding-left: 16px; padding-right: 16px; }
 }
+
+/* ---------- the review button and its menu (in place of a dropdown) ---------- */
+.toolbar { overflow: visible; }
+.review-btn { display: inline-flex; align-items: center; gap: 7px; max-width: 260px; border: 1px solid transparent; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--text); padding: 4px 10px; border-radius: 8px; cursor: pointer; }
+.review-btn:hover, .review-btn[aria-expanded="true"] { background: var(--surface-2); border-color: var(--border); }
+.rb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rb-caret { color: var(--faint); font-size: 11px; }
+.review-menu { left: 0; right: auto; min-width: 280px; }
+.review-menu .btn { gap: 6px; }
+.review-menu .btn.current { font-weight: 600; }
+.rm-head { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); font-weight: 600; padding: 4px 8px 2px; }
+.rm-check { width: 14px; color: var(--accent); flex: none; }
+.rm-note { margin-left: auto; padding-left: 12px; font-size: 11.5px; color: var(--faint); font-weight: 400; }
+.rm-line { height: 1px; background: var(--border); margin: 4px 2px; }
