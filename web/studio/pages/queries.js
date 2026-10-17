@@ -21,7 +21,7 @@ PAGES.queries = () => {
     const saver = autoSave("query:" + db, () => api("save_manual_query", { db, text: ta.value }, { render: false, silent: true }), "queries");
     if (editing) saver.watch(ta);
     box.replaceChildren(
-      h("div", { class: "tabs" }, dbs.map(x => h("button", { class: x === db ? "on" : "", onclick: () => { db = D.qdb = x; D.qedit = null; drawBox(); } }, x, S.manual.includes(x) ? " ✎" : ""))),
+      h("div", { class: "tabs", role: "group", "aria-label": "Database" }, dbs.map(x => h("button", { class: x === db ? "on" : "", "aria-pressed": String(x === db), onclick: () => { db = D.qdb = x; D.qedit = null; drawBox(); } }, x, S.manual.includes(x) ? " ✎" : ""))),
       h("div", { class: "row", style: "margin-bottom:8px" }, pill(manual ? "edited by hand" : "generated from the concept table", manual ? "warn" : "accent"),
         db === "OpenAlex" ? pill("OpenAlex: no wildcards — stems completed to full words", "info") : null),
       editing ? ta : h("div", { class: "code", html: hlQuery(q || "(no concepts yet)") }),

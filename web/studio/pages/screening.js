@@ -71,11 +71,11 @@ PAGES.screening = () => {
   const dkey = SC.stage === "ta" ? "ta_decision" : "ft_decision", rkey = SC.stage === "ta" ? "ta_reason" : "ft_reason";
 
   const head = h("div", { class: "row", style: "margin-bottom:14px" },
-    segmented([["ta", "Title / abstract"], ["ft", "Full text"]], SC.stage, v => { SC.stage = v; store.set("sc_stage", v); SC.id = null; if (SC.filter === "suggest" && !suggested(v).length) SC.filter = "todo"; render(); }),
+    segmented([["ta", "Title / abstract"], ["ft", "Full text"]], SC.stage, v => { SC.stage = v; store.set("sc_stage", v); SC.id = null; if (SC.filter === "suggest" && !suggested(v).length) SC.filter = "todo"; render(); }, "Screening stage"),
     segmented([["todo", "To do"], ["all", "All"], ...(S.records.some(r => (r.notes || "").includes("[pilot]")) ? [["pilot", "Pilot"]] : []),
       ...(suggested().length ? [["suggest", `Suggested (${suggested().length})`]] : []),
       ...(SC.stage === "ta" && S.records.some(r => r.presort && r.ta_decision === "pending") ? [["presort", `Pre-sorted (${S.records.filter(r => r.presort && r.ta_decision === "pending").length})`]] : [])],
-      SC.filter, v => { SC.filter = v; render(); }),
+      SC.filter, v => { SC.filter = v; render(); }, "Show records"),
     h("div", { style: "flex:1;min-width:160px" }, bar(total ? done / total : 0), h("div", { class: "small muted" }, `${done} of ${total} decided`)),
     btn("Check decisions", e => busy(e.currentTarget, () => api("check")), ""),
     btn("Open Screening.base", () => openNote("08 - Screening.base"), "ghost"));
@@ -87,7 +87,7 @@ PAGES.screening = () => {
     main = presortView(q);
   } else if (!rec) {
     main = h("div", { class: "card empty" }, h("div", { class: "big" }, total ? "🎉" : "📭"),
-      h("h3", {}, total ? "Nothing left to screen here" : "No records yet"),
+      h("h2", {}, total ? "Nothing left to screen here" : "No records yet"),
       h("p", {}, total ? "Switch to 'All' to review earlier decisions, or continue with the next step." : "Import a database export first (step Search & import)."));
   } else {
     const absBox = h("div", { class: "abstract" }, h("span", { class: "muted" }, "Loading abstract…"));
@@ -131,11 +131,11 @@ PAGES.screening = () => {
   const at = Math.max(0, q.findIndex(r => r.record_id === SC.id)), from = Math.max(0, Math.min(at - 100, q.length - 400));
   const shown = q.slice(from, from + 400);
   const side = h("div", {},
-    h("div", { class: "card", style: "padding:12px" }, h("h3", { style: "padding:4px 6px" }, `Queue (${q.length})`,
+    h("div", { class: "card", style: "padding:12px" }, h("h2", { style: "padding:4px 6px" }, `Queue (${q.length})`,
       q.length > shown.length ? h("span", { class: "small muted" }, ` · showing ${from + 1}–${from + shown.length}`) : null),
       h("div", { class: "queue" }, shown.map(r => h("div", { class: "qitem" + (r.record_id === SC.id ? " cur" : ""), onclick: () => { SC.id = r.record_id; SC.excl = false; render(); } },
         h("span", { class: "dec-dot " + r[dkey] }), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
-    S.problems.length ? h("div", { class: "card", style: "padding:12px;border-left:4px solid var(--bad)" }, h("h3", {}, `${S.problems.length} problem(s)`),
+    S.problems.length ? h("div", { class: "card", style: "padding:12px;border-left:4px solid var(--bad)" }, h("h2", {}, `${S.problems.length} problem(s)`),
       S.problems.slice(0, 30).map(p => h("div", { class: "small", style: "padding:3px 0;cursor:pointer", onclick: () => { SC.id = p.record_id; SC.filter = "all"; render(); } }, h("b", {}, p.record_id), " ", p.text))) : null);
   setTimeout(() => {                                    // keep the current record in view inside the queue list
     const list = document.querySelector(".queue"), cur = list?.querySelector(".qitem.cur");
@@ -148,7 +148,7 @@ PAGES.screening = () => {
 
 function suggestView(q) {
   const batch = q.slice(0, 50);
-  if (!batch.length) return h("div", { class: "card empty" }, h("div", { class: "big" }, "🎉"), h("h3", {}, "All suggestions reviewed"));
+  if (!batch.length) return h("div", { class: "card empty" }, h("div", { class: "big" }, "🎉"), h("h2", {}, "All suggestions reviewed"));
   const choice = D.sugg ??= {};
   const dec = r => r[aiKey("decision")], why = r => r[aiKey("why")], rsn = r => r[aiKey("reason")] || "";                       // record id -> "include" | "unsure" | "exclude:E1" …
   const opts = [["include", "Include"], ["unsure", "Unsure"], ...S.reasons[SC.stage].map(r => ["exclude:" + r.split(" ")[0], "Exclude " + r])];

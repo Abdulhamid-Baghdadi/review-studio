@@ -43,9 +43,9 @@
       </div>
       <div class="start-stage" id="startStage" hidden></div>
       <div class="start-features">
-        <div class="card feature"><div class="ficon">🔒</div><h3>Your files, your PC</h3><p>Plain Markdown, CSV and PDFs in a folder you choose. No account, no upload. Opens in Obsidian too.</p></div>
-        <div class="card feature"><div class="ficon">🧭</div><h3>Guided, reproducible</h3><p>Locked protocol with logged amendments, exclusion reasons, a blind second reviewer with κ, and a dated timeline.</p></div>
-        <div class="card feature"><div class="ficon">🤖</div><h3>AI only if you want it</h3><p>Claude can pre-screen, fetch PDFs or prefill charting. It only suggests; you confirm every decision.</p></div>
+        <div class="card feature"><div class="ficon">🔒</div><h2>Your files, your PC</h2><p>Plain Markdown, CSV and PDFs in a folder you choose. No account, no upload. Opens in Obsidian too.</p></div>
+        <div class="card feature"><div class="ficon">🧭</div><h2>Guided, reproducible</h2><p>Locked protocol with logged amendments, exclusion reasons, a blind second reviewer with κ, and a dated timeline.</p></div>
+        <div class="card feature"><div class="ficon">🤖</div><h2>AI only if you want it</h2><p>Claude can pre-screen, fetch PDFs or prefill charting. It only suggests; you confirm every decision.</p></div>
       </div>
       <div class="start-flow" aria-label="The review in five steps">
         <span>Plan</span><i>→</i><span>Search</span><i>→</i><span>Screen</span><i>→</i><span>Chart</span><i>→</i><span>Report</span>
@@ -93,8 +93,9 @@
       </section>
     </main>
   </div>
-  <aside class="drawer" id="drawer"></aside>
-  <div class="toasts" id="toasts"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-labelledby="drawerTitle" inert></aside>
+  <!-- messages: read out by screen readers; errors at once (alert), the rest when the reader is free (status) -->
+  <div class="toasts" id="toasts"><div id="toastLog" role="status" aria-live="polite"></div><div id="toastAlert" role="alert"></div></div>
   <script type="module" src="main.js"></script>
   <script src="install.js"></script>
   <script>

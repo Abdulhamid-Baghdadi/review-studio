@@ -6,7 +6,7 @@ import { $, h } from "../core/dom.js";
 import { H, S } from "../core/state.js";
 import { go, stage, stageName, stepOf } from "./navigation.js";
 import { btn, copy, hlQuery, iconBtn, openNote, pill } from "../ui/components.js";
-import { modal } from "../ui/dialogs.js";
+import { modal, restoreFocus } from "../ui/dialogs.js";
 
 function refList(numbering) {
   return h("ol", { class: "refs" }, Object.entries(numbering).sort((a, b) => a[1] - b[1]).map(([k]) => {
@@ -20,10 +20,15 @@ function refMarks(refs, numbering) {
 }
 const lvl = key => h("span", { class: "lvl", style: `background:${H.levels[key].color}`, title: H.levels[key].explain }, H.levels[key].label);
 
+// The drawer beside the page (help, examples). Opening it moves focus to its title; closing it makes it inert (its
+// links leave the Tab order while it is off-screen) and gives focus back to what opened it.
+let drawerOpener = null;
 function drawer(title, ...body) {
-  const dr = $("#drawer");
-  dr.replaceChildren(h("div", { class: "dh" }, h("h2", {}, title), iconBtn("✕", "Close", closeHelp)), h("div", { class: "db" }, ...body));
+  const dr = $("#drawer"), wasOpen = dr.classList.contains("open");
+  dr.replaceChildren(h("div", { class: "dh" }, h("h2", { id: "drawerTitle", tabindex: "-1" }, title), iconBtn("✕", "Close help", closeHelp)), h("div", { class: "db" }, ...body));
+  dr.inert = false;
   dr.classList.add("open");
+  if (!wasOpen) { drawerOpener = document.activeElement; $("#drawerTitle").focus(); }   // not when it only follows the page
 }
 
 export function openHelp(key) {
@@ -33,7 +38,7 @@ export function openHelp(key) {
   drawer("Help · " + stageName(key),
     h("p", { class: "lead" }, x.what),
     h("ol", { class: "steps" }, x.how.map(l => h("li", {}, l))),
-    h("h4", {}, "Rule or choice?"), rules,
+    h("h3", {}, "Rule or choice?"), rules,
     h("div", { class: "row", style: "margin-top:14px" }, btn("💡 Show example", () => openExample(key), "sm")),
     h("details", { class: "fold" }, h("summary", {}, `Terms (${terms.length})`), terms),
     h("details", { class: "fold" }, h("summary", {}, "What the labels mean"),
@@ -68,7 +73,15 @@ export function openExample(key) {
     h("div", { class: "row" }, btn("? Back to help", () => openHelp(key), "sm")));
 }
 
-export function closeHelp() { $("#drawer").classList.remove("open"); }
+export function closeHelp() {
+  const dr = $("#drawer");
+  if (!dr.classList.contains("open")) return;
+  const hadFocus = dr.contains(document.activeElement);
+  dr.classList.remove("open");
+  dr.inert = true;
+  if (hadFocus) restoreFocus(drawerOpener);
+  drawerOpener = null;
+}
 
 // "Working with Claude": how to use an AI assistant with this review. The per-step part comes from the same
 // settings as the AI assistance cards (review_stages.AI_STEPS), so it stays in step with the tool.
@@ -180,7 +193,7 @@ export function openChecklist(focus) {
   const body = h("div", {},
     h("p", { class: "muted small", style: "margin-top:0" }, intro),
     rt.checklistParts.map(([part, a, b]) => h("div", {},
-      h("h4", { style: "margin:14px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)" }, part),
+      h("h3", { style: "margin:14px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)" }, part),
       items.slice(at(a), at(b) + 1).map(it => {
         const done = cl[String(it.n)]?.done, ev = auto[String(it.n)];
         return h("div", { id: "scr" + it.n, class: "scr-row" + (it.n === focus ? " focus" : "") },

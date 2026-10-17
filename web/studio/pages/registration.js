@@ -16,7 +16,7 @@ PAGES.registration = () => {
   const commit = h("input", { type: "checkbox", checked: true });
   return h("div", {},
     p.locked ? h("div", { class: "card", style: "border-left:4px solid var(--ok)" },
-      h("h3", {}, "🔒 Protocol locked on " + p.locked),
+      h("h2", {}, "🔒 Protocol locked on " + p.locked),
       h("p", { class: "sub" }, `Frozen copy: ${p.file}`),
       h("div", { class: "row" }, pill(p.registration ? "Registration: " + p.registration : "No public registration", p.registration ? "ok" : ""),
         pill(p.commit ? "Git commit " + p.commit.slice(0, 10) : "No git commit", p.commit ? "ok" : ""),

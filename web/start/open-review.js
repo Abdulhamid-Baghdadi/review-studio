@@ -33,6 +33,6 @@ function showOpenTiming(t) {
   note.textContent = `Opened ${t.notes ? t.notes.toLocaleString() + " notes" : "the review"} in ${t.totalSeconds.toFixed(1)} s ` +
     `(reading the folder ${t.readSeconds.toFixed(1)} s, showing the page ${(t.totalSeconds - t.readSeconds).toFixed(1)} s)`;
   note.onclick = () => note.remove();
-  $("#toasts").append(note);
+  $("#toastLog").append(note);
   setTimeout(() => note.remove(), 20000);
 }

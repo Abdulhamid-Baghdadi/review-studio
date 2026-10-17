@@ -71,7 +71,7 @@ PAGES.charting = () => {
     h("div", { style: "display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:16px;align-items:start" },
       card("Included sources", null,
         segmented([["all", `All ${inc.length}`], ["ft", `Full text ${n("ft")}`], ["abs", `Abstract ${n("abs")}`], ["me", `Checked ${n("me")}`]], flt,
-          v => { D.cfilter = v; D.chartSel = null; render(); }),
+          v => { D.cfilter = v; D.chartSel = null; render(); }, "Show papers"),
         h("div", { class: "queue", style: "max-height:640px;margin-top:10px" }, list.map(r => h("div", { class: "qitem" + (r.record_id === sel ? " cur" : ""), onclick: () => { D.chartSel = r.record_id; render(); } },
           h("span", { class: "dec-dot " + (kind(r) === "me" ? "include" : r.pdf_status === "found" ? "unsure" : "") }), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
       card(null, null, form)),

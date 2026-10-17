@@ -36,3 +36,17 @@ A browser app for scoping reviews (reported to PRISMA-ScR) and systematic review
 
 - Write JavaScript with the Write/Edit tools: shell heredocs mangle `\r`, `\n` and ` ` escapes.
 - Keep the review-folder format stable (existing reviews must keep opening); text rules go through `src/domain/text-rules.js`.
+
+## UI and UX rules (full rules, sources and checks: `docs/ui-ux-rules.md`)
+
+Every page change is checked against these before it is reported done; a UI audit rates each broken rule by severity (4 data loss or wrong result … 1 cosmetic) in `docs/ui-audit-<date>.md`. When rules conflict: accessibility first, then the stronger evidence.
+
+- **Accessibility floor (WCAG 2.2 AA, never broken):** text contrast ≥ 4.5:1 and control parts ≥ 3:1 in light and dark; colour never the only signal; everything by keyboard with visible, unobscured focus; dialogs take, keep and return focus; every control has a name, role and state (`aria-pressed`, tabs, `role="dialog"`); status messages in a live region; targets ≥ 24 × 24 px; visible labels (not placeholders); errors stay until dismissed; single-key shortcuts can be turned off; reflow at 320 px and 200 % zoom; `prefers-reduced-motion` respected.
+- **Feedback in time** (Miller 1968; Nielsen 1993): a visible response within 0.1 s, a busy state after 1 s, progress and Cancel after 10 s; every result with its numbers.
+- **Memory and choice** (Cowan 2001; Hick–Hyman): show options instead of asking people to recall codes or IDs; few choices per decision; rare options folded away (progressive disclosure); help next to the action, short.
+- **Effort** (Fitts 1954; keystroke-level model): frequent targets big and close, destructive ones small and apart; repeated work from the keyboard, with the keys shown; modes always visible.
+- **Errors and control:** prevent errors (constraints, defaults, disabled buttons that say why); prefer Undo to confirmation; confirm only the irreversible, naming the action and the count ("Exclude 12 records"), never "OK"; errors in plain words with what to do next; safe defaults (AI off); Escape and Cancel always leave.
+- **Layout:** one primary action per card; related things grouped (proximity, common region); charts by position and length before colour or area; nothing important styled like a banner.
+- **Words:** the reviewer's terms (PRISMA, Cochrane, JBI), never code names; the same word for the same thing everywhere; plain language, action first; icons and emoji support a word, never replace it.
+- **AI** (Amershi et al. 2019; automation bias): say what the AI does and why it suggested something; accepting or overriding is one key; independent judgements (the blind second reviewer) never see the AI's or the first reviewer's answer first; who decided and how is logged.
+- **Verify** every UI change in the browser pane, in light and dark and with the keyboard, before reporting it done.

@@ -77,7 +77,7 @@ try {
   await send("Page.navigate", { url: URL + "#screening" });
   for (let i = 0; i < 50 && !(await run(`document.querySelector("#page .rec") !== null`)); i++) await sleep(200);
   await sleep(800);                                             // the abstract loads after the page
-  await run(`document.querySelector("#toasts").replaceChildren(); document.querySelector(".tour-offer")?.remove()`);   // no notes in the picture
+  await run(`document.querySelectorAll("#toasts > div").forEach(d => d.replaceChildren()); document.querySelector(".tour-offer")?.remove()`);   // no notes in the picture
   mkdirSync(DOCS, { recursive: true });
   const save = async name => {
     const shot = await send("Page.captureScreenshot", { format: "png" });

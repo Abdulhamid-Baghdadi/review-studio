@@ -69,7 +69,7 @@ PAGES.retrieval = () => {
         h("span", { class: "small muted" }, "First the PDFs you already have, then open access, then your university access via the DOI. A missing PDF is not an exclusion.")),
       D.scan ? scanResults() : null,
       h("div", { class: "row", style: "margin-bottom:10px" },
-        segmented([["find", `To find (${n("find")})`], ["found", `Found (${n("found")})`], ["not", `Not retrieved (${n("not")})`], ["all", "All"]], f, v => { D.rfilter = v; render(); }),
+        segmented([["find", `To find (${n("find")})`], ["found", `Found (${n("found")})`], ["not", `Not retrieved (${n("not")})`], ["all", "All"]], f, v => { D.rfilter = v; render(); }, "Show papers"),
         h("label", { class: "small", style: "display:flex;gap:6px;align-items:center" },
           h("input", { type: "checkbox", checked: inc, onchange: e => { D.rinc = e.target.checked; render(); } }), "Included sources only")),
       recs.length ? h("div", { class: "scroll", style: "max-height:600px;overflow-x:auto" }, h("table", { class: "tbl", style: "width:100%" },

@@ -44,7 +44,7 @@ PAGES.pilot = () => {
       const method = D.pmethod || "db";
       const panels = {
         db: [h("div", { class: "row", style: "margin-bottom:6px" }, h("span", { class: "small muted" }, "Database"),
-              segmented(dbs.map(x => [x, x]), db, v => { db = D.pdb = v; render(); })),
+              segmented(dbs.map(x => [x, x]), db, v => { db = D.pdb = v; render(); }, "Database")),
             field("Note for this run", note), h("div", { class: "hr" }), guide],
         file: [h("p", { class: "sub" }, "Run the string in the database, export the results (RIS, BibTeX or CSV) and drop the file here: the tool counts the records and checks the test set itself."),
             field("Note for this run", note), h("div", { class: "grid2", style: "margin-top:10px" }, field("Database", db2),
@@ -54,8 +54,8 @@ PAGES.pilot = () => {
             h("div", { class: "row end", style: "margin-top:10px" }, btn("Run OpenAlex check", e => busy(e.currentTarget, () => api("pilot_openalex", { note: note.value }).then(() => D.pnote = "")), "primary"))],
       };
       return card("How do you want to pilot?", `Pick one method per run — they are alternatives, not steps. Test set = ${S.test_set.size} paper(s) you already know are relevant (test_in).`,
-        h("div", { class: "seg", style: "margin-bottom:14px" }, [["db", "In a database (recommended)"], ["file", "From an export file"], ["openalex", "Quick check in OpenAlex"]]
-          .map(([k, t]) => h("button", { class: method === k ? "on" : "", onclick: () => { D.pmethod = k; render(); } }, t))),
+        h("div", { style: "margin-bottom:14px" }, segmented([["db", "In a database (recommended)"], ["file", "From an export file"], ["openalex", "Quick check in OpenAlex"]],
+          method, k => { D.pmethod = k; render(); }, "How to pilot")),
         panels[method]);
     })(),
     card("Results", "Tune on recall first, then on the number of hits you can screen.", pilotChart(S.state.pilots),

@@ -7,12 +7,12 @@ import { autoSave } from "../core/autosave.js";
 import { debounce, h } from "../core/dom.js";
 import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
-import { btn, card, chipsInput, copy, hlQuery, segmented } from "../ui/components.js";
+import { btn, card, chipsInput, copy, hlQuery, iconBtn, segmented } from "../ui/components.js";
 
 PAGES.concepts = () => {
   const d = D.concepts ??= JSON.parse(JSON.stringify(S.state.concepts));
   const list = h("div", {}), preview = h("div", { class: "code" });
-  const tabs = h("div", { class: "tabs" });
+  const tabs = h("div", { class: "tabs", role: "group", "aria-label": "Database" });
   let db = D.previewDb || S.state.queries.databases[0];
   const saver = autoSave("concepts", () => api("save_concepts", { concepts: d, why: D.cwhy || "" }, { render: false, silent: true }), "concepts");
   const refresh = debounce(async () => {
@@ -23,7 +23,7 @@ PAGES.concepts = () => {
     } catch (e) { /* ignore */ }
   }, 250);
   const drawPreview = () => {
-    tabs.replaceChildren(...S.state.queries.databases.map(x => h("button", { class: x === db ? "on" : "", onclick: () => { db = D.previewDb = x; drawPreview(); } }, x)));
+    tabs.replaceChildren(...S.state.queries.databases.map(x => h("button", { class: x === db ? "on" : "", "aria-pressed": String(x === db), onclick: () => { db = D.previewDb = x; drawPreview(); } }, x)));
     preview.innerHTML = hlQuery((D.previews || S.queries)[db] || "(add a concept with terms)");
   };
   const draw = () => {
@@ -31,11 +31,11 @@ PAGES.concepts = () => {
       h("div", { class: "concept " + (c.role === "NOT" ? "not" : "and") },
         h("div", { class: "head" },
           h("input", { type: "text", value: c.name, placeholder: "Concept name", oninput: e => { c.name = e.target.value; refresh(); } }),
-          segmented([["AND", "AND"], ["NOT", "NOT"]], c.role || "AND", v => { c.role = v; draw(); refresh(); }),
+          segmented([["AND", "AND"], ["NOT", "NOT"]], c.role || "AND", v => { c.role = v; draw(); refresh(); }, "How this block joins the search"),
           h("span", { class: "spacer", style: "flex:1" }),
-          btn("↑", () => { if (i) { [d[i - 1], d[i]] = [d[i], d[i - 1]]; draw(); refresh(); } }, "ghost icon"),
-          btn("↓", () => { if (i < d.length - 1) { [d[i + 1], d[i]] = [d[i], d[i + 1]]; draw(); refresh(); } }, "ghost icon"),
-          btn("🗑", () => { d.splice(i, 1); draw(); refresh(); }, "ghost icon danger")),
+          Object.assign(iconBtn("↑", "Move this block up", () => { if (i) { [d[i - 1], d[i]] = [d[i], d[i - 1]]; draw(); refresh(); } }), { disabled: !i }),
+          Object.assign(iconBtn("↓", "Move this block down", () => { if (i < d.length - 1) { [d[i + 1], d[i]] = [d[i], d[i + 1]]; draw(); refresh(); } }), { disabled: i === d.length - 1 }),
+          iconBtn("🗑", `Delete the block “${c.name || "unnamed"}”`, () => { d.splice(i, 1); draw(); refresh(); }, "danger")),
         chipsInput(c.terms, () => refresh()),
         h("div", { class: "small muted", style: "margin-top:5px" }, `${c.terms.length} term(s) · joined with OR · * = any ending, e.g. repairab* → repairable, repairability`))]));
   };

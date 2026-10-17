@@ -11,16 +11,18 @@ import { toast } from "./dialogs.js";
 export const libraryName = () => S.library_name || "your library folder";
 export const pill = (text, kind = "") => h("span", { class: "pill " + kind }, text);
 export const field = (label, input, hint) => h("label", { class: "field" }, h("span", {}, label), input, hint ? h("div", { class: "small muted", style: "margin-top:3px" }, hint) : null);
-export const card = (title, sub, ...kids) => h("div", { class: "card" }, title ? h("h3", {}, title) : null, sub ? h("p", { class: "sub" }, sub) : null, ...kids);
+export const card = (title, sub, ...kids) => h("div", { class: "card" }, title ? h("h2", {}, title) : null, sub ? h("p", { class: "sub" }, sub) : null, ...kids);
 export const btn = (label, onclick, cls = "", title) => h("button", { class: "btn " + cls, onclick, title }, label);
-export const iconBtn = (icon, label, onclick) => h("button", { class: "btn ghost icon", onclick, title: label, "aria-label": label }, icon);
+/** A button that shows only a symbol: its words are its name (read out) and its tooltip. */
+export const iconBtn = (icon, label, onclick, cls = "") => h("button", { class: "btn ghost icon " + cls, onclick, title: label, "aria-label": label }, icon);
 export const bar = frac => h("div", { class: "bar" }, h("i", { style: `width:${Math.round((frac || 0) * 100)}%` }));
 export const statusKind = s => ({ done: "ok", "in-progress": "accent", skipped: "", "not-started": "" }[s]);
 export const decKind = d => ({ include: "ok", exclude: "bad", unsure: "warn", pending: "", "": "" }[d] ?? "");
 
-export function segmented(options, value, onchange) {
-  return h("div", { class: "seg" }, options.map(([v, label]) =>
-    h("button", { class: v === value ? "on" : "", onclick: () => onchange(v) }, label)));
+/** A row of buttons of which one is on; each says whether it is pressed, so screen readers know the mode. */
+export function segmented(options, value, onchange, label) {
+  return h("div", { class: "seg", role: "group", "aria-label": label }, options.map(([v, text]) =>
+    h("button", { class: v === value ? "on" : "", "aria-pressed": String(v === value), onclick: () => onchange(v) }, text)));
 }
 
 export function dropzone(label, accept, onFile) {
@@ -48,7 +50,7 @@ export function chipsInput(terms, onchange, placeholder = "type a term, press En
   const draw = () => {
     wrap.replaceChildren(
       ...terms.map((t, i) => h("span", { class: "chip" }, t,
-        h("button", { title: "Remove", onclick: () => { terms.splice(i, 1); onchange(terms); draw(); } }, "×"))),
+        h("button", { title: "Remove", "aria-label": `Remove “${t}”`, onclick: () => { terms.splice(i, 1); onchange(terms); draw(); } }, "×"))),
       input);
   };
   const input = h("input", {

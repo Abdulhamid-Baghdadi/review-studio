@@ -17,7 +17,7 @@ PAGES.reviewer = () => {
   const seed = h("input", { type: "text", placeholder: "empty = random (logged)" });
   const g = st => {
     const a = S.agreement[st];
-    return h("div", { class: "card", style: "margin:0;text-align:center" }, h("h3", {}, st === "ta" ? "Title / abstract" : "Full text"), gauge(a.kappa),
+    return h("div", { class: "card", style: "margin:0;text-align:center" }, h("h2", {}, st === "ta" ? "Title / abstract" : "Full text"), gauge(a.kappa),
       h("div", { class: "small muted" }, `${a.sampled} sampled · ${a.decided} decided by both · agreement ${pct(a.agreement)}`),
       a.kappa != null ? h("div", { style: "margin-top:6px" }, a.kappa >= 0.6 ? pill("meets the usual 0.6 convention", "ok") : pill("below 0.6 — discuss and clarify criteria", "bad")) : null);
   };

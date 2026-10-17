@@ -35,6 +35,10 @@ import { confirmBox, promptText, toast } from "./ui/dialogs.js";
 
 Object.assign(view, { render, renderChrome, toast, promptText });   // what core/api.js needs from the page
 
+// the sticky top bar's height, for the page's scroll-padding: focus and jumps never end up hidden under it
+new ResizeObserver(([e]) => document.documentElement.style.setProperty("--topbar-h", `${Math.round(e.target.getBoundingClientRect().height)}px`))
+  .observe($("#topwrap"));
+
 // main.js waits for this to time how long opening a review takes
 window.studioReady = (async function start() {
   try {
@@ -52,7 +56,7 @@ window.studioReady = (async function start() {
     if (wantExample) await openFinishedExample();
     else if (!store.get("toured", "") && CUR !== HOME) offerTour();   // the Homepage has its own tour button
   } catch (e) {
-    $("#page").replaceChildren(h("div", { class: "card empty" }, h("div", { class: "big" }, "⚠️"), h("h3", {}, "Could not load the review"), h("p", {}, e.message)));
+    $("#page").replaceChildren(h("div", { class: "card empty" }, h("div", { class: "big" }, "⚠️"), h("h2", {}, "Could not load the review"), h("p", {}, e.message)));
   }
 })();
 

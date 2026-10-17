@@ -63,7 +63,7 @@ function outcomeResult(o, res) {
   };
   const levelText = l => (l === 0 ? "not serious" : l === -1 ? "serious (−1)" : "very serious (−2)");
   return h("div", { class: "card", style: "margin:10px 0" },
-    h("div", { class: "row" }, h("h3", { style: "flex:1;margin:0" }, o.name),
+    h("div", { class: "row" }, h("h2", { style: "flex:1;margin:0" }, o.name),
       pill(`${g.symbol} ${g.label}${g.confirmed ? "" : " · suggested"}`, g.confirmed ? "ok" : "warn"),
       btn("Edit data", () => { D.outcome = structuredClone(o); render(); }, "sm"),
       btn("Open note", () => openNote(`14 - Synthesis/${o.name.replace(/[\\/:*?"<>|#^[\]]/g, "-").trim()}.md`), "sm ghost"),

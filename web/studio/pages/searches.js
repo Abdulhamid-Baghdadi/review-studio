@@ -108,7 +108,7 @@ PAGES.searches = () => {
         h("div", { class: "row end", style: "margin-top:8px" }, btn(done.length ? "Import this export too" : "Import", e => busy(e.currentTarget, () => doImport()), "primary")))),
     ];
     return h("div", { class: "card imp-card" + (done.length ? " done" : "") },
-      h("div", { class: "imp-head" }, h("h3", {}, db),
+      h("div", { class: "imp-head" }, h("h2", {}, db),
         done.length ? pill(`✓ imported ${last.date} · ${Number(last.records).toLocaleString()} records`, "ok") : pill("not imported yet", ""),
         h("span", { class: "spacer" }), done.length ? null : tracker),
       q ? (done.length ? h("details", {}, h("summary", { class: "small" }, "Import another export from this database (e.g. a re-run before submission)"), body) : body)

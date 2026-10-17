@@ -47,7 +47,7 @@ export function startTour(i = 0) {
   tourClose = close;
   const card = h("div", { class: "tour-card", role: "dialog", "aria-label": step.title },
     h("div", { class: "tour-count" }, `${i + 1} of ${steps.length}`),
-    h("h3", {}, step.title), h("p", {}, step.text),
+    h("h2", {}, step.title), h("p", {}, step.text),
     h("div", { class: "row tour-buttons" },
       i < steps.length - 1 ? btn("Skip tour", close, "sm ghost") : null,
       h("span", { class: "spacer" }),

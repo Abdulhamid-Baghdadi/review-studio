@@ -21,7 +21,7 @@ PAGES.questions = () => {
     iconBtn("✕", "Remove sub-question", () => { d.sub.splice(i, 1); drawSubs(); saver.schedule(); }))), btn("+ Add sub-question", () => { d.sub.push(""); drawSubs(); }, "sm"));
   drawSubs();
   const pcc = (k, label, hint, color) => h("div", { class: "card", style: `border-top:3px solid ${color};margin:0` },
-    h("h3", {}, label), h("p", { class: "sub" }, hint), autosize(h("textarea", { rows: 2, value: d[k], placeholder: exampleFor("questions", label), oninput: bind(k) })));
+    h("h2", {}, label), h("p", { class: "sub" }, hint), autosize(h("textarea", { rows: 2, value: d[k], placeholder: exampleFor("questions", label), oninput: bind(k) })));
   const hints = rt.key === "systematic"
     ? { population: "Who or what is studied, with the conditions that define it", concept: "The intervention or exposure being evaluated", context: "What it is compared with (another intervention, usual care, none)", outcome: "The outcomes measured, with the main outcome first" }
     : { population: "What is studied? (products, systems, people…)", concept: "The core phenomenon, method or intervention", context: "Setting, domain, period, publication types" };

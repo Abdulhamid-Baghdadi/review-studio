@@ -63,7 +63,7 @@ async function drawChoices() {
     el("div", { className: "start-actions" },
       button("＋ New review…", () => newReview().catch(explain), list.length ? "" : "primary"),
       button("📂 Open a review folder…", () => openFolder().catch(explain), "")),
-    list.length ? el("div", { className: "recents" }, el("h3", {}, "Continue where you left off"), ...list) : null,
+    list.length ? el("div", { className: "recents" }, el("h2", {}, "Continue where you left off"), ...list) : null,
     el("p", { className: "start-msg small muted" }, "Works in Chrome or Edge on a computer. The browser asks once per visit before the app may use a folder."),
   ].filter(Boolean));
 }

@@ -104,7 +104,7 @@ function aiCard(key) {
   return h("div", { class: "aicard" + (mode === "off" ? "" : " on") + (open ? " open" : "") },
     h("div", { class: "row" },
       h("b", {}, "🤖 AI assistance"),
-      segmented(step.modes.map(m => [m.key, m.label]), mode, v => api("ai_mode", { stage: key, mode: v })),
+      segmented(step.modes.map(m => [m.key, m.label]), mode, v => api("ai_mode", { stage: key, mode: v }), "AI assistance for this step"),
       mode === "off" ? null : btn("📋 Copy prompt", () => copy(step.prompt), "sm primary"),
       h("span", { class: "spacer" }),
       h("button", { class: "btn sm ghost ai-toggle", "aria-expanded": String(open), onclick: toggle }, "Close ▴")),
