@@ -35,9 +35,6 @@ import { confirmBox, promptText, toast } from "./ui/dialogs.js";
 
 Object.assign(view, { render, renderChrome, toast, promptText });   // what core/api.js needs from the page
 
-/** Shows the open review again after its settings changed (main.js, Review settings of the draft or the example). */
-window.refreshReview = async () => { setS(await getJSON(`/api/state?review=${encodeURIComponent(REVIEW)}`)); render(); };
-
 // main.js waits for this to time how long opening a review takes
 window.studioReady = (async function start() {
   try {

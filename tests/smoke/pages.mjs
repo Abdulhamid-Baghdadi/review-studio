@@ -80,6 +80,12 @@ try {
     await page.keyboard.press("Escape"); await page.waitForTimeout(60);
   }
   actions.home = (await where()) === "#home";
+  // Review settings of the example: saving keeps the example open (it has no folder of its own)
+  await page.evaluate(() => document.getElementById("btnReviewSettings")?.click()); await page.waitForTimeout(200);
+  await page.fill("dialog.modal input[maxlength='12']", "SM");
+  await page.evaluate(() => [...document.querySelectorAll("dialog.modal .btn.primary")].find(b => b.textContent === "Save")?.click());
+  await page.waitForTimeout(800);
+  actions.settings = await page.evaluate(() => Boolean(window.backend.entry?.example) && window.backend.entry.settings.reviewer === "SM" && !document.querySelector("dialog.modal"));
   const result = { pages, panels, actions, errors };
   if (out) await writeFile(out, JSON.stringify(result, null, 1));
   console.log(`${Object.keys(pages).length} pages: ${Object.keys(pages).join(" ")}`);

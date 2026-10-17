@@ -53,5 +53,4 @@ export async function rememberReview(handle, settings = {}) {
 export const fixedSettings = async id => (await run("readonly", s => s.get(`settings:${id}`)))?.settings ?? {};
 export const rememberFixedSettings = (id, settings) => run("readwrite", s => s.put({ id: `settings:${id}`, settings }));
 
-export const getReview = id => run("readonly", s => s.get(id));
 export const forgetReview = id => run("readwrite", s => s.delete(id));

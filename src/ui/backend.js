@@ -5,7 +5,7 @@
  * @module ui/backend
  */
 import { browserFolder, requestAccess } from "../adapters/browser-folder.js";
-import { fixedSettings, getReview, recentReviews, rememberReview } from "../adapters/browser-store.js";
+import { fixedSettings, forgetReview, recentReviews, rememberFixedSettings, rememberReview } from "../adapters/browser-store.js";
 import { fetchHttp } from "../adapters/fetch-http.js";
 import { pdfjsText } from "../adapters/pdfjs-text.js";
 import { AmendmentRequired, emptyLibrary, openLibrary, OpenAlexClient, ReviewSession } from "../index.js";
@@ -106,6 +106,36 @@ export class Backend {
     // read access first; editing is asked for separately (open), so each refusal gets its own message
     const handle = await window.showDirectoryPicker({ id: "review" });
     return rememberReview(handle);
+  }
+
+  /** A new review: a folder "<name> records" inside the folder the user picks, remembered. @returns {Promise<object>} its entry */
+  async newReview(name) {
+    const parent = await window.showDirectoryPicker({ id: "parent", mode: "readwrite" });
+    const handle = await parent.getDirectoryHandle(`${name} records`, { create: true });
+    return rememberReview(handle, { recordsPath: `${name} records/08 - Records` });
+  }
+
+  /** The review folders this browser opened before, most recent first. */
+  recentReviews() { return recentReviews(); }
+
+  /** Takes a review off the list of recent reviews (its folder stays as it is). */
+  forgetReview(id) { return forgetReview(id); }
+
+  /**
+   * Saves the Review settings of the open review and opens it again with them. The draft and the example have no
+   * folder of their own: their settings are kept apart and the page stays as it is; a folder's settings are kept
+   * with the folder, and the page is loaded again.
+   * @returns {Promise<{reload: boolean}>}
+   */
+  async saveSettings(settings) {
+    const entry = this.entry;
+    if (entry.draft || entry.example) {
+      await rememberFixedSettings(entry.id, settings);
+      await this.open({ ...entry, settings });
+      return { reload: false };
+    }
+    await this.open(await rememberReview(entry.handle, settings));
+    return { reload: true };
   }
 
   /** Names for the review menu: the draft, then the folders opened before. */
@@ -372,4 +402,3 @@ export class Backend {
   }
 }
 
-export { getReview, recentReviews };

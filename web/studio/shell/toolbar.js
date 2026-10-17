@@ -6,6 +6,7 @@ import { $, store } from "../core/dom.js";
 import { HOME, S } from "../core/state.js";
 import { openChecklist, openClaudeGuide, openGlossary, openKeys, openTimeline } from "./help.js";
 import { go } from "./navigation.js";
+import { openReviewSettings } from "./review-settings.js";
 import { openFinishedExample, openReviewType } from "./reviews.js";
 
 // The review menu: opens on click, closes on Escape, outside click or after a choice
@@ -26,6 +27,7 @@ $("#btnType").onclick = openReviewType;
 $("#btnKeys").onclick = openKeys;
 $("#btnScr").onclick = () => openChecklist();
 $("#btnHome").onclick = () => go(HOME);
+$("#btnReviewSettings").onclick = openReviewSettings;
 window.addEventListener("hashchange", () => { if (location.hash === "#example" && S) openFinishedExample(); });   // …/web/#example while the app is open
 $("#main").addEventListener("scroll", () => $("#topwrap").classList.toggle("scrolled", $("#main").scrollTop > 4));
 
