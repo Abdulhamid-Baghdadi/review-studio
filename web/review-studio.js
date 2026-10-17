@@ -1215,44 +1215,53 @@ PAGES.registration = () => {
         : h("div", { class: "empty" }, "No amendments.")));
 };
 
+// Every record comes from a planned database search: the source is one of the review's databases, and the string is
+// the planned one for it (a changed string is imported only after a confirmation). Papers outside a search arrive
+// only through the citation search, from included studies.
 PAGES.searches = () => {
   let path = null;
-  const dbIn = h("input", { type: "text", list: "dblist", value: S.state.queries.databases[0] || "" });
+  const dbs = S.state.queries.databases;
+  const planned = db => S.queries[db] || "";
+  const norm = t => String(t).replace(/\s+/g, " ").trim();
+  const dbIn = h("select", {}, dbs.map(x => h("option", { value: x, selected: x === D.importDb }, x)));
   const q = autosize(h("textarea", { class: "code", rows: 3, placeholder: "The exact string as you ran it" }));
+  const status = h("div", { class: "small", style: "margin-top:4px" });
+  const showStatus = () => {
+    const p = planned(dbIn.value), same = norm(q.value) === norm(p);
+    status.replaceChildren(!p ? h("span", { class: "muted" }, "No planned string for this database yet: set it up in Search strategy.")
+      : same ? h("span", { style: "color:var(--ok)" }, "✓ The planned search string for " + dbIn.value)
+        : h("span", { style: "color:var(--warn)" }, "⚠ Differs from the planned string. ", h("a", { href: "#", onclick: e => { e.preventDefault(); fill(); } }, "Use the planned one")));
+  };
+  const linkBox = h("div", { class: "row", style: "align-items:flex-end" });
+  const fill = () => { q.value = planned(dbIn.value); q.dispatchEvent(new Event("input")); showStatus(); linkBox.replaceChildren(dbLink(dbIn.value) || ""); };
+  dbIn.addEventListener("change", () => { D.importDb = dbIn.value; fill(); });
+  q.addEventListener("input", showStatus);
+  fill();
   const date = h("input", { type: "date", value: new Date().toISOString().slice(0, 10) });
   const filters = h("input", { type: "text", placeholder: "e.g. 2010–2026; articles and reviews; English" });
-  const other = h("input", { type: "checkbox" });
   const doImport = async (btnEl, force = false) => {
     if (!path || !q.value.trim()) return toast("Choose a file and give the exact search string.", "err");
+    if (!force && planned(dbIn.value) && norm(q.value) !== norm(planned(dbIn.value)) && !(await confirmBox("Not the planned search string",
+      `The string differs from your planned search string for ${dbIn.value}. Import it anyway? The string you enter here is the one reported; if your plan changed, update it under Search strategy → Search strings.`, "Import anyway"))) return;
     try {
-      await api("import", { path, database: dbIn.value, query: q.value, date: date.value, filters: filters.value, other: other.checked, force }, { quietError: true });
+      await api("import", { path, database: dbIn.value, query: q.value, date: date.value, filters: filters.value, force }, { quietError: true });
     } catch (e) {
       if (e.message === "NOT_LOCKED") {
         if (await confirmBox("Protocol not locked", "The protocol is not locked and registration was not skipped. Searches are normally run after locking. Import anyway?", "Import anyway")) doImport(btnEl, true);
       } else if (e.message !== "cancelled") toast(e.message, "err");
     }
   };
-  const add = { title: h("input", { type: "text" }), year: h("input", { type: "text" }), authors: h("input", { type: "text" }), doi: h("input", { type: "text" }), via: h("input", { type: "text", placeholder: "backward from R0012, round 1" }) };
   return h("div", {},
-    h("datalist", { id: "dblist" }, [...S.state.queries.databases, "Scopus", "Web of Science", "IEEE Xplore", "ACM Digital Library", "PubMed", "Other"].map(x => h("option", { value: x }))),
-    h("div", { class: "grid2" },
-      card("Import a database export", "RIS works in every major database; BibTeX and CSV too. Duplicates are merged automatically.",
-        dropzone("RIS, BibTeX, CSV or Web of Science TXT", ".ris,.bib,.csv,.txt,.tsv,.nbib", p => path = p),
-        h("div", { class: "stack", style: "margin-top:12px" },
-          field("Database / source", dbIn),
-          field("Exact search string as run", q),
-          h("div", { class: "row" }, btn("Use the planned string", () => { q.value = S.queries[dbIn.value] || ""; q.dispatchEvent(new Event("input")); }, "sm ghost")),
-          h("div", { class: "grid2" }, field("Date run", date), field("Filters", filters)),
-          h("label", { class: "check" }, other, "Count as 'other source' (not a database search)"),
-          h("div", { class: "row end" }, btn("Import", e => busy(e.currentTarget, () => doImport(e.currentTarget)), "primary")))),
-      card("Add a single paper", "For a paper found another way (reference list, expert tip). Papers with the same 'found via' are counted as one source.",
-        h("div", { class: "stack" }, field("Title", add.title), h("div", { class: "grid2" }, field("Year", add.year), field("DOI", add.doi)),
-          field("Authors (Surname, X.; …)", add.authors), field("Found via", add.via),
-          h("div", { class: "row end" }, btn("Add paper", e => {
-            if (!add.title.value || !add.via.value) return toast("Title and 'found via' are required.", "err");
-            busy(e.currentTarget, () => api("add_paper", { title: add.title.value, year: add.year.value, authors: add.authors.value, doi: add.doi.value, via: add.via.value }));
-          }, "primary"))))),
-    card("Searches and other sources", `${S.searches.length} run(s) logged — this is the table reported under ${S.review_type.refs.sources}.`,
+    dbs.length ? card("Import a database export", "Run your planned search string in the database, export all results (RIS works in every major database; BibTeX and CSV too) and drop the file here. Duplicates are merged automatically.",
+      dropzone("RIS, BibTeX, CSV or Web of Science TXT", ".ris,.bib,.csv,.txt,.tsv,.nbib", p => path = p),
+      h("div", { class: "stack", style: "margin-top:12px" },
+        h("div", { class: "grid2" }, field("Database", dbIn), linkBox),
+        h("div", {}, field("Exact search string as run", q), status),
+        h("div", { class: "grid2" }, field("Date run", date), field("Filters", filters)),
+        h("div", { class: "row end" }, btn("Import", e => busy(e.currentTarget, () => doImport(e.currentTarget)), "primary"))),
+      h("p", { class: "small muted", style: "margin:12px 0 0" }, "Only exports of your planned database searches come in here. Papers found through the references of included studies are added in the step Citation search."))
+      : h("div", { class: "callout warn" }, "No databases planned yet. Choose them in Search strategy → Search strings first."),
+    card("Searches", `${S.searches.length} run(s) logged — this is the table reported under ${S.review_type.refs.sources}.`,
       S.searches.length ? h("div", { class: "scroll" }, h("table", { class: "tbl" },
         h("tr", {}, ["ID", "Source", "Date", "08 - Records", "New", "Dupl.", "Query"].map(t => h("th", {}, t))),
         S.searches.map(s => h("tr", {}, h("td", {}, s.id), h("td", {}, s.database, " ", pill(s.kind, s.kind === "database" ? "accent" : "")), h("td", { class: "small" }, s.date),

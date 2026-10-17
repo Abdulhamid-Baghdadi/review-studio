@@ -597,11 +597,11 @@
    ]
   },
   "searches": {
-   "what": "Import every final export with exact string, date and filters.",
+   "what": "Import the export of every planned database search, with the exact string, date and filters. Records only come in from these searches (and later from the citation search).",
    "how": [
-    "Export as RIS.",
-    "Paste the string exactly as run.",
-    "Always record the date."
+    "Pick the database: the planned search string is filled in.",
+    "Run that string in the database and export all results as RIS.",
+    "Drop the file, check the date and filters, import."
    ],
    "terms": [
     "Deduplication"
