@@ -11,6 +11,13 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
 };
 
+// The browser's own replaceChildren prints null as the word "null" and an array as "a,b": skip empty items and
+// flatten lists, as h() does, so an optional part of a page can never show up as text.
+for (const proto of [Element.prototype, DocumentFragment.prototype]) {
+  const own = proto.replaceChildren;
+  proto.replaceChildren = function (...kids) { return own.apply(this, kids.flat(9).filter(k => k != null && k !== false)); };
+}
+
 function h(tag, props, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(props || {})) {
@@ -2063,10 +2070,10 @@ function renderDraftBar() {
   const bar = $("#draftBar");
   bar.hidden = false;
   bar.classList.toggle("example", Boolean(backend.entry?.example));
-  bar.replaceChildren(
+  bar.replaceChildren(...[                                           // (replaceChildren would print an empty item as "null")
     backend.entry?.example ? h("span", { class: "example-badge", title: `A real OpenAlex search (${S.flow.unique} records) screened down to ${S.flow.included} included studies. Decisions were made from titles and abstracts; risk of bias is left open. Try anything: it is reset each time the example is opened.` }, "📘 Example · not kept") : null,
     backend.entry?.example ? btn("← My review", () => switchReview(S.reviews[0]), "sm primary", "Back to your own review") : null,
-    h("span", { id: "saveState", class: "save-state " + SAVE_STATE[0], title: "Everything you type is saved by itself" }, SAVE_STATE[1]));
+    h("span", { id: "saveState", class: "save-state " + SAVE_STATE[0], title: "Everything you type is saved by itself" }, SAVE_STATE[1])].filter(Boolean));
 }
 
 // Leaving the page: whatever is still waiting is saved first.
