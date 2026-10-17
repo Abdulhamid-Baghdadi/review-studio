@@ -43,6 +43,14 @@ const PART_DESC = {
   "protocol:methods": "The rest of your plan: background, sources, and how you will select, chart and summarise. Together with your question and search it becomes the Protocol note.",
 };
 
+/** Why a step can't be marked done yet (nothing to work on), or "" when it can. */
+function nothingYet(key) {
+  const included = S.records.some(r => r.ft_decision === "include");
+  if (key === "screening") return S.flow.unique ? "" : "No records yet: import a search first";
+  if (["retrieval", "charting", "appraisal"].includes(key)) return included ? "" : "No included papers yet";
+  return "";
+}
+
 function renderTop() {
   const mapbar = $("#mapbar");
   if (CUR === HOME) {                                               // the Homepage explains; the page itself holds the choices
@@ -74,6 +82,7 @@ function renderTop() {
       btn("? Help", () => openHelp(CUR), "ghost"),
       s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", skipStage, "ghost", `Skip ${what} (it is optional)`) : null,
       s.status === "done" || s.status === "skipped" ? btn("Reopen", () => api("stage_status", { stage: CUR, status: "in-progress" }), "", `Reopen ${what}`)
+        : nothingYet(CUR) ? [Object.assign(btn("✓ Mark done", null, "primary"), { disabled: true }), h("span", { class: "small muted" }, nothingYet(CUR))]
         : btn("✓ Mark done", () => api("stage_status", { stage: CUR, status: "done" }), "primary", `Mark ${what} as done`)),
     h("div", { class: "infoline" },
       h("span", { class: "desc" }, PART_DESC[`${CUR}:${tab.part}`] ?? s.desc, s.reason ? h("span", { class: "muted" }, ` — skipped: ${s.reason}`) : null),

@@ -48,6 +48,6 @@ export function goStep(st) {
 export function go(key) { flushSaves(); setCur(key); store.set("stage", key); if (key !== HOME) store.set("last_stage", key); if (key !== HOME) { const st = stepOf(key), t = curTab(); if (st && t) store.set("tab_" + st.key, `${t.stage}:${t.part ?? ""}`); } history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
 
 export async function skipStage() {
-  const r = await promptText("Skip this part", "Skipping is fine for optional parts, but the reason is reported in the timeline and the reporting checklist.", "e.g. not planned in the protocol", true);
+  const r = await promptText("Skip this part", "Skipping is fine for optional parts, but the reason is reported in the timeline and the reporting checklist.", "e.g. not planned in the protocol", true, "", "Skip this part");
   if (r) api("stage_status", { stage: CUR, status: "skipped", reason: r });
 }

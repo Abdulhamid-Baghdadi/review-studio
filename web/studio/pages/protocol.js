@@ -13,6 +13,8 @@ import { autosize, btn, card, iconBtn, openNote } from "../ui/components.js";
 
 /** A section's title without its reporting-item reference ("Rationale (PRISMA 2020 item 3)" → "Rationale"): the name of its text field. */
 const plainTitle = t => String(t).replace(/\s*\((PRISMA-ScR|PRISMA 2020)[^)]*\)\s*/, " ").trim();
+/** The reporting items a section answers, as chips that open the checklist (inside the section: a fold's header holds no buttons). */
+const itemChips = t => { const chips = withScr(t).filter(x => x instanceof Node); return chips.length ? h("div", { class: "small muted", style: "margin-top:6px" }, "Reported as ", chips) : null; };
 
 // One step, two tabs: the inclusion and exclusion rules (eligibility criteria and the exclusion reasons used in
 // screening), and the other method sections of the protocol. Both are saved in the same protocol.
@@ -30,7 +32,8 @@ PAGES.protocol = () => {
     draw(); return wrap;
   };
   const section = (sct, open) => h("details", { open, style: "border-bottom:1px solid var(--border);padding:8px 0" },
-    h("summary", {}, h("b", { style: "color:var(--text)" }, withScr(sct.title)), authorPill(sct.key), d[sct.key] ? h("span", { class: "pill ok", style: "margin-left:8px" }, "written") : h("span", { class: "pill", style: "margin-left:8px" }, "empty")),
+    h("summary", {}, h("b", { style: "color:var(--text)" }, plainTitle(sct.title)), authorPill(sct.key), d[sct.key] ? h("span", { class: "pill ok", style: "margin-left:8px" }, "written") : h("span", { class: "pill", style: "margin-left:8px" }, "empty")),
+    itemChips(sct.title),
     h("div", { style: "margin-top:8px" }, autosize(h("textarea", { rows: rules ? 6 : 3, "aria-label": plainTitle(sct.title), value: d[sct.key] || "", placeholder: exampleFor("protocol", sct.key) || exampleFor("protocol", sct.title), oninput: e => d[sct.key] = e.target.value })),
       ((S.state.protocol_meta || {})[sct.key] || {}).by === "claude" ? h("div", { class: "row end", style: "margin-top:6px" },
         btn("✓ Approve as is", () => api("approve_section", { key: sct.key }), "sm")) : null));

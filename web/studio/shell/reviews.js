@@ -26,7 +26,7 @@ async function switchReviewType(v) {
   const other = S.review_types.find(t => t.key === v);
   const msg = `Switch to a ${other.label.toLowerCase()} reported to ${other.guideline}? The stages, the question framework and the checklist change; nothing you entered is deleted.`;
   if (S.state.protocol.locked && !S.dev_mode) {
-    const why = await promptText("Change the review type", msg + " The protocol is locked, so this is an amendment: give the reason.", "reason for the amendment");
+    const why = await promptText("Change the review type", msg + " The protocol is locked, so this is an amendment: give the reason.", "reason for the amendment", false, "", "Switch and record the amendment");
     if (why) api("review_type", { type: v, amendment: why }).then(() => delete D.questions);
   } else if (await confirmBox("Change the review type", msg, "Switch")) api("review_type", { type: v }).then(() => delete D.questions);
 }
@@ -57,7 +57,7 @@ export function renderDraftBar() {
 window.addEventListener("beforeunload", () => flushSaves());
 
 export async function saveDraft() {
-  const name = (await promptText("Save the draft", "Name of the review. A folder \"<name> records\" is made in the place you choose next.", "e.g. Repairability review"))?.trim();
+  const name = (await promptText("Save the draft", "Name of the review. A folder \"<name> records\" is made in the place you choose next.", "e.g. Repairability review", false, "", "Choose where to save…"))?.trim();
   if (!name) return;
   try {
     const entry = await backend.saveDraft(name);

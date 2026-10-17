@@ -77,6 +77,7 @@
               <button class="btn ghost" id="btnTypeMenu" title="Systematic review (PRISMA 2020) or scoping review (PRISMA-ScR)">🧭 Review type…</button>
               <button class="btn ghost" id="btnGlossary" title="Terms used in the review (G)">📖 Glossary</button>
               <button class="btn ghost" id="btnKeys" title="Keyboard shortcuts">⌨ Keyboard shortcuts</button>
+              <button class="btn ghost" id="btnSingleKeys" aria-pressed="true" title="Letter and number shortcuts (G, T, I, U, E, 1–9 …). Switch them off if they get in the way, e.g. with speech input.">⌨ Single-key shortcuts: on</button>
               <button class="btn ghost" id="btnTheme">🌓 Light / dark</button>
               <button class="btn ghost" id="btnInstall" title="Install it as a desktop app that works offline">⬇ Install as an app</button>
               <a class="btn ghost" href="https://github.com/Abdulhamid-Baghdadi/review-studio/releases/latest/download/review-studio.zip" title="The app as a ZIP with launchers for Windows, Mac and Linux, to run it on your own computer (needs Node.js)">💾 Download for Windows, Mac, Linux</a>
@@ -87,6 +88,7 @@
         <div id="mapbar"></div>
       </header>
       <section class="content">
+        <div id="offer"></div>   <!-- a one-time offer (the app tour) sits here, above the page, never over it -->
         <div id="topbar"></div>
         <div class="metrics" id="metrics"></div>
         <div id="page"></div>

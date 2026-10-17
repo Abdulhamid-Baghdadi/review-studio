@@ -8,6 +8,17 @@ export const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
 };
 
+/**
+ * Single-character shortcuts (G, T, X, ? everywhere; I, U, E, 1–9, Z while screening): on unless switched off in
+ * ⚙ Settings, because speech-input users can set them off by accident (WCAG 2.1.4). Keys with Alt or Ctrl, the
+ * arrows, Enter and Escape always work. `data-keys` on the page hides the letter hints while they are off.
+ */
+export const singleKeys = {
+  on: () => store.get("single_keys", "on") !== "off",
+  set(on) { store.set("single_keys", on ? "on" : "off"); document.documentElement.dataset.keys = on ? "on" : "off"; },
+};
+document.documentElement.dataset.keys = singleKeys.on() ? "on" : "off";
+
 // The browser's own replaceChildren prints null as the word "null" and an array as "a,b": skip empty items and
 // flatten lists, as h() does, so an optional part of a page can never show up as text.
 for (const proto of [Element.prototype, DocumentFragment.prototype]) {

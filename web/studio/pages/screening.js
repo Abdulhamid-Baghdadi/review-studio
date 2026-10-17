@@ -3,7 +3,7 @@
  * @module web/studio/pages/screening
  */
 import { api, busy } from "../core/api.js";
-import { h, store } from "../core/dom.js";
+import { h, singleKeys, store } from "../core/dom.js";
 import { D, REVIEW, S, SC } from "../core/state.js";
 import { PAGE_KEYS, PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
@@ -15,13 +15,14 @@ import { announce, confirmBox } from "../ui/dialogs.js";
 PAGE_KEYS.screening = (e, typing) => {
   if (typing || e.ctrlKey || e.metaKey || e.altKey) return false;
   const k = e.key.toLowerCase();
+  if (e.key === "Enter" && SC.id && SC.filter === "suggest" && !e.target.closest?.("button, a, summary, [role=button]")) { acceptSuggestion(); return true; }
+  if (!singleKeys.on()) return e.key === "ArrowRight" ? (move(1), true) : e.key === "ArrowLeft" ? (move(-1), true) : false;   // letters and digits switched off
   if (k === "z" && lastDecision()) { undo(); return true; }   // also when the last record of a queue was just decided
   if (!SC.id) return false;
   if (k === "i") decide("include");
   else if (k === "u" && SC.stage === "ta") decide("unsure");
   else if (k === "e") { SC.excl = true; render(); }
   else if (/^[1-9]$/.test(k) && SC.excl) { const r = S.reasons[SC.stage][+k - 1]; if (r) decide("exclude", r.split(" ")[0]); }
-  else if (e.key === "Enter" && SC.filter === "suggest" && !e.target.closest?.("button, a, summary, [role=button]")) acceptSuggestion();
   else if (e.key === "ArrowRight") move(1);
   else if (e.key === "ArrowLeft") move(-1);
   else return false;
@@ -145,8 +146,8 @@ PAGES.screening = () => {
         cur && cur !== "pending" ? pill("decided: " + cur + (rec[rkey] ? " · " + rec[rkey] : ""), decKind(cur)) : null,
         rec.sample_ta && SC.stage === "ta" ? pill("in 2nd-reviewer sample", "info") : null),
       h("h2", {}, rec.title),
-      h("button", { class: "file", style: "margin:-2px 0 6px", title: "This paper's note — your decision is written here", onclick: () => openNote(S.record_files[rec.record_id]) },
-        "📝 ", S.record_files[rec.record_id] || "", h("span", { class: "muted" }, ` · ${SC.stage === "ta" ? "title_abstract_decision" : "full_text_decision"} is saved here`)),
+      h("button", { class: "file", style: "margin:-2px 0 6px", title: `${S.record_files[rec.record_id] || ""}: your decision is saved in this note`, onclick: () => openNote(S.record_files[rec.record_id]) },
+        "📝 Open this paper's note"),
       h("div", { class: "authors" }, rec.authors),
       h("div", { class: "row", style: "margin-top:8px" },
         rec.doi ? h("a", { href: "https://doi.org/" + rec.doi, target: "_blank", class: "btn sm" }, "DOI ↗") : null,

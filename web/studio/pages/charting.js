@@ -71,7 +71,7 @@ PAGES.charting = () => {
       h("div", { style: "flex:1" }, bar(inc.length ? n("me") / inc.length : 0),
         h("div", { class: "small muted" }, `Checked by you: ${n("me")} of ${inc.length} included sources · AI from full text ${n("ft")} · AI from abstract ${n("abs")}`)),
       btn("Open Charting.base", () => openNote("12 - Charting.base"), "ghost")),
-    h("div", { style: "display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:16px;align-items:start" },
+    h("div", { class: "chart-grid" },
       card("Included sources", null,
         segmented([["all", `All ${inc.length}`], ["ft", `Full text ${n("ft")}`], ["abs", `Abstract ${n("abs")}`], ["me", `Checked ${n("me")}`]], flt,
           v => { D.cfilter = v; D.chartSel = null; render(); }, "Show papers"),

@@ -25,6 +25,7 @@ import "./shell/keyboard.js";
 import "./shell/toolbar.js";
 import "./shell/outside-changes.js";
 import "./shell/reviews.js";
+import "./shell/tooltips.js";
 import { api, getJSON, view } from "./core/api.js";
 import { $, h, store } from "./core/dom.js";
 import { CUR, HOME, REVIEW, S, setCur, setH, setReview, setS } from "./core/state.js";

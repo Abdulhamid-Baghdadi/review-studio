@@ -13,7 +13,7 @@ export const backend = window.backend;
 export const view = {
   render() {}, renderChrome() {},
   toast(text, kind) {},
-  promptText: async (title, message, placeholder, multiline) => null,
+  promptText: async (title, message, placeholder, multiline, initial, ok) => null,
 };
 
 export async function getJSON(url) {
@@ -26,12 +26,12 @@ export async function api(action, args = {}, opts = {}) {
   if (r.status === 409 && j.amendment) {
     const reason = await view.promptText("Protocol is locked",
       `The protocol was registered on ${S.state.protocol.locked}. Changing the ${j.amendment} is a protocol amendment and will be listed in the timeline. Why is this change needed?`,
-      "e.g. pilot showed that 'EEE' is a common synonym", true);
+      "e.g. pilot showed that 'EEE' is a common synonym", true, "", "Record the amendment");
     if (!reason) throw new Error("cancelled");
     return api(action, { ...args, amendment: reason }, opts);
   }
   if (!r.ok) {
-    if (!opts.quietError) view.toast(j.error || "Something went wrong", "err");
+    if (!opts.quietError) view.toast(j.error || "That did not work, and no reason was given. Check that the review folder is still there and that the browser may still edit it (reopen it from the review menu), then try again.", "err");
     throw new Error(j.error || "error");
   }
   if (j.state) { setS(j.state); opts.render === false ? view.renderChrome() : view.render(); }

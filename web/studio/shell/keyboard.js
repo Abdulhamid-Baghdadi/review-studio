@@ -3,6 +3,7 @@
  * screening keys, Ctrl+Enter on the idea page) are its PAGE_KEYS handler, asked first.
  * @module web/studio/shell/keyboard
  */
+import { singleKeys } from "../core/dom.js";
 import { CUR, HOME } from "../core/state.js";
 import { closeHelp, openExample, openGlossary, openHelp, openTimeline } from "./help.js";
 import { curTab, goTab, tabSequence } from "./navigation.js";
@@ -17,7 +18,7 @@ document.addEventListener("keydown", e => {
     if (seq[i]) { e.preventDefault(); goTab(seq[i].tab); }
     return;
   }
-  if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (typing || e.ctrlKey || e.metaKey || e.altKey || !singleKeys.on()) return;
   if (e.key === "?" && CUR !== HOME) { openHelp(CUR); return; }
   if (e.key.toLowerCase() === "x" && CUR !== HOME) { openExample(CUR); return; }
   if (e.key.toLowerCase() === "g") { openGlossary(); return; }

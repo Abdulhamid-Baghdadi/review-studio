@@ -76,12 +76,13 @@ export function modal({ title, body, buttons = [{ label: "Close", value: null }]
   });
 }
 
-export function promptText(title, message, placeholder = "", multiline = false, initial = "") {
+/** Asks for a line of text; `ok` names what the button does ("Skip", "Record the amendment"), never just "OK". */
+export function promptText(title, message, placeholder = "", multiline = false, initial = "", ok = "OK") {
   const input = multiline ? h("textarea", { placeholder, rows: 3, "aria-label": message }) : h("input", { type: "text", placeholder, "aria-label": message });
   input.value = initial;
   return modal({
     title, body: h("div", { class: "stack" }, h("p", { class: "muted", style: "margin:0" }, message), input),
-    buttons: [{ label: "Cancel", value: null }, { label: "OK", primary: true, value: () => input.value.trim() || null }],
+    buttons: [{ label: "Cancel", value: null }, { label: ok, primary: true, value: () => input.value.trim() || null }],
   });
 }
 export const confirmBox = (title, message, ok = "Continue", danger = false) => modal({

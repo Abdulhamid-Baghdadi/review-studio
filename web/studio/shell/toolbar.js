@@ -2,7 +2,7 @@
  * The buttons and menus of the top bar.
  * @module web/studio/shell/toolbar
  */
-import { $, store } from "../core/dom.js";
+import { $, singleKeys, store } from "../core/dom.js";
 import { HOME, S } from "../core/state.js";
 import { openChecklist, openClaudeGuide, openGlossary, openKeys, openTimeline } from "./help.js";
 import { go } from "./navigation.js";
@@ -25,6 +25,9 @@ $("#btnClaude").onclick = openClaudeGuide;
 $("#btnTimeline").onclick = openTimeline;
 $("#btnType").onclick = openReviewType;
 $("#btnKeys").onclick = openKeys;
+const showSingleKeys = () => { const b = $("#btnSingleKeys"); b.textContent = `⌨ Single-key shortcuts: ${singleKeys.on() ? "on" : "off"}`; b.setAttribute("aria-pressed", String(singleKeys.on())); };
+$("#btnSingleKeys").onclick = () => { singleKeys.set(!singleKeys.on()); showSingleKeys(); };
+showSingleKeys();
 $("#btnScr").onclick = () => openChecklist();
 $("#btnHome").onclick = () => go(HOME);
 $("#btnReviewSettings").onclick = openReviewSettings;

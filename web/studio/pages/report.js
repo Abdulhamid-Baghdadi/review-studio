@@ -4,8 +4,9 @@
  */
 import { api, busy, download } from "../core/api.js";
 import { h } from "../core/dom.js";
-import { S } from "../core/state.js";
+import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
+import { render } from "../shell/chrome.js";
 import { flowDiagram } from "../ui/charts.js";
 import { bar, btn, card, labelBy, libraryName, openNote, pill } from "../ui/components.js";
 import { confirmBox, modal, toast } from "../ui/dialogs.js";
@@ -73,8 +74,9 @@ PAGES.report = () => {
               h("li", {}, "Imported papers are tagged review:<name>, included and record:R…; the BibTeX export uses the same citation keys.")))),
         card("Sync with the library", `Marks included papers in ${libraryName()} (included_in). Preview first.`,
           h("div", { class: "row" },
-            btn("Preview", async e => { const j = await busy(e.currentTarget, () => api("sync", { apply: false }, { silent: true })); if (j) modal({ title: "Sync preview", body: h("pre", { class: "code" }, j.message || "Nothing to change.") }); }, ""),
-            btn("Apply", async e => { if (await confirmBox("Apply sync?", "This writes included_in / candidate_in to the publication notes.", "Apply")) busy(e.target, () => api("sync", { apply: true })); }, "primary"))),
+            btn("Preview", async e => { const j = await busy(e.currentTarget, () => api("sync", { apply: false }, { silent: true }));
+              if (j) { await modal({ title: "Sync preview", body: h("pre", { class: "code" }, j.message || "Nothing to change.") }); D.syncPreviewed = true; render(); } }, D.syncPreviewed ? "" : "primary"),
+            btn("Apply", async e => { if (await confirmBox("Apply sync?", "This writes included_in / candidate_in to the publication notes.", "Apply")) busy(e.target, () => api("sync", { apply: true })); }, D.syncPreviewed ? "primary" : ""))),
         card("Checklist progress", null, (() => {
           const required = S.checklist_items.filter(it => !it.optional);
           const n = required.filter(it => S.state.checklist[it.n]?.done).length;

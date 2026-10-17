@@ -2,7 +2,7 @@
  * The help drawer, worked examples, glossary, timeline, keyboard shortcuts and the reporting checklist.
  * @module web/studio/shell/help
  */
-import { $, h } from "../core/dom.js";
+import { $, h, singleKeys } from "../core/dom.js";
 import { H, S } from "../core/state.js";
 import { go, stage, stageName, stepOf } from "./navigation.js";
 import { btn, copy, hlQuery, iconBtn, openNote, pill } from "../ui/components.js";
@@ -156,9 +156,13 @@ export function openTimeline() {
 }
 
 export function openKeys() {
-  const rows = [["?", "help for this page"], ["X", "example for this page"], ["G", "glossary"], ["T", "timeline"], ["Alt+↑ / Alt+↓", "previous / next page"],
-    ["I / U / E", "include / unsure / exclude (screening)"], ["1–9", "exclusion reason (screening)"], ["← / →", "previous / next record"], ["Esc", "close panel"]];
-  modal({ title: "Keyboard shortcuts", body: h("table", { class: "tbl" }, rows.map(([k, d]) => h("tr", {}, h("td", {}, h("kbd", {}, k)), h("td", {}, d)))) });
+  const letters = [["?", "help for this page"], ["X", "example for this page"], ["G", "glossary"], ["T", "timeline"],
+    ["I / U / E", "include / unsure / exclude (screening)"], ["1–9", "exclusion reason (screening)"], ["Z", "undo the last screening decision"]];
+  const always = [["Alt+↑ / Alt+↓", "previous / next page"], ["← / →", "previous / next record (screening)"], ["Enter", "accept Claude's suggestion (Suggested queue)"], ["Esc", "close panel"]];
+  const row = ([k, d], off) => h("tr", { style: off ? "opacity:.55" : "" }, h("td", {}, h("kbd", {}, k)), h("td", {}, d, off ? " (switched off)" : ""));
+  modal({ title: "Keyboard shortcuts", body: h("div", {},
+    h("p", { class: "small muted", style: "margin-top:0" }, `Single-key shortcuts (letters and digits) are ${singleKeys.on() ? "on" : "off"}. Switch them in ⚙ Settings → Single-key shortcuts.`),
+    h("table", { class: "tbl" }, letters.map(r => row(r, !singleKeys.on())), always.map(r => row(r, false)))) });
 }
 
 // ---------- Checklist item references: "PRISMA-ScR 3" or "PRISMA 2020 item 16a" → clickable chip, plus the full checklist

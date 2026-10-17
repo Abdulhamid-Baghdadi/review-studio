@@ -24,12 +24,12 @@ const TOUR = [
 ];
 
 export function offerTour() {
-  const card = h("div", { class: "tour-offer", role: "dialog", "aria-label": "App tour" },
+  const card = h("div", { class: "tour-offer", role: "region", "aria-label": "App tour" },
     h("div", { class: "tour-offer-text" }, h("b", {}, "New here?"), " Take the 1-minute tour to see what Review Studio does."),
     h("div", { class: "row" },
       btn("🎓 Start tour", () => { card.remove(); startTour(); }, "sm primary"),
       btn("Not now", () => { card.remove(); store.set("toured", "skipped"); }, "sm ghost")));
-  document.body.append(card);
+  (document.getElementById("offer") ?? document.body).replaceChildren(card);   // in the page flow: it covers nothing
 }
 
 let tourClose = null;                         // closes the step on screen
