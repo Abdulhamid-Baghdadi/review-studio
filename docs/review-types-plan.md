@@ -46,7 +46,7 @@ reviewer, full texts, Obsidian notes) stays shared.
    `flowLabels`, `checklistFile`.
 2. `src/domain/stages.js`: `STAGES`, `CHECKLIST` and `PROTOCOL_SECTIONS` become functions of the profile
    (`stagesFor(st)` etc.); `newState` takes the type; loading an old state sets `"scoping"`.
-3. Callers (`progress.js`, `protocol.js`, `stage-notes.js`, `notes.js` flow note, `review-studio.js`) read
+3. Callers (`progress.js`, `protocol.js`, `stage-notes.js`, `notes.js` flow note, `review-studio.js` (now `web/studio/`)) read
    the profile instead of the constants. Hard-coded "PRISMA-ScR n" texts move into the profile.
 4. `web/help.json`: help texts per stage get a `systematic` variant where they differ; glossary gets
    PICO, Risk of bias, Meta-analysis, GRADE, PROSPERO, Data extraction.
