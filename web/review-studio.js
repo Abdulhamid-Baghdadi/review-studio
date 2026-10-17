@@ -2005,7 +2005,7 @@ function renderDraftBar() {
   bar.hidden = !backend.entry?.draft || CUR === HOME;              // the Homepage is only an introduction
   bar.classList.toggle("has-content", draftHasContent());
   if (bar.hidden) return;
-  const recent = S.reviews.filter(r => r !== REVIEW).slice(0, 2);
+  const recent = S.reviews.filter(r => r !== REVIEW && !r.startsWith("📘")).slice(0, 2);
   bar.replaceChildren(
     h("span", { class: "draft-text" }, h("span", { class: "unsaved-badge" }, "● Not saved"),
       draftHasContent()
@@ -2014,6 +2014,7 @@ function renderDraftBar() {
     h("span", { class: "draft-actions" },
       btn("💾 Save to a folder…", e => busy(e.currentTarget, saveDraft), "sm primary"),
       btn("📂 Open a review folder…", openReviewFolder, "sm"),
+      S.reviews.some(r => r.startsWith("📘")) ? btn("📘 Show me an example", openFinishedExample, "sm", "A finished review: a real search screened down to 10 included studies") : null,
       ...recent.map(r => btn(`▶ ${r.replace(/ records$/, "")}`, () => switchReview(r), "sm ghost"))));
 }
 
@@ -2159,8 +2160,11 @@ window.studioReady = (async function start() {
       REVIEW = reviews[0]; store.set("review", REVIEW);
       S = await getJSON(`/api/state?review=${encodeURIComponent(REVIEW)}`);
     }
+    const wantExample = CUR === "example";                         // …/web/#example opens the finished example
+    if (wantExample) CUR = HOME;
     render();
-    if (!store.get("toured", "") && CUR !== HOME) offerTour();   // the Homepage has its own tour button
+    if (wantExample) await openFinishedExample();
+    else if (!store.get("toured", "") && CUR !== HOME) offerTour();   // the Homepage has its own tour button
   } catch (e) {
     $("#page").replaceChildren(h("div", { class: "card empty" }, h("div", { class: "big" }, "⚠️"), h("h3", {}, "Could not load the review"), h("p", {}, e.message)));
   }
