@@ -3,10 +3,10 @@
 // notes touched, and a preview first.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { citationGraph, UNLINKED, withCitations, withoutUnlinked } from "../../src/domain/library-citations.js";
+import { citationGraph, relinkCites, UNLINKED, withCitations, withoutUnlinked } from "../../src/domain/library-citations.js";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
 import { openLibrary } from "../../src/services/library.js";
-import { fetchLibraryWorks } from "../../src/services/library-citations.js";
+import { fetchLibraryWorks, planLibraryCitations, planRelinkCitations, writeLibraryCitations } from "../../src/services/library-citations.js";
 import { allWorks } from "../../src/services/openalex-client.js";
 import { ReviewSession } from "../../src/services/review-session.js";
 
@@ -118,6 +118,38 @@ test("a batch of 50 DOIs that matches 51 works (one DOI, two works) loses none o
   assert.deepEqual(works.get("10.1/0"), { id: "https://openalex.org/W0", referenced: ["https://openalex.org/W100", "https://openalex.org/W500"] },
     "the first work keeps its id and gets the references of both");
   assert.equal(openalex.calls.filter(c => c.filter.startsWith("doi:")).length, 1, "still one request for the batch");
+});
+
+test("relink: DOIs and OpenAlex ids of library papers become links; everything else stays, in its order", () => {
+  const known = { stemOfDoi: new Map([["10.9/new", "009 - New"], ["10.1/self", "001 - A"]]), stemOfId: new Map([["W9", "010 - Id"]]) };
+  const r = relinkCites(["[[002 - B]]", "10.9/z", "https://doi.org/10.9/NEW", "Baker, M. (1989) Marketing.", "W9", "10.1/self", "W8"], "001 - A", known);
+  assert.deepEqual(r.links, ["002 - B", "009 - New", "010 - Id"], "sorted as the OpenAlex update sorts them");
+  assert.deepEqual(r.plain, ["10.9/z", "Baker, M. (1989) Marketing.", "10.1/self", "W8"], "outside works and reference texts keep their order; a note never links itself");
+  assert.deepEqual(r.linked, ["https://doi.org/10.9/NEW", "W9"]);
+  assert.equal(relinkCites(["[[002 - B]]", "10.9/z"], "001 - A", known), null, "nothing to link: null");
+  assert.deepEqual(relinkCites(["[[009 - New]]", "10.9/new"], "001 - A", known).links, ["009 - New"], "a DOI of a paper already linked just goes");
+});
+
+test("relink after adding papers: offline, only cites changes, and running it again changes nothing", async () => {
+  const a = note("10.1/a", "", "\n").replace("category:", 'cites:\n  - "[[002 - B]]"\n  - "10.9/outside"\n  - "W9"\n  - "10.9/twice"\ncategory:');
+  const lib = memoryFolder({ "001 - A.md": a, "002 - B.md": note("10.1/b"),
+    "004 - Outside.md": note("https://doi.org/10.9/Outside"), "005 - Id.md": note("").replace("type: publication", "type: publication\nopenalex: W9"),
+    "006 - Twice.md": note("10.9/twice"), "007 - Twice too.md": note("10.9/twice") });
+  const changes = await planRelinkCitations(await openLibrary(lib));
+  assert.deepEqual(changes.map(c => [c.stem, c.linked]), [["001 - A", ["10.9/outside", "W9"]]]);
+  await writeLibraryCitations(await openLibrary(lib), changes);
+  assert.equal(await lib.readText("001 - A.md"), a.replace('cites:\n  - "[[002 - B]]"\n  - "10.9/outside"\n  - "W9"\n',
+    'cites:\n  - "[[002 - B]]"\n  - "[[004 - Outside]]"\n  - "[[005 - Id]]"\n'), "a DOI two notes share stays a DOI; nothing else in the note changes");
+  assert.deepEqual(await planRelinkCitations(await openLibrary(lib)), []);
+});
+
+test("Check citations relinks the notes OpenAlex does not return", async () => {
+  const kept = note("10.1/unknown").replace("category:", 'cites:\n  - "10.1/b"\n  - "Baker, M. (1989) Marketing."\ncategory:');
+  const lib = memoryFolder({ "001 - A.md": kept, "002 - B.md": note("10.1/b") });
+  const { summary, changes } = await planLibraryCitations(await openLibrary(lib), { works: new Map(), refDois: new Map() });
+  assert.equal(summary.relinked, 1);
+  assert.deepEqual(changes.map(c => c.stem), ["001 - A"]);
+  assert.match(changes[0].next, /^cites:\n  - "\[\[002 - B\]\]"\n  - "Baker, M\. \(1989\) Marketing\."\ncategory:/m);
 });
 
 test("allWorks asks for the next page while works are missing", async () => {

@@ -2,10 +2,11 @@
  * What the papers of the publication library cite (`cites`), from OpenAlex; an old `cited_by` is removed. Library papers are
  * looked up by DOI, 50 per request (about 4 requests for 200 papers); then the DOIs of the works they cite, 100 per
  * request, so that a cited work outside the library is listed by its DOI. Nothing is written until the reviewer
- * confirms the preview.
+ * confirms the preview. `planRelinkCitations` is the offline part on its own: entries of papers added to the
+ * library since become links, without asking OpenAlex.
  * @module services/library-citations
  */
-import { citationGraph, citationSummary, shortId, withCitations, withoutUnlinked } from "../domain/library-citations.js";
+import { citationGraph, citationSummary, formatList, relinkCites, replaceProps, shortId, withCitations, withoutUnlinked } from "../domain/library-citations.js";
 import { normalizeDoi } from "../domain/matching.js";
 import { allWorks } from "./openalex-client.js";
 
@@ -49,9 +50,9 @@ export async function fetchLibraryWorks(library, openalex, onProgress = () => {}
 }
 
 /**
- * What the citation step would change: each note's new text, and the counts. Notes OpenAlex did not return are
- * left as they are: their `cites` may come from elsewhere (Library Studio's title match, a reading of the PDF), and
- * an empty or partial answer from OpenAlex must never empty it.
+ * What the citation step would change: each note's new text, and the counts. Notes OpenAlex did not return keep
+ * their `cites` (it may come from elsewhere: Library Studio's title match, Crossref, a reading of the PDF, and an
+ * empty or partial answer from OpenAlex must never empty it); only entries of papers now in the library become links.
  * @param {CitationData} data
  * @returns {Promise<{summary: object, changes: {stem: string, text: string, next: string}[]}>}
  */
@@ -61,12 +62,39 @@ export async function planLibraryCitations(library, { works, refDois }) {
   const graph = citationGraph(dois, works, refsPdf, { ...(await knownLibraryIds(library)), refDois });
   const changes = [];
   for (const stem of library.notes.keys()) {
-    if (!graph.refs.has(stem)) continue;                // not found in OpenAlex: nothing to replace its cites with
+    if (!graph.refs.has(stem)) continue;                // not found in OpenAlex: only relinked, below
     const text = await library.folder.readText(`${stem}.md`);
     const next = withoutUnlinked(withCitations(text, graph.refs.get(stem), graph.cited.get(stem) ?? [], graph.external.get(stem) ?? []));
     if (next !== text) changes.push({ stem, text, next });
   }
-  return { summary: citationSummary(dois, graph), changes };
+  const relinked = await planRelinkCitations(library, new Set(graph.refs.keys()));
+  return { summary: { ...citationSummary(dois, graph), relinked: relinked.length }, changes: [...changes, ...relinked] };
+}
+
+/**
+ * Offline, after papers are added: in every publication note (except those in `skip`), the `cites` entries — a DOI,
+ * or an OpenAlex id known from a note's `openalex` property — of papers that are in the library now become links.
+ * A DOI two notes share is left as it is. No OpenAlex requests.
+ * @param {Set<string>} [skip]  note names to leave out
+ * @returns {Promise<{stem: string, text: string, next: string, linked: string[]}[]>}  linked: the entries that became links
+ */
+export async function planRelinkCitations(library, skip = new Set()) {
+  const byDoi = new Map();
+  for (const [stem, doi] of libraryDois(library)) if (doi) byDoi.set(doi, byDoi.has(doi) ? null : stem);
+  const known = {
+    stemOfDoi: new Map([...byDoi].filter(([, stem]) => stem)),
+    stemOfId: new Map([...library.notes].map(([stem, p]) => [shortId(p.openalex), stem]).filter(([id]) => id)),
+  };
+  const changes = [];
+  for (const [stem, p] of library.notes) {
+    if (skip.has(stem)) continue;
+    const r = relinkCites(asList(p.cites).map(String), stem, known);
+    if (!r) continue;
+    const text = await library.folder.readText(`${stem}.md`);
+    const next = replaceProps(text, { cites: formatList("cites", r.links, r.plain) });
+    if (next !== text) changes.push({ stem, text, next, linked: r.linked });
+  }
+  return changes;
 }
 
 /**

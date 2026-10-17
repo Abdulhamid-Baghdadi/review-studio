@@ -7,14 +7,16 @@
  *              after adding papers turns those DOIs into links.
  *
  * `cited_by` is no longer written (it would need updating whenever a new paper cites one): it is removed from
- * every note found in OpenAlex on update. Obsidian's backlinks show the same thing. A note OpenAlex does not return
- * is not changed at all.
+ * every note found in OpenAlex on update. Obsidian's backlinks show the same thing. In a note OpenAlex does not
+ * return, only the entries of papers that are in the library now become links (`relinkCites`); nothing else changes.
+ * The same offline step runs on its own, without OpenAlex, after papers are added (bin/check-citations.js).
  *
  * The "Unlinked cited works" section that Library Studio wrote (the same outside works, as OpenAlex ids) is removed
  * from every note found in OpenAlex. Only these generated parts of a note change; the rest of the text stays as it
  * is, line endings included.
  * @module domain/library-citations
  */
+import { normalizeDoi } from "./matching.js";
 import { compareCodePoints } from "./text-rules.js";
 
 const OLD_SECTION = ["<!-- library-studio:citations:start -->", "<!-- library-studio:citations:end -->"];
@@ -56,6 +58,27 @@ export function citationGraph(dois, works, refsPdf = new Map(), { idStems = new 
   for (const [s, list] of refs) for (const r of list) cited.get(r)?.add(s);
   for (const [s, list] of refsPdf) for (const r of list) if (r !== s) cited.get(r)?.add(s);
   return { refs, external, cited: new Map([...cited].map(([s, set]) => [s, [...set].sort(compareCodePoints)])), found: refs.size };
+}
+
+/**
+ * Offline update of one note's `cites`: plain entries (a DOI, an OpenAlex id) of works that are in the library now
+ * become links. Links stay; the other plain entries (outside works, reference texts) stay in their order. Links are
+ * sorted as `citationGraph` sorts them, so a later OpenAlex update writes the same list.
+ * @param {string[]} cites  the `cites` values as read: "[[note]]", "10.…", "W123" or a reference text
+ * @param {string} self  the note's own name: a work that is the note itself is not linked
+ * @param {{stemOfDoi: Map<string, string>, stemOfId: Map<string, string>}} known  normalised DOI / OpenAlex id → note
+ * @returns {{links: string[], plain: string[], linked: string[]}|null}  null when no entry becomes a link
+ */
+export function relinkCites(cites, self, { stemOfDoi, stemOfId }) {
+  const links = new Set(), plain = [], linked = [];
+  for (const v of cites) {
+    const link = /^\[\[([^\]|#]+)/.exec(v);
+    if (link) { links.add(link[1].trim()); continue; }
+    const stem = /^W\d+$/.test(v) ? stemOfId.get(v) : stemOfDoi.get(normalizeDoi(v));
+    if (stem && stem !== self) { links.add(stem); linked.push(v); }
+    else plain.push(v);
+  }
+  return linked.length ? { links: [...links].sort(compareCodePoints), plain, linked } : null;
 }
 
 /** YAML lines of a list ("key: []" when empty): links to notes first, then plain values (DOIs, OpenAlex ids). */
