@@ -14,8 +14,8 @@ import { chars, compareCodePoints, strip } from "../domain/text-rules.js";
 import { checklistOf, event, FULLTEXT_DIR, isLocked, reviewType, touch } from "../domain/stages.js";
 import { NO_ABSTRACT } from "../domain/vocabulary.js";
 import { bibtex, zoteroRis, chartingBase, chartingCsv, checklistEvidence, checklistNote, STAGE_FILES } from "../domain/stage-notes.js";
-import { FILES } from "../domain/notes.js";
-import { APP_GENERATOR } from "../domain/notes.js";
+import * as frontmatter from "../domain/frontmatter.js";
+import { APP_GENERATOR, FILES, GUIDE_REASONS, screeningGuide, upgradeGuide } from "../domain/notes.js";
 import { addEntries, decodeExport, ReviewError } from "./review-commands.js";
 import { emptyLibrary, testSet } from "./library.js";
 import { STATE_FILE } from "./review-state.js";
@@ -41,6 +41,14 @@ export async function writeProtocol(repo, st) {
   await repo.folder.writeText(PROTOCOL_FILE, protocolMarkdown({ reviewName: repo.name, reviewLink: repo.link, st, ftReasons: reasons.ft, generatedBy: generatorOf(repo).stagesBy }));
   touch(st, "protocol", repo.clock.now());
   event(st, "protocol", "protocol draft regenerated", repo.clock.now());
+}
+
+/** Writes the exclusion reasons into the screening guide (created when missing; an older guide is upgraded first). */
+export async function writeExclusionReasons(repo, ta, ft) {
+  const folder = repo.folder;
+  if (!(await folder.exists(FILES.guide))) await folder.writeText(FILES.guide, screeningGuide(repo.link, repo.settings.generator));
+  const text = await folder.readText(FILES.guide);
+  await folder.writeText(FILES.guide, frontmatter.replaceList(frontmatter.replaceList(upgradeGuide(text) ?? text, GUIDE_REASONS.ta, ta), GUIDE_REASONS.ft, ft));
 }
 
 /** Freezes the protocol: a registered copy with its checksum; later changes to protected parts are amendments. */

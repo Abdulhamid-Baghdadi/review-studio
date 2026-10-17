@@ -52,6 +52,23 @@ const noteName = link => String(link ?? "").replace(/^[[\]]+|[[\]]+$/g, "");
 const asList = v => (Array.isArray(v) ? v : typeof v === "string" && v.trim() ? [v.trim()] : []).filter(Boolean);
 
 /**
+ * Marks exactly these library notes as the review's test set (`test_in` lists the review's link); other notes lose
+ * the mark. @param {string[]} stems note names @returns {Promise<number>} notes in the test set
+ */
+export async function markTestSet(library, reviewLink, stems) {
+  const want = new Set(stems);
+  for (const [stem, props] of library.notes) {
+    const current = asList(props.test_in);
+    if (current.includes(reviewLink) === want.has(stem)) continue;
+    const next = want.has(stem) ? [...current, reviewLink] : current.filter(v => v !== reviewLink);
+    const file = `${stem}.md`;
+    await library.folder.writeText(file, frontmatter.replaceList(await library.folder.readText(file), "test_in", next));
+    props.test_in = next;
+  }
+  return want.size;
+}
+
+/**
  * What the library should say about this review: `included_in` on the publications of included records,
  * `candidate_in` on every publication a record matched. Candidates are only added, never removed.
  * @param {import("./review-repository.js").ReviewRepository} repo @param {Library} library

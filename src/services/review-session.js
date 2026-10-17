@@ -5,20 +5,19 @@
  * @module services/review-session
  */
 import { aiMode, setAiMode } from "../domain/ai-steps.js";
-import * as frontmatter from "../domain/frontmatter.js";
-import { FILES, GUIDE_REASONS, screeningGuide, upgradeGuide } from "../domain/notes.js";
 import { PROTOCOL_FILE } from "../domain/protocol.js";
 import { buildQuery } from "../domain/queries.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
 import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setReviewType, setStatus, touch } from "../domain/stages.js";
 import { checkScreening, drawSample, importSearch, importSecondReviewer, addPaper, writeReport, ReviewError } from "./review-commands.js";
 import { fetchLibraryWorks, planLibraryCitations, writeLibraryCitations } from "./library-citations.js";
-import { addKeptToLibrary, applyLibrarySync, emptyLibrary, planLibrarySync } from "./library.js";
+import { addKeptToLibrary, applyLibrarySync, emptyLibrary, markTestSet, planLibrarySync } from "./library.js";
 import { loadState, saveState } from "./review-state.js";
 import { HOW } from "../domain/decision-log.js";
 import { writePackage } from "./review-package.js";
 import { ReviewRepository } from "./review-repository.js";
 import * as actions from "./stage-actions.js";
+import * as screening from "./screening.js";
 import * as synthesis from "./synthesis.js";
 import { recordsWithoutFullText, scanForPdfs } from "./local-pdfs.js";
 
@@ -88,10 +87,12 @@ export class ReviewSession {
     return this.openalex;
   }
 
-  async #afterScreeningChange() {
+  /** After decisions changed: save the records, check the screening, and log the changed decisions (who and how). */
+  async #afterScreeningChange(changed, how) {
     await this.repo.save();
     await checkScreening(this.repo);
     touch(this.st, "screening", this.now);
+    await this.repo.logDecisions({ ids: changed, by: this.reviewer, how });
   }
 
   // ------------------------------------------------------------ settings and stages
@@ -198,18 +199,10 @@ export class ReviewSession {
 
   /** Marks exactly these library notes as this review's test set (`test_in`). */
   async setTestSet(stems) {
-    const want = new Set(stems);
-    for (const [stem, props] of this.library.notes) {
-      const current = (Array.isArray(props.test_in) ? props.test_in : typeof props.test_in === "string" ? [...props.test_in] : []).filter(Boolean);
-      if (current.includes(this.repo.link) === want.has(stem)) continue;
-      const next = want.has(stem) ? [...current, this.repo.link] : current.filter(v => v !== this.repo.link);
-      const file = `${stem}.md`;
-      await this.library.folder.writeText(file, frontmatter.replaceList(await this.library.folder.readText(file), "test_in", next));
-      props.test_in = next;
-    }
-    event(this.st, "pilot", `test set changed (${want.size} papers)`, this.now);
+    const n = await markTestSet(this.library, this.repo.link, stems);
+    event(this.st, "pilot", `test set changed (${n} papers)`, this.now);
     await this.save();
-    return `Test set saved: ${want.size} paper(s).`;
+    return `Test set saved: ${n} paper(s).`;
   }
 
   // ------------------------------------------------------------ protocol
@@ -254,10 +247,7 @@ export class ReviewSession {
       } else if (isLocked(this.st) && this.devMode) {
         event(this.st, "protocol", "developer mode: exclusion reasons changed without an amendment", this.now);
       }
-      const folder = this.repo.folder;
-      if (!(await folder.exists(FILES.guide))) await folder.writeText(FILES.guide, screeningGuide(this.repo.link, this.repo.settings.generator));
-      const text = await folder.readText(FILES.guide);
-      await folder.writeText(FILES.guide, frontmatter.replaceList(frontmatter.replaceList(upgradeGuide(text) ?? text, GUIDE_REASONS.ta, nextTa), GUIDE_REASONS.ft, nextFt));
+      await actions.writeExclusionReasons(this.repo, nextTa, nextFt);
       event(this.st, "protocol", "exclusion reasons edited", this.now);
     }
     await this.save();
@@ -293,68 +283,32 @@ export class ReviewSession {
 
   /** One screening decision (with the reason when excluding, and optionally the notes). */
   async decide(recordId, stage, decision, { reason = "", notes } = {}) {
-    const r = this.repo.records.get(recordId);
-    const [dkey, rkey] = stage === "ta" ? ["ta_decision", "ta_reason"] : ["ft_decision", "ft_reason"];
-    const props = { ...r.props, [dkey]: decision, [rkey]: decision === "exclude" ? reason : "" };
-    if (notes !== undefined && notes !== null) props.notes = notes;
-    this.repo.put({ ...r, props });
-    await this.#afterScreeningChange();
-    await this.repo.logDecisions({ ids: new Set([recordId]), by: this.reviewer, how: HOW.hand });
+    const changed = screening.decide(this.repo, recordId, stage, decision, { reason, notes });
+    await this.#afterScreeningChange(changed, HOW.hand);
     await this.save();
   }
 
   /** Confirms rule-based pre-sorted records as excluded (each with its pre-sort code, else `reason`). */
   async bulkDecide(ids, reason = "") {
-    let n = 0;
-    const changed = new Set();
-    for (const id of ids) {
-      const r = this.repo.records.get(id);
-      if (!r || r.props.ta_decision !== "pending") continue;
-      this.repo.put({ ...r, props: { ...r.props, ta_decision: "exclude", ta_reason: r.props.presort || reason,
-        notes: (r.props.notes || "") + " [pre-sorted by rule, confirmed by reviewer]" } });
-      changed.add(id);
-      n++;
-    }
-    await this.#afterScreeningChange();
-    await this.repo.logDecisions({ ids: changed, by: this.reviewer, how: HOW.rule });
-    event(this.st, "screening", `${n} rule-based pre-sorted records confirmed as excluded by the reviewer`, this.now);
+    const changed = screening.confirmPresorted(this.repo, ids, reason);
+    await this.#afterScreeningChange(changed, HOW.rule);
+    event(this.st, "screening", `${changed.size} rule-based pre-sorted records confirmed as excluded by the reviewer`, this.now);
     await this.save();
-    return `${n} record(s) excluded.`;
+    return `${changed.size} record(s) excluded.`;
   }
 
   /** Saves a reviewed batch of AI-suggested decisions as the reviewer's; each record notes whether it was changed. */
   async applyDecisions(items, stage = "ta") {
-    const ft = stage === "ft";
-    const [dkey, rkey, ai] = ft ? ["ft_decision", "ft_reason", "ai_ft_"] : ["ta_decision", "ta_reason", "ai_"];
-    let n = 0;
-    const changed = new Set();
-    for (const it of items) {
-      const r = this.repo.records.get(it.id);
-      if (!r) continue;
-      const f = { ...r.props };
-      if ((f[dkey] || "pending") !== "pending" || (ft && !["include", "unsure"].includes(f.ta_decision))) continue;
-      f[dkey] = it.decision;
-      f[rkey] = it.decision === "exclude" ? (it.reason ?? "") : "";
-      const agreed = it.decision === f[ai + "decision"] && f[rkey] === (f[ai + "reason"] || "");
-      const what = ft ? "full-text " : "";
-      f.notes = strip((f.notes || "") + (agreed ? ` [AI ${what}suggestion confirmed by reviewer]` : ` [reviewer changed AI ${what}suggestion]`));
-      this.repo.put({ ...r, props: f });
-      changed.add(it.id);
-      n++;
-    }
-    await this.#afterScreeningChange();
-    await this.repo.logDecisions({ ids: changed, by: this.reviewer, how: HOW.ai });
-    event(this.st, "screening", `batch of ${n} AI-suggested ${ft ? "full-text" : "title/abstract"} decisions reviewed and confirmed by the reviewer`, this.now);
+    const changed = screening.applySuggestions(this.repo, items, stage);
+    await this.#afterScreeningChange(changed, HOW.ai);
+    event(this.st, "screening", `batch of ${changed.size} AI-suggested ${stage === "ft" ? "full-text" : "title/abstract"} decisions reviewed and confirmed by the reviewer`, this.now);
     await this.save();
-    return `${n} decision(s) saved.`;
+    return `${changed.size} decision(s) saved.`;
   }
 
   /** Returns pre-sorted records to the normal screening queue. */
   async clearPresort(ids) {
-    for (const id of ids) {
-      const r = this.repo.records.get(id);
-      if (r?.props.presort) this.repo.put({ ...r, props: { ...r.props, presort: "", presort_reason: "" } });
-    }
+    screening.clearPresort(this.repo, ids);
     await this.repo.save();
     event(this.st, "screening", `${ids.length} pre-sorted record(s) returned to manual screening`, this.now);
     await this.save();
