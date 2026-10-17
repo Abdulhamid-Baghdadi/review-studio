@@ -12,7 +12,8 @@
  *   node bin/ai-assist.js --review "…" appraise RATINGS.json --model "…"
  *
  * Run it from the folder that holds the review (e.g. the Obsidian vault): paths are shown relative to it,
- * and "99 - Templates" and the library ("00 - Library", or the older "98 - Publications") there are used when present.
+ * and "99 - Templates" and the library ("00 - Library/Publication Summary", or the older "00 - Library" or
+ * "98 - Publications"; see library-folder.js) there are used when present.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
@@ -24,6 +25,7 @@ import { ReviewRepository } from "../src/services/review-repository.js";
 import { loadState } from "../src/services/review-state.js";
 import { aiAppraise, aiAttach, aiChart, aiContext, aiSecondReviewer, aiSuggest } from "../src/services/ai-assist.js";
 import { ReviewError } from "../src/services/review-commands.js";
+import { findLibraryFolder } from "./library-folder.js";
 
 const root = process.cwd();
 const posix = p => p.split("\\").join("/");
@@ -84,8 +86,8 @@ async function main() {
     template: existsSync(template) ? readFileSync(template, "utf8").replace(/\r\n?/g, "\n") : "",
   });
   const st = await loadState(repo.folder);
-  const libraryDir = ["00 - Library", "98 - Publications"].map(d => join(root, d)).find(existsSync) ?? "";
-  const library = existsSync(libraryDir) ? await openLibrary(nodeFolder(libraryDir)) : emptyLibrary();
+  const libraryDir = findLibraryFolder(root);
+  const library = libraryDir ? await openLibrary(nodeFolder(libraryDir)) : emptyLibrary();
   const rel = p => { const full = join(dir, p); const r = relative(root, full); return posix(r.startsWith("..") || isAbsolute(r) ? full : r); };
   const needModel = () => opt.model || fail("--model is required");
 

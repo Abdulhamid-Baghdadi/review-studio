@@ -21,14 +21,14 @@ import { fetchHttp } from "../src/adapters/fetch-http.js";
 import { openLibrary } from "../src/services/library.js";
 import { fetchLibraryWorks, planLibraryCitations, planRelinkCitations, writeLibraryCitations } from "../src/services/library-citations.js";
 import { OpenAlexClient, OpenAlexError } from "../src/services/openalex-client.js";
+import { findLibraryFolder } from "./library-folder.js";
 
 const { values: opt } = parseArgs({ options: {
   library: { type: "string" }, openalex: { type: "boolean" }, write: { type: "boolean" }, "api-key": { type: "string" }, help: { type: "boolean", short: "h" },
 } });
 if (opt.help) { console.log(readFileSync(new URL(import.meta.url), "utf8").split("*/")[0].replace(/^#!.*\n\/\*\*\n/, "").replace(/^ \* ?/gm, "")); process.exit(0); }
 
-const DEFAULTS = ["00 - Library/Publication Summary", "00 - Library", "98 - Publications"];
-const dir = opt.library ? resolve(opt.library) : DEFAULTS.map(d => resolve(d)).find(existsSync);
+const dir = opt.library ? resolve(opt.library) : findLibraryFolder(process.cwd());
 if (!dir || !existsSync(dir)) {
   console.error(`No library folder found. Run this from the vault folder, or give it with --library "<folder of the publication notes>".`);
   process.exit(1);
