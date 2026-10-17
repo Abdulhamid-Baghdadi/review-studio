@@ -84,7 +84,7 @@ PAGES.report = () => {
             h("div", { class: "small muted", style: "margin-top:4px" }, `${S.review_type.guideline} items marked as reported` + (required.length < S.checklist_items.length ? " (optional items not counted)" : "")));
         })()))),
     card(`${S.review_type.guideline} checklist`, "Tick each item and note where it is reported. 'Evidence' is what the tool can see in the vault.",
-      h("table", { class: "tbl" }, h("tr", {}, checklistHead),
+      h("div", { class: "tbl-scroll" }, h("table", { class: "tbl" }, h("tr", {}, checklistHead),
         S.checklist_items.map(it => {
           const c = S.state.checklist[it.n] || {};
           const item = h("b", {}, it.item);            // both fields of a row are named by their column and this item
@@ -95,5 +95,5 @@ PAGES.report = () => {
           return h("tr", {}, h("td", { class: "num" }, it.n), h("td", {}, item, it.optional ? [" ", pill("optional", "info")] : null, h("div", { class: "small muted" }, it.desc)),
             h("td", { class: "small" }, auto[String(it.n)] ? pill(auto[String(it.n)], "info") : h("span", { class: "muted" }, "—")),
             h("td", { style: "width:200px" }, loc), h("td", { style: "text-align:center" }, h("label", { class: "check" }, ok)));
-        }))));
+        })))));
 };

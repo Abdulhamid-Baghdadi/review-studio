@@ -144,6 +144,9 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .tbl th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); }
 .tbl td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
 .tbl tr:last-child td { border-bottom: 0; }
+/* a wide table scrolls sideways in its own box on a narrow screen, not the whole page (reflow, WCAG 1.4.10);
+   only there, so that its sticky headers keep sticking to the page on a wide one */
+@media (max-width: 760px) { .tbl-scroll { overflow-x: auto; } }
 .tbl tr.click { cursor: pointer; }
 .tbl tr.click:hover td { background: var(--surface-2); }
 .tbl .num { text-align: right; font-variant-numeric: tabular-nums; }

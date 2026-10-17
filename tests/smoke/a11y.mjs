@@ -78,12 +78,13 @@ export function audit() {
   return fails;
 }
 
-// 7. reflow: at 400 px #main never scrolls sideways (data tables scroll in their own box)
+// 7. reflow: at 400 px #main never scrolls sideways; a wide data table scrolls in its own box (.tbl-scroll)
 export function narrow() {
   const main = document.querySelector("#main");
   if (!main || main.scrollWidth <= main.clientWidth + 1) return [];
   const edge = main.getBoundingClientRect().right + 1;
   const clipped = el => { for (let e = el.parentElement; e && e !== main; e = e.parentElement) if (getComputedStyle(e).overflowX !== "visible") return true; return false; };
-  const wide = [...main.querySelectorAll("*")].filter(el => el.getBoundingClientRect().right > edge && !clipped(el) && !el.closest("table, .tablewrap, [class*=table]"));
-  return wide.length ? [`#main scrolls sideways at 400 px: ${main.scrollWidth} > ${main.clientWidth} (${wide.slice(0, 3).map(e => `<${e.tagName.toLowerCase()}${e.className ? "." + String(e.className).split(" ")[0] : ""}>`).join(", ")})`] : [];
+  const wide = [...main.querySelectorAll("*")].filter(el => el.getBoundingClientRect().right > edge && !clipped(el));
+  const cause = wide.slice(0, 3).map(e => `<${e.tagName.toLowerCase()}${e.className ? "." + String(e.className).split(" ")[0] : ""}>`).join(", ");
+  return [`#main scrolls sideways at 400 px: ${main.scrollWidth} > ${main.clientWidth} (${cause || "cause not found"})`];
 }
