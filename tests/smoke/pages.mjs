@@ -3,11 +3,13 @@
 // or uncaught exception. It also writes the text of every page to a file, so that a refactor can be checked
 // against the text before it ("the page still says the same thing").
 //
-//   node tests/smoke/pages.mjs [out.json]      (needs Playwright: npm i -g playwright, or npx playwright)
+//   node tests/smoke/pages.mjs [out.json]      (Playwright is a devDependency: npm install)
+// On every page it also checks the accessibility floor (tests/smoke/a11y.mjs) in light and dark and at 400 px.
 import { spawn } from "node:child_process";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { chromium } from "playwright";
+import { audit, narrow } from "./a11y.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..", "..");
 const PORT = 8790 + Math.floor(Math.random() * 100);
@@ -40,6 +42,20 @@ try {
   // A stage split into parts (tabs) keeps one address, so a page is told apart by its address and its text.
   const here = async () => `${await where()} ${(await text()).slice(0, 160)}`;
   const pages = {};
+  // The accessibility floor (docs/ui-ux-rules.md, group A) on every page, light and dark, then at 400 px wide.
+  const a11y = [];
+  await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });   // measure the end colours
+  const checkFloor = async name => {
+    const theme = await page.evaluate(() => document.documentElement.dataset.theme);
+    for (const t of ["light", "dark"]) {
+      await page.evaluate(v => { document.documentElement.dataset.theme = v; }, t); await page.waitForTimeout(30);
+      for (const f of await page.evaluate(audit)) a11y.push(`${name} [${t}] ${f}`);
+    }
+    await page.evaluate(v => { document.documentElement.dataset.theme = v; }, theme);
+    await page.setViewportSize({ width: 400, height: 900 }); await page.waitForTimeout(250);
+    for (const f of await page.evaluate(narrow)) a11y.push(`${name} [400px] ${f}`);
+    await page.setViewportSize({ width: 1400, height: 900 }); await page.waitForTimeout(60);
+  };
   for (let i = 0, last = ""; i < 80; i++) {              // back to the first page
     await page.keyboard.press("Alt+ArrowUp"); await page.waitForTimeout(60);
     const w = await here(); if (w === last) break; last = w;
@@ -48,6 +64,7 @@ try {
     const w = await here();
     if (w === last) break;
     pages[`${String(i).padStart(2, "0")} ${await where()}`] = await text();
+    await checkFloor(await where());
     last = w;
     await page.keyboard.press("Alt+ArrowDown"); await page.waitForTimeout(80);
   }
@@ -86,12 +103,13 @@ try {
   await page.evaluate(() => [...document.querySelectorAll("dialog.modal .btn.primary")].find(b => b.textContent === "Save")?.click());
   await page.waitForTimeout(800);
   actions.settings = await page.evaluate(() => Boolean(window.backend.entry?.example) && window.backend.entry.settings.reviewer === "SM" && !document.querySelector("dialog.modal"));
-  const result = { pages, panels, actions, errors };
+  const result = { pages, panels, actions, errors, a11y };
   if (out) await writeFile(out, JSON.stringify(result, null, 1));
   console.log(`${Object.keys(pages).length} pages: ${Object.keys(pages).join(" ")}`);
   console.log(`panels: ${Object.entries(panels).map(([k, v]) => `${k} ${v.length} chars`).join(", ")}`);
   console.log(`actions: ${Object.entries(actions).map(([k, v]) => `${k} ${v ? "ok" : "FAILED"}`).join(", ")}`);
   if (Object.values(actions).includes(false)) process.exitCode = 1;
+  if (a11y.length) { console.error(`accessibility floor: ${a11y.length} failures\n${a11y.join("\n")}`); process.exitCode = 1; } else console.log("accessibility floor: ok");
   if (errors.length) { console.error(errors.join("\n")); process.exitCode = 1; } else console.log("no errors");
 } catch (e) {
   console.error(`${e.message.split("\n")[0]}\n${errors.join("\n") || "(no errors in the page)"}`);
