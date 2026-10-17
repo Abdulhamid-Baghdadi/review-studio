@@ -225,33 +225,35 @@ function gauge(k) {
     <text x="90" y="104" text-anchor="middle" font-size="11" fill="var(--muted)">Cohen's κ</text>`);
 }
 
-function flowDiagram(f) {
+/** The PRISMA flow diagram; `here` (a box: identified, screened, sought, assessed, included) is highlighted instead of the screening boxes. */
+function flowDiagram(f, here) {
+  const mark = (id, dflt) => here === undefined ? dflt : here === id;
   const W = 760, bw = 330, gap = 60, x1 = 20, x2 = x1 + bw + gap;
   let y = 14, out = "";
   const box = (x, y, w, hh, lines, strong) => {
-    out += `<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="10" fill="${strong ? "var(--accent-2)" : "var(--surface)"}" stroke="${strong ? "var(--accent)" : "var(--border)"}" stroke-width="1.5"/>`;
+    out += `<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="10" fill="${strong ? "var(--accent-2)" : "var(--surface)"}" stroke="${strong ? "var(--accent)" : "var(--border)"}" stroke-width="${strong && here !== undefined ? 3 : 1.5}"/>`;
     lines.forEach((l, i) => out += `<text x="${x + w / 2}" y="${y + 22 + i * 17}" text-anchor="middle" font-size="${i ? 12 : 13}" ${i ? 'fill="var(--muted)"' : 'font-weight="600" fill="var(--text)"'}>${esc(l)}</text>`);
   };
   const arrow = (xa, ya, xb, yb) => out += `<line x1="${xa}" y1="${ya}" x2="${xb}" y2="${yb}" stroke="var(--faint)" stroke-width="1.6" marker-end="url(#ah)"/>`;
   out += `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--faint)"/></marker></defs>`;
   const dbl = f.db.map(d => `${d.name}: ${d.n}`).slice(0, 3), otl = f.other.map(d => `${d.name.replace(/ \(.*\)/, "")}: ${d.n}`).slice(0, 3);
   const hTop = 34 + Math.max(dbl.length, otl.length, 1) * 17;
-  box(x1, y, bw, hTop, [`Identified — databases (n = ${f.n_db})`, ...dbl]);
-  box(x2, y, bw, hTop, [`Identified — other sources (n = ${f.n_other})`, ...otl]);
+  box(x1, y, bw, hTop, [`Identified — databases (n = ${f.n_db})`, ...dbl], mark("identified", false));
+  box(x2, y, bw, hTop, [`Identified — other sources (n = ${f.n_other})`, ...otl], mark("identified", false));
   y += hTop + 26; arrow(x1 + bw / 2, y - 26, x1 + bw / 2, y - 2); arrow(x2 + bw / 2, y - 26, x1 + bw / 2 + 40, y - 2);
-  box(x1, y, bw, 50, [`Screened — title/abstract (n = ${f.unique})`, `${f.duplicates} duplicates removed · ${f.ta_pending} still open`], true);
+  box(x1, y, bw, 50, [`Screened — title/abstract (n = ${f.unique})`, `${f.duplicates} duplicates removed · ${f.ta_pending} still open`], mark("screened", true));
   box(x2, y, bw, 50, [`Excluded (n = ${f.ta_excluded})`, Object.entries(f.ta_reasons).map(([k, v]) => `${k}: ${v}`).join(" · ").slice(0, 52)]);
   arrow(x1 + bw, y + 25, x2 - 2, y + 25);
   y += 76; arrow(x1 + bw / 2, y - 26, x1 + bw / 2, y - 2);
-  box(x1, y, bw, 50, [`Sought for retrieval (n = ${f.sought})`, `include ${f.ta_include} · unsure ${f.ta_unsure}`]);
+  box(x1, y, bw, 50, [`Sought for retrieval (n = ${f.sought})`, `include ${f.ta_include} · unsure ${f.ta_unsure}`], mark("sought", false));
   box(x2, y, bw, 50, [`Not retrieved (n = ${f.not_retrieved})`, ""]);
   arrow(x1 + bw, y + 25, x2 - 2, y + 25);
   y += 76; arrow(x1 + bw / 2, y - 26, x1 + bw / 2, y - 2);
-  box(x1, y, bw, 50, [`Assessed — full text (n = ${f.assessed})`, `${f.ft_pending} still open`], true);
+  box(x1, y, bw, 50, [`Assessed — full text (n = ${f.assessed})`, `${f.ft_pending} still open`], mark("assessed", true));
   box(x2, y, bw, 50, [`Excluded (n = ${f.ft_excluded})`, Object.entries(f.ft_reasons).map(([k, v]) => `${k}: ${v}`).join(" · ").slice(0, 52)]);
   arrow(x1 + bw, y + 25, x2 - 2, y + 25);
   y += 76; arrow(x1 + bw / 2, y - 26, x1 + bw / 2, y - 2);
-  out += `<rect x="${x1}" y="${y}" width="${bw}" height="50" rx="10" fill="var(--ok-bg)" stroke="var(--ok)" stroke-width="1.5"/><text x="${x1 + bw / 2}" y="${y + 30}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ok)">Included (n = ${f.included})</text>`;
+  out += `<rect x="${x1}" y="${y}" width="${bw}" height="50" rx="10" fill="var(--ok-bg)" stroke="var(--ok)" stroke-width="${here === "included" ? 3.5 : 1.5}"/><text x="${x1 + bw / 2}" y="${y + 30}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ok)">Included (n = ${f.included})</text>`;
   return h("div", { class: "flow" }, svg(W, y + 62, out));
 }
 
@@ -270,6 +272,66 @@ function pilotChart(pilots) {
     out += `<text x="${W - 4}" y="${y + 15}" text-anchor="end" font-size="12" font-weight="600" fill="var(--text)">${Number(p.hits).toLocaleString()}</text>`;
   });
   return svg(W, H0, out);
+}
+
+// ================================================================ PRISMA flow map
+// A small PRISMA flow diagram at the top of every page, with live counts, that marks where the user is.
+// The boxes of the PRISMA diagram (identification, screening, included) sit between the planning before it and the
+// analysis and report after it, which are drawn dashed because they are not part of the PRISMA diagram itself.
+
+/** Which box of the map the page on screen belongs to. */
+function flowHere() {
+  if (CUR === HOME) return null;
+  if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
+  return { idea: "plan", questions: "plan", concepts: "plan", queries: "plan", pilot: "plan", protocol: "plan", registration: "plan",
+    searches: "identified", snowballing: "identified", reviewer: "screened", retrieval: "sought",
+    charting: "analyse", appraisal: "analyse", synthesis: "analyse", report: "report" }[CUR] ?? null;
+}
+
+function flowNodes() {
+  const f = S.flow, sys = S.review_type.key === "systematic";
+  const screen = st => () => { SC.stage = st; store.set("sc_stage", st); SC.id = null; go("screening"); };
+  return [
+    { phase: "Plan", nodes: [{ id: "plan", label: "Plan", sub: "question · search", go: () => goStep(stepOf("questions")), outside: true }] },
+    { phase: "Identification", nodes: [{ id: "identified", label: "Records found", n: f.n_db + f.n_other,
+      minus: f.duplicates > 0 ? `${f.duplicates} duplicates` : "", go: () => go("searches"),
+      tip: `Found in databases (${f.n_db}) and other sources such as citation searching (${f.n_other}); duplicates are removed before screening.` }] },
+    { phase: "Screening", nodes: [
+      { id: "screened", label: "Titles & abstracts", n: f.unique, minus: f.ta_excluded ? `${f.ta_excluded} excluded` : "", open: f.ta_pending,
+        go: screen("ta"), tip: `Records screened on title and abstract (${f.ta_pending} still to do).` },
+      { id: "sought", label: "Full texts sought", n: f.sought, minus: f.not_retrieved ? `${f.not_retrieved} not found` : "", go: () => go("retrieval"),
+        tip: "Papers that passed the title and abstract check, whose full text you look for." },
+      { id: "assessed", label: "Full texts read", n: f.assessed, minus: f.ft_excluded ? `${f.ft_excluded} excluded` : "", open: f.ft_pending,
+        go: screen("ft"), tip: `Full texts assessed for eligibility (${f.ft_pending} still to do).` }] },
+    { phase: "Included", nodes: [{ id: "included", label: sys ? "Studies included" : "Sources included", n: f.included, go: () => go("charting"), good: true,
+      tip: "The papers your review is based on." }] },
+    { phase: "Analyse", nodes: [{ id: "analyse", label: "Analyse", sub: sys ? "extract · synthesise" : "chart · appraise",
+      go: () => go("charting"), outside: true }] },
+    { phase: "Report", nodes: [{ id: "report", label: "Report", sub: "write it up", go: () => go("report"), outside: true }] },
+  ];
+}
+
+function flowMap() {
+  if (CUR === HOME || store.get("flowmap", "") === "hidden") return null;
+  const groups = flowNodes(), here = flowHere(), order = groups.flatMap(g => g.nodes.map(n => n.id)), hi = order.indexOf(here);
+  const node = n => {
+    const k = order.indexOf(n.id), where = k === hi ? "here" : k < hi ? "past" : "ahead";
+    return h("button", { class: `fm-node ${where} ${n.outside ? "outside" : ""} ${n.good ? "good" : ""}`, onclick: n.go,
+      title: (n.tip || n.sub || n.label) + (where === "here" ? " — you are here" : ""), "aria-current": where === "here" ? "step" : null },
+      where === "here" ? h("span", { class: "fm-here" }, "You are here") : null,
+      h("span", { class: "fm-label" }, n.label),
+      n.n === undefined ? h("span", { class: "fm-sub" }, n.sub) : h("span", { class: "fm-n" }, Number(n.n).toLocaleString(), n.open ? h("span", { class: "fm-open" }, ` · ${n.open} to do`) : null),
+      n.minus ? h("span", { class: "fm-minus" }, "− " + n.minus) : null);
+  };
+  const arrow = () => h("span", { class: "fm-arrow", "aria-hidden": "true" }, "→");
+  return h("nav", { class: "flowmap", "aria-label": "Where you are in the PRISMA flow" },
+    h("div", { class: "fm-track" }, groups.flatMap((g, i) => [i ? arrow() : null,
+      h("div", { class: `fm-group ${g.nodes.some(n => n.outside) ? "outside" : "prisma"}` }, g.nodes.some(n => n.outside) ? null : h("div", { class: "fm-phase" }, g.phase),
+        h("div", { class: "fm-nodes" }, g.nodes.flatMap((n, j) => [j ? arrow() : null, node(n)])))])),
+    h("div", { class: "fm-tools" },
+      iconBtn("⤢", "Show the full PRISMA flow diagram", () => modal({ title: "PRISMA flow diagram", wide: true,
+        body: h("div", {}, h("p", { class: "muted", style: "margin-top:0" }, "Live from your records; the box you are working on is highlighted."), flowDiagram(S.flow, here)) })),
+      iconBtn("✕", "Hide the flow map (show it again under ⚙ Settings)", () => { store.set("flowmap", "hidden"); render(); })));
 }
 
 // ================================================================ chrome: sidebar, topbar, metrics
@@ -351,7 +413,7 @@ function renderTop() {
   if (CUR === HOME) {
     $("#topbar").replaceChildren(
       h("div", { class: "titlerow" }, h("h1", {}, "Welcome to Review Studio")),
-      h("p", { class: "desc" }, `From your first idea to the finished report in ${S.steps.length} steps (shown for a scoping review; a systematic review adds risk of bias and a synthesis step).`),
+      h("p", { class: "desc" }, `From your first idea to the finished report in ${S.steps.length} steps: a ${S.review_type.label.toLowerCase()}, reported to ${S.review_type.guideline}.`),
       h("div", { class: "home-badges" }, [
         ["📝 Plain Markdown", "Every record is a Markdown note with properties; the searches are a CSV table. Any text editor can read them."],
         ["🟣 Opens in Obsidian", "A review folder is an Obsidian vault as it is: the notes, links and the screening and charting tables (.base files) work there too."],
@@ -373,6 +435,7 @@ function renderTop() {
   const what = st.tabs.length > 1 ? `“${tab.label}”` : "this step";
   $("#topbar").replaceChildren(
     h("div", { class: "crumbs" }, `${REVIEW} · ${S.review_type.label}, reported to ${S.review_type.guideline} · ${st.phase} · step ${n + 1} of ${S.steps.length}`),
+    flowMap() || "",
     h("div", { class: "titlerow" },
       h("h1", {}, st.title),
       st.tabs.length > 1 ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
@@ -501,6 +564,7 @@ function render() {
   renderDraftBar();
   for (const id of ["btnTimeline", "btnScr"]) $("#" + id).hidden = CUR === HOME;   // the Homepage is only an introduction
   $("#btnType").textContent = `🧭 ${S.review_type.label} · ${S.review_type.guideline}`;
+  $("#btnType").hidden = S.review_type.key !== "scoping" || CUR === HOME;   // systematic is the standard; only a scoping review shows its type
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
   const page = $("#page");
   page.replaceChildren(PAGES[CUR](), CUR === HOME ? "" : pageNav());
@@ -528,7 +592,7 @@ function nameFields(root) {
 function go(key) { CUR = key; store.set("stage", key); if (key !== HOME) { const st = stepOf(key), t = curTab(); if (st && t) store.set("tab_" + st.key, `${t.stage}:${t.part ?? ""}`); } history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
 
 async function skipStage() {
-  const r = await promptText("Skip this part", "Skipping is fine for optional parts, but the reason is reported in the timeline and the reporting checklist.", "e.g. optional in scoping reviews; not planned in the protocol", true);
+  const r = await promptText("Skip this part", "Skipping is fine for optional parts, but the reason is reported in the timeline and the reporting checklist.", "e.g. not planned in the protocol", true);
   if (r) api("stage_status", { stage: CUR, status: "skipped", reason: r });
 }
 
@@ -724,7 +788,7 @@ const PAGES = {};
 // The animated demo on the Homepage: a small mock screen that plays through the five steps of a review.
 // Plain DOM and CSS (no video file), so it works offline and follows the light/dark theme.
 const DEMO = [
-  { key: "plan", you: "Write your question (Population, Concept, Context), pick the search terms and set the inclusion rules. Lock the plan before searching.", ai: null, label: "Plan", caption: "Write down your idea, then turn it into questions and search terms.",
+  { key: "plan", you: "Write your question (Population, Intervention, Comparator, Outcomes), pick the search terms and set the inclusion rules. Lock the plan before searching.", ai: null, label: "Plan", caption: "Write down your idea, then turn it into questions and search terms.",
     draw: el => { const t = h("div", { class: "demo-type" }); el.append(h("div", { class: "demo-lbl" }, "💡 Idea note"), t);
       const s = "How do researchers measure how repairable a phone is?"; let i = 0;
       return setInterval(() => { t.textContent = s.slice(0, ++i); }, 45); } },
@@ -832,14 +896,7 @@ async function switchReviewType(v) {
   } else if (await confirmBox("Change the review type", msg, "Switch")) api("review_type", { type: v }).then(() => delete D.questions);
 }
 
-/** Scoping (PRISMA-ScR) or systematic (PRISMA 2020): the card on Research questions. */
-function reviewTypeCard() {
-  const rt = S.review_type;
-  return card("Review type", `${rt.label}: reported to ${rt.guideline} (${rt.guidelineCitation}); methods: ${rt.methods}.`,
-    segmented(S.review_types.map(t => [t.key, `${t.label} · ${t.guideline}`]), rt.key, switchReviewType));
-}
-
-/** The top-bar button (every stage): shows the type and offers the other one. */
+/** Settings → Review type (and the top-bar button of a scoping review): shows the type and offers the other one. */
 async function openReviewType() {
   const rt = S.review_type;
   const v = await modal({ title: "Review type",
@@ -875,7 +932,6 @@ PAGES.questions = () => {
     ? { population: "Who or what is studied, with the conditions that define it", concept: "The intervention or exposure being evaluated", context: "What it is compared with (another intervention, usual care, none)", outcome: "The outcomes measured, with the main outcome first" }
     : { population: "What is studied? (products, systems, people…)", concept: "The core phenomenon, method or intervention", context: "Setting, domain, period, publication types" };
   return h("div", {},
-    reviewTypeCard(),
     h("div", { class: Q.outcome ? "grid4" : "grid3", style: "margin-bottom:16px" },
       pcc("population", Q.population, hints.population, "#4f46e5"),
       pcc("concept", Q.concept, hints.concept, "#0891b2"),
@@ -1824,6 +1880,8 @@ $("#reviewSel").addEventListener("change", async e => {
 });
 $("#btnTheme").onclick = () => { const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = t; store.set("theme", t); };
 $("#btnGlossary").onclick = openGlossary;
+$("#btnTypeMenu").onclick = openReviewType;
+$("#btnFlowMap").onclick = () => { store.set("flowmap", store.get("flowmap", "") === "hidden" ? "" : "hidden"); render(); };
 $("#btnClaude").onclick = openClaudeGuide;
 $("#btnTimeline").onclick = openTimeline;
 $("#btnType").onclick = openReviewType;
@@ -1926,7 +1984,7 @@ setInterval(checkOutside, 15000);
 // Offered once on the first visit; the button on the Homepage replays it.
 const TOUR = [
   { title: "Welcome to Review Studio 👋",
-    text: "This app guides you through a scoping or systematic review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
+    text: "This app guides you through a systematic review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
   { target: "#stepper", title: "Your review, step by step",
     text: "Plan (question, search, inclusion rules), find and select papers, analyse them, report. Each step says in one line what it is for. Steps marked AI are where Claude can help, if you want. Click any step to open it." },
   { target: "#topbar", title: "One step at a time",
@@ -1934,7 +1992,7 @@ const TOUR = [
   { target: "#draftBar", title: "Your files stay on your PC",
     text: "You start in a draft kept in this browser. Save it to a folder when you want to keep it: the review becomes plain notes, tables and PDFs on your PC. Nothing is uploaded." },
   { target: ".toolbar", title: "Tools for every step",
-    text: "The timeline of everything you did, the reporting checklist (PRISMA-ScR or PRISMA 2020) and, if you want it, AI help from Claude, which only ever suggests. The glossary and keyboard shortcuts are under ⚙ Settings." },
+    text: "The timeline of everything you did, the PRISMA 2020 reporting checklist and, if you want it, AI help from Claude, which only ever suggests. The glossary and keyboard shortcuts are under ⚙ Settings." },
   { title: "Ready? Start with your question ✍️",
     text: "Step 1 is your research question. Not sure yet? Jot your idea down under Idea notes first; the Question tab makes it precise. You can replay this tour from the Homepage." },
 ];

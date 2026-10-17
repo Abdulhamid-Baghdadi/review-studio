@@ -6,6 +6,8 @@ import { REVIEW_TYPES } from "../../src/domain/review-types.js";
 import { protocolMarkdown } from "../../src/domain/protocol.js";
 import { checklistEvidence, checklistNote, timelineNote } from "../../src/domain/stage-notes.js";
 import { workComplete } from "../../src/domain/progress.js";
+import { loadState } from "../../src/services/review-state.js";
+import { memoryFolder } from "../../src/adapters/memory-folder.js";
 
 const now = "2026-10-12 10:00";
 
@@ -88,4 +90,10 @@ test("the page's steps: every stage of a review type sits in exactly one step", 
   assert.equal(REVIEW_TYPES.scoping.steps.length, 9);
   assert.equal(REVIEW_TYPES.systematic.steps.length, 10);
   assert.equal(REVIEW_TYPES.systematic.steps.find(s => s.key === "quality").title, "Risk of bias");
+});
+
+test("a new review starts as a systematic review; a saved review without a type stays a scoping review", async () => {
+  assert.equal((await loadState(memoryFolder())).review_type, "systematic");
+  assert.equal((await loadState(memoryFolder({ "review_state.json": JSON.stringify({ questions: { main: "Q?" } }) }))).review_type, "scoping");
+  assert.equal((await loadState(memoryFolder({ "review_state.json": JSON.stringify({ review_type: "scoping" }) }))).review_type, "scoping");
 });

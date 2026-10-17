@@ -5,9 +5,9 @@
  * @module domain/stages
  */
 import { strip } from "./text-rules.js";
-import { ALL_PROTOCOL_SECTIONS, ALL_STAGE_KEYS, DEFAULT_REVIEW_TYPE, REVIEW_TYPES, reviewType } from "./review-types.js";
+import { ALL_PROTOCOL_SECTIONS, ALL_STAGE_KEYS, DEFAULT_REVIEW_TYPE, NEW_REVIEW_TYPE, REVIEW_TYPES, reviewType } from "./review-types.js";
 
-export { REVIEW_TYPES, reviewType };
+export { NEW_REVIEW_TYPE, REVIEW_TYPES, reviewType };
 
 /** @typedef {import("./review-types.js").Stage} Stage */
 

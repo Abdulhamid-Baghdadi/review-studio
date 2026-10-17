@@ -19,7 +19,7 @@ test("crc32 and zip follow the format", () => {
 });
 
 test("the package holds the review's evidence and a checksum per file", async () => {
-  const s = await ReviewSession.open(memoryFolder(), deps());
+  const s = await ReviewSession.open(memoryFolder({ "review_state.json": JSON.stringify({ review_type: "scoping" }) }), deps());
   await s.lockProtocol("OSF-1");
   await s.importSearch({ fileName: "a.ris", bytes: new TextEncoder().encode(ris), database: "Scopus", query: "q" });
   await s.decide("R0001", "ta", "include");

@@ -5,13 +5,14 @@
  */
 import { autoDone } from "../domain/progress.js";
 import { restoreState } from "../domain/stages.js";
+import { NEW_REVIEW_TYPE } from "../domain/review-types.js";
 import { STAGE_FILES, strategyNote, timelineNote } from "../domain/stage-notes.js";
 
 export const STATE_FILE = "review_state.json";
 
-/** The state of a review folder (defaults for a new review). */
+/** The state of a review folder (defaults for a new review, which starts as a systematic review). */
 export async function loadState(folder) {
-  return restoreState((await folder.exists(STATE_FILE)) ? JSON.parse(await folder.readText(STATE_FILE)) : {});
+  return restoreState((await folder.exists(STATE_FILE)) ? JSON.parse(await folder.readText(STATE_FILE)) : { review_type: NEW_REVIEW_TYPE });
 }
 
 /**

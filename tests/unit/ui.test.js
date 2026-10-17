@@ -26,8 +26,9 @@ test("snapshot has everything the page reads", async () => {
     "rounds", "charting_progress", "ai", "library", "lock_checks", "checklist_auto", "checklist_items", "protocol_sections", "sheets"]) {
     assert.ok(key in s, `snapshot.${key}`);
   }
-  assert.equal(s.stages.length, 15);
-  assert.equal(s.checklist_items.length, 22);
+  assert.equal(s.stages.length, 16);                                   // a new review is a systematic review
+  assert.equal(s.steps.length, 10);
+  assert.equal(s.checklist_items.length, 42);
   assert.deepEqual(Object.keys(s.ai.modes), ["screening", "reviewer", "retrieval", "charting", "appraisal"]);
 });
 

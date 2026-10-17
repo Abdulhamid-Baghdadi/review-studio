@@ -223,7 +223,10 @@ const SYSTEMATIC = freeze({
 });
 
 export const REVIEW_TYPES = freeze({ scoping: SCOPING, systematic: SYSTEMATIC });
+/** The type of a saved review that has none: reviews made before review types were scoping reviews. */
 export const DEFAULT_REVIEW_TYPE = "scoping";
+/** The type a new review starts as (the scoping type is still available under Settings → Review type). */
+export const NEW_REVIEW_TYPE = "systematic";
 
 /** The profile of a review state (scoping when the state has no type). */
 export const reviewType = st => REVIEW_TYPES[st?.review_type] ?? SCOPING;

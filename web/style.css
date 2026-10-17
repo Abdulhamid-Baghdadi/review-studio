@@ -435,3 +435,31 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
   .step .lbl .hint { display: none; }
   .steptab { padding: 7px 10px; }
 }
+
+/* ---------- PRISMA flow map: where the page on screen sits in the flow ---------- */
+.flowmap { display: flex; align-items: stretch; gap: 8px; margin: 10px 0 12px; padding: 6px 10px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.fm-track { display: flex; align-items: flex-end; gap: 4px; overflow-x: auto; flex: 1; min-width: 0; padding-bottom: 2px; }
+.fm-group { display: flex; flex-direction: column; gap: 3px; flex: none; }
+.fm-group.prisma { background: color-mix(in srgb, var(--accent) 5%, transparent); border-radius: 10px; padding: 3px 4px 4px; }
+.fm-phase { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); font-weight: 600; padding-left: 4px; }
+.fm-nodes { display: flex; align-items: stretch; gap: 4px; }
+.fm-arrow { color: var(--faint); align-self: center; font-size: 13px; flex: none; }
+.fm-group + .fm-arrow, .fm-track > .fm-arrow { margin-top: 14px; }
+.fm-node { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; padding: 4px 8px; border: 1.5px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; line-height: 1.25; }
+.fm-node:hover { border-color: var(--accent); }
+.fm-node.outside { border-style: dashed; background: transparent; }
+.fm-node.past { opacity: .62; }
+.fm-node.here { border: 2px solid var(--accent); background: var(--accent-2); opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.fm-node.good:not(.ahead) .fm-n { color: var(--ok); }
+.fm-here { order: 9; margin-top: 3px; align-self: flex-start; background: var(--accent); color: var(--accent-ink); font-size: 9.5px; font-weight: 700; letter-spacing: .02em; border-radius: 99px; padding: 1px 6px; white-space: nowrap; }
+.fm-label { font-size: 11.5px; color: var(--muted); font-weight: 550; white-space: nowrap; }
+.fm-node.here .fm-label { color: var(--text); }
+.fm-n { font-size: 15px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+.fm-open { font-size: 11px; font-weight: 500; color: var(--muted); }
+.fm-sub { font-size: 11px; color: var(--faint); white-space: nowrap; }
+.fm-minus { font-size: 10.5px; color: var(--bad); white-space: nowrap; }
+.fm-tools { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; gap: 2px; flex: none; }
+.fm-tools .btn.sm { padding: 3px 8px; font-size: 12px; }
+.fm-tools .btn.icon { padding: 0 6px; font-size: 13px; }
+.fm-group.outside { align-self: flex-end; }
+.step.in-progress .dot { background: var(--accent-2); border-color: var(--accent); color: var(--accent); }

@@ -1,10 +1,10 @@
 # Review Studio
 
-**A workbench for scoping reviews and systematic reviews that runs in your browser and keeps every review in a folder on your own PC. Each review has a type: a scoping review is reported to PRISMA-ScR, a systematic review to PRISMA 2020. The methods follow JBI and Cochrane guidance.**
+**A workbench for systematic reviews, reported to PRISMA 2020, that runs in your browser and keeps every review in a folder on your own PC. Scoping reviews (PRISMA-ScR) are supported too. The methods follow Cochrane and JBI guidance.**
 
 **[▶ Open it in your browser](https://abdulhamid-baghdadi.github.io/review-studio/)** · **[💾 Download for Windows, Mac and Linux](https://github.com/Abdulhamid-Baghdadi/review-studio/releases/latest/download/review-studio.zip)** · Chrome or Edge on a computer
 
-Review Studio walks you through a scoping or systematic review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
+Review Studio walks you through a systematic review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
 
 ![Review Studio: screening a record, with the review's steps in the sidebar](docs/screenshot.png)
 
@@ -16,7 +16,7 @@ Review Studio walks you through a scoping or systematic review from the first id
 
 **Highlights**
 
-- 🧭 **Guided, step by step:** 9 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
+- 🧭 **Guided, step by step:** 10 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
 - 🔒 **Your files, your PC:** no account, no upload, no database. A review is a folder of Markdown, CSV and PDFs.
 - 🟣 **Opens in Obsidian:** a review folder is an Obsidian vault as it is, with the screening and charting tables as `.base` files.
 - 🤖 **AI only if you want it:** Claude can pre-screen, fetch PDFs, be the blind second reviewer or prefill charting. It suggests; you confirm.
@@ -26,7 +26,7 @@ Review Studio walks you through a scoping or systematic review from the first id
 
 - [Getting started](#getting-started)
 - [Three ways to use it](#three-ways-to-use-it)
-- [The 9 steps](#the-9-steps)
+- [The 10 steps](#the-10-steps)
 - [Your review folder](#your-review-folder)
 - [AI assistance with Claude (optional)](#ai-assistance-with-claude-optional)
 - [Privacy and data safety](#privacy-and-data-safety)
@@ -63,21 +63,26 @@ You need **[Node.js](https://nodejs.org) 20 or newer** (free; install it once) a
 
 The launcher starts the app on your computer and opens it at **http://localhost:8770/web/**. Keep its window open while you work; close it (or press Ctrl+C) to stop. Your reviews are not inside the app's folder: they are wherever you saved them, so you can replace the app with a newer download at any time.
 
-## The 9 steps
+## The 10 steps
 
-The sidebar shows nine steps in plain words. Steps with more than one part show them as tabs at the top of the page. A systematic review adds a **Synthesis** step and calls step 8 **Risk of bias** (required) and step 7 **Extract data**.
+A new review is a **systematic review, reported to PRISMA 2020**. The sidebar shows ten steps in plain words; steps with more than one part show them as tabs at the top of the page.
 
 | # | Step | Tabs | What you do |
 |---:|---|---|---|
-| 1 | **Research question** | Question · Idea notes *(optional)* | Say exactly what you want to find out (Population–Concept–Context, or PICO); jot down early ideas with dates. Every version is kept. |
-| 2 | **Search strategy** | Keywords · Search strings · Test the search *(optional)* | One block of synonyms per idea in your question; ready-to-paste strings per database (Scopus, IEEE Xplore, OpenAlex, …); trial runs against papers you already know. |
-| 3 | **Inclusion rules** | Include / exclude rules · Other methods · Lock & register *(optional)* | Which papers are in and which are out, with the exclusion reasons (E1, E2 …) used while screening; the other protocol sections; freeze the plan before searching. |
+| 1 | **Research question** | Question · Idea notes *(optional)* | Say exactly what you want to find out, as PICO (Population, Intervention, Comparator, Outcomes); jot down early ideas with dates. Every version is kept. |
+| 2 | **Search strategy** | Keywords · Search strings · Test the search *(optional)* | One block of synonyms per idea in your question; ready-to-paste strings per database (Scopus, Web of Science, IEEE Xplore, OpenAlex, …); trial runs against papers you already know. |
+| 3 | **Inclusion rules** | Include / exclude rules · Other methods · Lock & register | Which studies are in and which are out, with the exclusion reasons (E1, E2 …) used while screening; the other protocol sections; freeze the plan before searching. |
 | 4 | **Search & import** | | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
-| 5 | **Screen papers** | Screen · Get full texts · Second reviewer *(optional)* | Title/abstract, then full text, with keyboard shortcuts; find and attach the PDFs; a blind sample for a second reviewer, with Cohen's κ. |
-| 6 | **Citation search** *(optional)* | | Follow the references of included papers until a round adds nothing new (snowballing). |
-| 7 | **Chart the data** | | The charting form for every included paper, with page numbers. |
-| 8 | **Quality check** *(optional)* | | Critical appraisal of each included source. |
-| 9 | **Report** | | PRISMA flow diagram, PRISMA-ScR or PRISMA 2020 checklist, report draft and exports. |
+| 5 | **Screen papers** | Screen · Get full texts · Second reviewer | Title/abstract, then full text, with keyboard shortcuts; find and attach the PDFs; a blind second reviewer, with Cohen's κ. |
+| 6 | **Citation search** *(optional)* | | Follow the references of included studies until a round adds nothing new (snowballing). |
+| 7 | **Extract data** | | The extraction form for every included study, with page numbers. |
+| 8 | **Risk of bias** | | How trustworthy each study is, with a tool such as RoB 2 or ROBINS-I. |
+| 9 | **Synthesis** | | Narrative synthesis or meta-analysis (forest and funnel plots, R script) and the certainty of the evidence (GRADE). |
+| 10 | **Report** | | PRISMA flow diagram, PRISMA 2020 checklist, report draft and exports. |
+
+**Where you are in the PRISMA flow.** A small PRISMA flow diagram at the top of every page shows the live counts (records found, screened, full texts sought and read, studies included) and marks the box you are working on. Click a box to go there, or ⤢ for the full diagram; ⚙ Settings → *Show / hide the flow map* turns it off.
+
+**Scoping reviews** (reported to PRISMA-ScR) are still supported: switch a review under ⚙ Settings → *Review type*. A scoping review uses Population–Concept–Context, calls step 7 *Chart the data* and step 8 an optional *Quality check*, and has no synthesis step. Reviews made before review types existed open as scoping reviews.
 
 Links to a part of the app keep working: `…/web/#questions` opens the Question tab, `#protocol` the inclusion rules, `#screening` screening.
 

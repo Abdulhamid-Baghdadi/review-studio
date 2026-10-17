@@ -22,7 +22,7 @@ const remember = (k, v) => { try { localStorage.setItem(k, v); } catch { /* priv
 function startSteps() {
   const nav = $("#startSteps"), box = $("#startStage");
   let phase = null;
-  stages.REVIEW_TYPES.scoping.steps.forEach((st, i) => {
+  stages.REVIEW_TYPES[stages.NEW_REVIEW_TYPE].steps.forEach((st, i) => {
     if (st.phase !== phase) nav.append(el("div", { className: "phase" }, phase = st.phase));
     const step = el("div", { className: "step", title: st.hint },
       el("span", { className: "dot" }, String(i + 1)),
@@ -30,7 +30,8 @@ function startSteps() {
     step.onclick = () => {                    // a preview of what the step is for
       nav.querySelectorAll(".step.active").forEach(x => x.classList.remove("active"));
       step.classList.add("active");
-      const parts = st.tabs.map(t => [t.label, stages.STAGE[t.stage].description]).filter(([, d], k, all) => all.findIndex(x => x[1] === d) === k);
+      const desc = k => stages.REVIEW_TYPES[stages.NEW_REVIEW_TYPE].stages.find(x => x.key === k).description;
+      const parts = st.tabs.map(t => [t.label, desc(t.stage)]).filter(([, d], k, all) => all.findIndex(x => x[1] === d) === k);
       box.replaceChildren(el("b", {}, `${i + 1} · ${st.title}`),
         ...parts.map(([label, d]) => el("span", { className: "muted" }, st.tabs.length > 1 ? `${label}: ${d}` : d)));
       box.hidden = false;
