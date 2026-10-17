@@ -9,13 +9,13 @@ A browser app for scoping reviews (reported to PRISMA-ScR) and systematic review
 
 ## Architecture (see ARCHITECTURE.md; `npm run check` enforces it)
 
-- `src/domain` pure rules (no I/O, dates or randomness) · `src/ports` interfaces (Folder, Clock, Http, PdfText) · `src/services` use cases (`ReviewSession` = every user action) · `src/adapters` platform code (node, memory, browser folder, fetch, pdf.js) · `src/ui` browser backend + view model · `web/` the page (`main.js` start screen, `review-studio.js` the Review Studio page).
+- `src/domain` pure rules (no I/O, dates or randomness) · `src/ports` interfaces (Folder, Clock, Http, PdfText) · `src/services` use cases (`ReviewSession` = every user action) · `src/adapters` platform code (node, memory, browser folder, fetch, pdf.js) · `src/ui` browser backend + view model · `web/` the page: `main.js` + `start/` boot and start screen, `studio/` the Review Studio page in layers core ← ui ← shell ← pages ← app (one module per page in `studio/pages/`; it never imports `src/`, only `window.backend`).
 - The page calls `window.backend` (src/ui/backend.js) instead of a server.
 
 ## Run and test
 
 - `Start Review Studio.cmd` (double-click) or `npm run serve` → http://localhost:8770/web/ — **Chrome or Edge in a normal window**; browser panes inside other apps cannot open folders.
-- `npm test` unit tests · `npm run check` architecture · `npm run build` → `dist/` static site.
+- `npm test` unit tests · `npm run check` architecture (src/ and web/) · `npm run smoke` browser smoke test (Playwright; walks every page of the example, fails on console errors) · `npm run build` → `dist/` static site.
 - Browser automation cannot use the native folder picker: test with the browser's private storage instead (`navigator.storage.getDirectory()` gives a directory handle; `backend.open({handle, name, settings})`).
 
 ## Experiments folder
