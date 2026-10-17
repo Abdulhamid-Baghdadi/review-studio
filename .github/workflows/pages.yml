@@ -29,6 +29,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check
+      # Browser smoke test: every page of the example, no console errors, the accessibility floor in light and dark
+      - run: npx playwright install --with-deps chromium
+      - run: npm run smoke
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
