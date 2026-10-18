@@ -83,10 +83,11 @@ export function newPublicationNote({ record: f, recordBody, index, reviewName, r
   if (strip(String(f.publication_type ?? ""))) props.publication_type = strip(String(f.publication_type));
   // the record's OpenAlex id (the citation step finds the paper by it) and its citation key, else one in the library's style
   const citekey = strip(String(f.citekey ?? "")) && !citekeys.has(strip(String(f.citekey))) ? strip(String(f.citekey)) : libraryCitekey(f.authors, f.year, citekeys);
-  props = insertAt(props, { ...(strip(String(f.openalex ?? "")) ? { openalex: strip(String(f.openalex)) } : {}), citekey }, "url");
-  if (!("cites" in props)) props = insertAt(props, { cites: [] }, "category", true);   // filled by the citation step, where Library Studio puts it
+  props = insertAt(props, { ...(strip(String(f.openalex ?? "")) ? { openalex: strip(String(f.openalex)) } : {}), citekey }, "doi");
   if (strip(status)) props.status = Array.isArray(templateProps.status) ? [strip(status)] : strip(status);   // as set in Review settings, in the template's shape
   else if (!("status" in templateProps)) props.status = "read";
+  const { cites = [], ...rest } = props;
+  props = { ...rest, cites };   // filled by the citation step; always the last property
   for (const k of ["category", "tags"]) if (!Array.isArray(props[k]) || props[k].every(v => !v)) props[k] = [];
   const fill = name => { const text = section(recordBody, name); return text ? `## ${name}\n\n${text}\n` : `## ${name}\n`; };
   let body = templateBody.replaceAll("{{title}}", () => f.title)

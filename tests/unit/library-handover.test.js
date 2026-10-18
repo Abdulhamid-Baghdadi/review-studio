@@ -76,10 +76,10 @@ test("export with the vault's own template: its properties and sections, plus ad
   assert.match(note, /^status:\n  - "quick review"$/m, "the status from Review settings, as a list like the template's");
   assert.match(note, /^importance: 3$/m);
   assert.match(note, /^added_by: "\[\[Example review\]\]"\nadded_on: "2026-10-17"$/m, "added_by is the review, as a link");
-  assert.match(note, /^url: "https:\/\/doi\.org\/10\.1186\/s12966-020-01033-3"\nopenalex: "W3094821849"\ncitekey: "pereira2019"\ntags: \[\]$/m,
-    "the record's OpenAlex id and a citation key in the library's style, after url as in the library schema");
+  assert.match(note, /^openalex: "W3094821849"\ncitekey: "pereira2019"\nurl: "https:\/\/doi\.org\/10\.1186\/s12966-020-01033-3"\ntags: \[\]$/m,
+    "the record's OpenAlex id and a citation key in the library's style, after doi as in the library schema");
   assert.match(note, /^publication_type: ""$/m, "the record has no type: the template's empty value stays");
-  assert.match(note, /^cites: \[\]\ncategory: \[\]$/m, "citations written before category, as Library Studio does");
+  assert.match(note, /^added_on: "2026-10-17"\ncites: \[\]$/m, "cites is the last property, after added_by and added_on");
   assert.match(note, /## Summary\n\n## Abstract\n\nBACKGROUND:[^\n]*\n\n## Keywords\n\n## Why is this paper important\?/);
   assert.doesNotMatch(note, /Notes from Example review/, "no empty section from the record");
   assert.equal((await pdfFolder.list("")).length, 7);

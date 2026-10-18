@@ -87,18 +87,18 @@ export function formatList(key, items, plain = []) {
   return `${key}:\n` + (items ?? []).map(s => `  - "[[${s}]]"\n`).join("") + plain.map(v => `  - "${v.replace(/["\\]/g, "\\$&")}"\n`).join("");
 }
 
-/** The note with these properties replaced or added (before `category:` when there is one). */
+/** The note with these properties replaced where they are, or added at the end (`cites` is the last property). */
 export function replaceProps(text, lines) {
   const eol = text.includes("\r\n") ? "\r\n" : "\n";
   const lf = text.replace(/\r\n/g, "\n");
   const m = /^---\n([\s\S]*?)\n---/.exec(lf);
   if (!m) return text;
   let block = m[1] + "\n";
-  for (const key of Object.keys(lines)) block = block.replace(new RegExp(`^${key}:[^\n]*\n(?:[ \t]+-[^\n]*\n)*`, "m"), "");
+  for (const [key, value] of Object.entries(lines)) {
+    const re = new RegExp(`^${key}:[^\n]*\n(?:[ \t]+-[^\n]*\n)*`, "m");
+    block = re.test(block) ? block.replace(re, () => value) : block + value;
+  }
   block = block.replace(/\n$/, "");
-  const add = Object.values(lines).join("");
-  if (/^category:/m.test(block)) block = block.replace(/^category:/m, add + "category:");
-  else block += "\n" + add.replace(/\n$/, "");
   const out = lf.slice(0, m.index + 4) + block + lf.slice(m.index + 4 + m[1].length);
   return out.replace(/\n/g, eol);
 }
