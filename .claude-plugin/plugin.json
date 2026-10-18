@@ -1,0 +1,7 @@
+{
+  "name": "review-studio",
+  "description": "AI skills for Review Studio: suggest screening decisions, fetch full texts, appraise sources and chart data for scoping and systematic reviews. The reviewer confirms every suggestion.",
+  "author": { "name": "Abdulhamid Baghdadi" },
+  "homepage": "https://abdulhamid-baghdadi.github.io/review-studio/",
+  "repository": "https://github.com/Abdulhamid-Baghdadi/review-studio"
+}

@@ -99,7 +99,7 @@ export function openClaudeGuide() {
         mode === "off" ? null : btn("📋 Copy prompt", () => copy(step.prompt), "sm")),
       h("div", { class: "small" }, ul(step.modes.filter(m => m.key !== "off").map(m => [h("b", {}, m.label + ": "), m.desc]))),
       h("div", { class: "small", style: "margin-top:6px" }, h("b", {}, "You check: "), ul(step.checks)),
-      h("div", { class: "small muted", style: "margin-top:6px" }, "Skill: ", step.skills.map((n, i) => [i ? ", " : "", h("code", {}, `.claude/skills/${n}/SKILL.md`)])));
+      h("div", { class: "small muted", style: "margin-top:6px" }, step.skills.length > 1 ? "AI skills: " : "AI skill: ", step.skills.map((n, i) => [i ? ", " : "", h("code", {}, `skills/${n}/SKILL.md`)])));
   });
   modal({ title: "Working with Claude", wide: true, body: h("div", {},
     h("p", { class: "callout", style: "margin:0 0 16px" },
@@ -107,7 +107,7 @@ export function openClaudeGuide() {
       "It only ever suggests. You confirm every decision in Review Studio, every AI action is logged with the model and date, and the protocol reports it."),
     sec("1 · Set up once", ol([
       "Install Claude Code: the Claude desktop app (Code tab) or the claude command in a terminal.",
-      ["Open the app's folder (the one that contains ", h("code", {}, ".claude/skills"), ") as the project in Claude Code. The review skills come with the app; Node.js, which the app already needs, runs them."],
+      ["Open the app's folder (the one that contains ", h("code", {}, "skills"), ") as the project in Claude Code. The AI skills come with the app as a Claude Code plugin, review-studio: when Claude Code asks, trust the folder and install it. Node.js, which the app already needs, runs them."],
       "Keep Review Studio open next to it: Claude writes, Review Studio is where you check and confirm.",
       "For paywalled papers: let Claude use a browser where you are signed in to your library (for example Claude in Chrome), only if you agree to that."])),
     sec("2 · How one step works", ol([
@@ -127,7 +127,7 @@ export function openClaudeGuide() {
       "An AI second reviewer is not a second person. Say so; if you can, use a human for the second-reviewer sample.",
       "Never let AI solve CAPTCHAs, use shadow libraries or share logins when fetching PDFs."])),
     sec("6 · Other AI assistants", h("p", { style: "margin:0" },
-      ["The skills are plain Markdown files in ", h("code", {}, ".claude/skills/"), ". Any assistant that can read files and run Node.js commands can follow them; the prompt on each card works the same way."])))
+      ["The AI skills are plain Markdown files in ", h("code", {}, "skills/"), ". Any assistant that can read files and run Node.js commands can follow them; the prompt on each card works the same way."])))
   });
 }
 

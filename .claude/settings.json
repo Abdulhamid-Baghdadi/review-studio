@@ -1,0 +1,6 @@
+{
+  "extraKnownMarketplaces": {
+    "review-studio": { "source": { "source": "directory", "path": "." } }
+  },
+  "enabledPlugins": { "review-studio@review-studio": true }
+}

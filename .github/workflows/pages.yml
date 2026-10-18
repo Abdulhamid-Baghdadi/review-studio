@@ -69,7 +69,8 @@ jobs:
           cp scripts/serve.js scripts/precache-list.js "pack/$D/scripts/"
           mkdir -p "pack/$D/node_modules/pdfjs-dist"   # only what the app uses: build (browser), legacy (Node, for the AI skills)
           cp -r node_modules/pdfjs-dist/build node_modules/pdfjs-dist/legacy node_modules/pdfjs-dist/package.json node_modules/pdfjs-dist/LICENSE "pack/$D/node_modules/pdfjs-dist/"
-          cp -r .claude/skills "pack/$D/.claude/"
+          cp -r skills .claude-plugin "pack/$D/"   # the AI skills, as a Claude Code plugin
+          cp .claude/settings.json "pack/$D/.claude/" 2>/dev/null || true   # turns that plugin on for the folder
           cp "Start Review Studio.cmd" "Start Review Studio.command" start-review-studio.sh "pack/$D/"
           chmod +x "pack/$D/Start Review Studio.command" "pack/$D/start-review-studio.sh"
           (cd pack && zip -qr ../review-studio.zip "$D")

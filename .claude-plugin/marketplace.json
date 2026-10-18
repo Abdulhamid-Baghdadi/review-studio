@@ -1,0 +1,12 @@
+{
+  "name": "review-studio",
+  "description": "Review Studio's AI skills",
+  "owner": { "name": "Abdulhamid Baghdadi" },
+  "plugins": [
+    {
+      "name": "review-studio",
+      "source": "./",
+      "description": "AI skills for scoping and systematic reviews in Review Studio"
+    }
+  ]
+}

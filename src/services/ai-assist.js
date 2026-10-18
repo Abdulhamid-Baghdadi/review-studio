@@ -1,5 +1,5 @@
 /**
- * How an AI assistant reads from and writes to a review (used by the skills in .claude/skills/review-*).
+ * How an AI assistant reads from and writes to a review (used by the AI skills in skills/review-*).
  *
  * Every function checks the AI mode the review chose for that step and refuses when it is off. Writes go
  * through the same rules as the app and are logged in the timeline with the model name. The AI never sets

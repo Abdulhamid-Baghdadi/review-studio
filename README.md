@@ -133,7 +133,7 @@ Each step that can use help has an **🤖 AI assistance** card where you choose 
 
 Claude only ever *suggests*: you confirm or change every suggestion in Review Studio, each AI action is logged with the model and date, and the protocol's "Use of AI assistance" section is written for you.
 
-How to use it: open the app's folder (the download, or a clone of this repository) in Claude Code, press **📋 Copy prompt** on the AI card and paste it. The skills are in `.claude/skills/`; they work through `node bin/ai-assist.js`, which refuses whenever the review has the AI switched off for that step. Keep Review Studio open next to it: it notices Claude's changes and shows them.
+How to use it: open the app's folder (the download, or a clone of this repository) in Claude Code; when it asks, trust the folder and install the **review-studio** plugin, which brings the AI skills. Then press **📋 Copy prompt** on the AI card and paste it. The AI skills are in [`skills/`](skills/README.md); they work through `node bin/ai-assist.js`, which refuses whenever the review has the AI switched off for that step. Keep Review Studio open next to it: it notices Claude's changes and shows them.
 
 ## Privacy and data safety
 

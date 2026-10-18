@@ -119,8 +119,8 @@ function aiCard(key) {
       h("button", { class: "btn sm ghost ai-toggle", "aria-expanded": String(open), onclick: toggle }, "Close ▴")),
     open ? h("div", { class: "aibody" },
       h("div", { class: "small muted" }, cur.desc),
-      mode === "off" ? null : h("div", { class: "small muted" }, step.skills.length > 1 ? "Skills: " : "Skill: ",
-        step.skills.map((n, i) => [i ? ", " : "", h("code", {}, `.claude/skills/${n}/SKILL.md`)])),
+      mode === "off" ? null : h("div", { class: "small muted" }, step.skills.length > 1 ? "AI skills: " : "AI skill: ",
+        step.skills.map((n, i) => [i ? ", " : "", h("code", {}, `skills/${n}/SKILL.md`)])),
       mode === "off" ? null : h("div", { class: "small" }, h("b", {}, "You check: "),
         h("ul", {}, step.checks.map(c => h("li", {}, c))))) : null);
 }
