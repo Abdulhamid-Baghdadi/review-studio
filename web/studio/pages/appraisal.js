@@ -13,7 +13,7 @@ PAGES.appraisal = () => {
   const inc = S.records.filter(r => r.ft_decision === "include");
   return h("div", {},
     card("Approach", "Optional in a scoping review. Choose a tool that suits the study designs, or use 'Skip' above and give the reason.",
-      h("div", { class: "row", style: "flex-wrap:nowrap;align-items:flex-end" }, Object.assign(field("Appraisal tool", tool), { style: "flex:1" }),
+      h("div", { class: "row", style: "align-items:flex-end" }, Object.assign(field("Appraisal tool", tool), { style: "flex:1 1 220px" }),
         btn("Save", () => api("appraisal_tool", { tool: tool.value }), ""),
         btn("Add appraisal columns", () => api("prepare_charting", { appraisal: true }), "primary"))),
     card("Ratings", `${inc.length} included source(s)` +
