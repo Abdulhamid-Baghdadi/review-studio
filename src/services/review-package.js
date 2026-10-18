@@ -42,7 +42,7 @@ function aiUse(st, records, logRows, type) {
     `- Screening suggestions confirmed unchanged by the reviewer: ${count("suggestion confirmed by reviewer")}`,
     `- Screening suggestions changed by the reviewer: ${count("reviewer changed AI")}`,
     `- Decisions in the decision log made through reviewed AI suggestions: ${logRows.filter(r => r.how === HOW.ai).length}`,
-    `- Charting / extraction prefilled by AI and not yet checked by the reviewer: ${records.filter(r => isIncluded(r.props) && r.props.chart_checked_by === "AI").length}`,
+    `- Charting prefilled by AI and not yet checked by the reviewer: ${records.filter(r => isIncluded(r.props) && r.props.chart_checked_by === "AI").length}`,
     `- Appraisal ratings suggested by AI and not yet confirmed: ${records.filter(r => r.props.appraisal_by === "AI").length}`,
     ...Object.entries(st.reviewer_ai ?? {}).map(([stage, r]) => `- Second reviewer (${stage === "ta" ? "title/abstract" : "full text"}) was an AI: ${r.model}, ${r.when}, sheet ${r.sheet}`),
     "", "## Every AI event in the timeline\n", "| When | Stage | What |", "|---|---|---|",
@@ -86,15 +86,10 @@ export async function writePackage(repo, st) {
     await copy(`${SECOND_REVIEWER_DIR}/${name}`, `04 Second reviewer/${name}`, "blind second-reviewer sheet");
   }
 
-  const charting = type.key === "systematic" ? "Data extraction" : "Data charting";
+  const charting = "Data charting";
   add(`05 ${charting}/${charting} and appraisal.csv`, chartingCsv(st, records.filter(r => isIncluded(r.props)).map(r => r.props)),
     `the ${type.words.charting} values and ${type.words.appraisal} ratings of every included ${type.words.unit}`);
-  if (type.key === "systematic") {
-    const s = st.synthesis ?? {};
-    add("06 Synthesis.md", ["# Synthesis and certainty\n", ...[["Approach", "approach"], ["Software", "software"], ["Results file", "results_file"],
-      ["Heterogeneity and sensitivity", "heterogeneity"], ["Reporting bias", "reporting_bias"], ["Certainty of the evidence", "certainty"], ["Notes", "notes"]]
-      .map(([label, k]) => `## ${label}\n\n${s[k] || "_(not recorded)_"}\n`)].join("\n"), "what was done in the synthesis (the analysis files stay with the authors)");
-  }
+
 
   await copy(FILES.flow, `07 Report/${FILES.flow}`, "PRISMA flow diagram and counts, exclusion reasons, agreement");
   await copy(type.checklistFile, `07 Report/${type.checklistFile}`, `${type.guideline} checklist with locations`);

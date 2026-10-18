@@ -10,7 +10,7 @@ import { STAGE_FILES, strategyNote, timelineNote } from "../domain/stage-notes.j
 
 export const STATE_FILE = "review_state.json";
 
-/** The state of a review folder (defaults for a new review, which starts as a systematic review). */
+/** The state of a review folder (defaults for a new review). */
 export async function loadState(folder) {
   return restoreState((await folder.exists(STATE_FILE)) ? JSON.parse(await folder.readText(STATE_FILE)) : { review_type: NEW_REVIEW_TYPE });
 }

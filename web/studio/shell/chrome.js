@@ -141,7 +141,6 @@ const STORAGE = {
   retrieval: [["08 - Records", "full_text_status, open_access_url"], ["10 - Full texts", "attached PDFs"]],
   charting: [["08 - Records", "extracted_ properties"], ["12 - Charting.base", "the same as an Obsidian table"], ["review_state.json", "the form"]],
   appraisal: [["08 - Records", "appraisal properties"], ["12 - Charting.base", "Appraisal view"]],
-  synthesis: [["review_state.json", "what was done; the analysis files stay where you keep them"], ["00 - Review timeline.md", "readable: when it changed"]],
   report: [["14 - PRISMA flow.md", "flow diagram"], ["08 - Decision log.csv", "every decision change"], ["@checklist", "checklist"], ["07 - Exports", "BibTeX, CSV"], ["@library", "included_in on publication notes"]],
 };
 
@@ -204,8 +203,6 @@ export function render() {
   renderDraftBar();
   for (const id of ["btnTimeline", "btnScr"]) $("#" + id).hidden = CUR === HOME;   // the Homepage is only an introduction
   $("#btnHome").classList.toggle("on", CUR === HOME);
-  $("#btnType").textContent = `🧭 ${S.review_type.label} · ${S.review_type.guideline}`;
-  $("#btnType").hidden = S.review_type.key !== "scoping" || CUR === HOME;   // systematic is the standard; only a scoping review shows its type
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
   const page = $("#page");
   page.replaceChildren(PAGES[CUR](), CUR === HOME ? "" : pageNav());

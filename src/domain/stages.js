@@ -82,8 +82,6 @@ export function defaultState(type = DEFAULT_REVIEW_TYPE) {
     snowballing: { rounds: [] },
     charting: { fields: DEFAULT_FIELDS.map(f => ({ ...f })), appraisal_tool: "" },
     checklist: {},
-    checklist_prisma2020: {},
-    synthesis: { approach: "", software: "", results_file: "", heterogeneity: "", reporting_bias: "", certainty: "", notes: "", outcomes: [] },
     ai: {},
     events: [],
   };
@@ -97,7 +95,7 @@ export function restoreState(saved) {
     if (isObject(v) && isObject(st[k])) Object.assign(st[k], v);
     else st[k] = v;
   }
-  if (!REVIEW_TYPES[st.review_type]) st.review_type = DEFAULT_REVIEW_TYPE;    // reviews made before review types: scoping
+  // a type the app no longer has (e.g. "systematic") is kept as saved; reviewType() reads it as a scoping review
   for (const key of ALL_STAGE_KEYS) st.stages[key] ??= { status: "not-started", reason: "", updated: "" };
   return st;
 }
@@ -192,16 +190,3 @@ export function saveQuestions(st, { population, concept, context, outcome, main,
   return true;
 }
 
-/**
- * Changes the review type (scoping or systematic); after locking this is an amendment.
- * @returns {boolean} whether anything changed
- */
-export function setReviewType(st, type, { reason = "", devMode = false, now }) {
-  if (!REVIEW_TYPES[type]) throw new Error(`Unknown review type: ${type}`);
-  if (st.review_type === type) return false;
-  if (needsAmendment(st, devMode)) amend(st, "review type", reason, now);
-  else devNote(st, "review type", devMode, now);
-  st.review_type = type;
-  event(st, "questions", `review type: ${REVIEW_TYPES[type].label} (reported to ${REVIEW_TYPES[type].guideline})`, now);
-  return true;
-}

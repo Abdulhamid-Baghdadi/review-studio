@@ -128,19 +128,18 @@ test("appraisal: suggests a rating per included record in the review type's word
   const s = await review();
   await assert.rejects(aiAppraise(s.repo, s.st, [], { model }), AiNotAllowed);
   s.st.ai = { appraisal: "suggest" };
-  s.st.review_type = "systematic";
   await assert.rejects(aiContext(s.repo, s.st, "appraisal"), /no appraisal tool/);
-  await s.setAppraisalTool("RoB 2");
+  await s.setAppraisalTool("MMAT 2018");
   for (const id of ["R0001", "R0002", "R0003"]) { await s.decide(id, "ta", "include"); await s.decide(id, "ft", "include"); }
   await s.setRecord("R0003", { appraisal: "low", appraisal_by: "reviewer" });
   const ctx = await aiContext(s.repo, s.st, "appraisal");
-  assert.equal(ctx.task, "risk of bias");
-  assert.deepEqual(ctx.ratings, ["low", "some concerns", "high", "unclear"]);
+  assert.equal(ctx.task, "critical appraisal");
+  assert.deepEqual(ctx.ratings, ["high", "moderate", "low", "unclear"]);
   assert.deepEqual(ctx.records.map(r => r.id), ["R0001", "R0002"]);
   const lines = await aiAppraise(s.repo, s.st, [
-    { id: "R0001", rating: "Some concerns", note: "D2: deviations not reported (p. 5)" },
-    { id: "R0002", rating: "moderate", note: "x" }, { id: "R0003", rating: "high", note: "x" }, { id: "R0004", rating: "low", note: "x" }], { model });
-  assert.deepEqual(lines, ["R0001: some concerns", "  skipped R0002: rating must be one of low, some concerns, high, unclear",
+    { id: "R0001", rating: "Moderate", note: "Sampling not described (p. 5)" },
+    { id: "R0002", rating: "some concerns", note: "x" }, { id: "R0003", rating: "high", note: "x" }, { id: "R0004", rating: "low", note: "x" }], { model });
+  assert.deepEqual(lines, ["R0001: moderate", "  skipped R0002: rating must be one of high, moderate, low, unclear",
     "  skipped R0003: already rated", "  skipped R0004: not an included record"]);
   assert.equal(props(s, "R0001").appraisal_by, "AI");
   assert.match(props(s, "R0001").appraisal_note, /\[AI \(claude-test\)\]$/);

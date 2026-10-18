@@ -1,7 +1,7 @@
 {
   "name": "Systematic Review Workbench",
   "short_name": "ScR Studio",
-  "description": "Scoping reviews (PRISMA-ScR) and systematic reviews (PRISMA 2020); every review stays in a folder on your own PC.",
+  "description": "Scoping reviews (PRISMA-ScR); every review stays in a folder on your own PC.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

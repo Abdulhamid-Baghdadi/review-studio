@@ -1,10 +1,10 @@
 # Systematic Review Workbench
 
-**A workbench for systematic reviews, reported to PRISMA 2020, that runs in your browser and keeps every review in a folder on your own PC. Scoping reviews (PRISMA-ScR) are supported too. The methods follow Cochrane and JBI guidance.**
+**A workbench for scoping reviews, reported to PRISMA-ScR, that runs in your browser and keeps every review in a folder on your own PC. The methods follow the JBI Manual and Arksey & O'Malley. It covers the review from the first idea to the charted evidence and the report; analyse the charted data further in the tools your field uses.**
 
 **[▶ Open it in your browser](https://abdulhamid-baghdadi.github.io/systematic-review-workbench/)** · **[💾 Download for Windows, Mac and Linux](https://github.com/Abdulhamid-Baghdadi/systematic-review-workbench/releases/latest/download/systematic-review-workbench.zip)** · Chrome or Edge on a computer
 
-Systematic Review Workbench walks you through a systematic review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
+Systematic Review Workbench walks you through a scoping review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
 
 ![Systematic Review Workbench: screening a record, with the map of the review's steps and the PRISMA flow at the top](docs/screenshot.png)
 
@@ -16,7 +16,7 @@ Systematic Review Workbench walks you through a systematic review from the first
 
 **Highlights**
 
-- 🧭 **Guided, step by step:** 10 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
+- 🧭 **Guided, step by step:** 9 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
 - 🔒 **Your files, your PC:** no account, no upload, no database. A review is a folder of Markdown, CSV and PDFs.
 - 🟣 **Opens in Obsidian:** a review folder is an Obsidian vault as it is, with the screening and charting tables as `.base` files.
 - 🤖 **AI only if you want it:** Claude can pre-screen, fetch PDFs, be the blind second reviewer or prefill charting. It suggests; you confirm.
@@ -26,7 +26,7 @@ Systematic Review Workbench walks you through a systematic review from the first
 
 - [Getting started](#getting-started)
 - [Three ways to use it](#three-ways-to-use-it)
-- [The 10 steps](#the-10-steps)
+- [The 9 steps](#the-9-steps)
 - [Your review folder](#your-review-folder)
 - [AI assistance with Claude (optional)](#ai-assistance-with-claude-optional)
 - [Privacy and data safety](#privacy-and-data-safety)
@@ -63,28 +63,29 @@ You need **[Node.js](https://nodejs.org) 20 or newer** (free; install it once) a
 
 The launcher starts the app on your computer and opens it at **http://localhost:8770/web/**. Keep its window open while you work; close it (or press Ctrl+C) to stop. Your reviews are not inside the app's folder: they are wherever you saved them, so you can replace the app with a newer download at any time.
 
-## The 10 steps
+## The 9 steps
 
-A new review is a **systematic review, reported to PRISMA 2020**. A map at the top of every page shows the ten steps in plain words; steps with more than one part show them as tabs on their page.
+A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of every page shows the nine steps in plain words; steps with more than one part show them as tabs on their page.
 
 | # | Step | Tabs | What you do |
 |---:|---|---|---|
-| 1 | **Research question** | Question · Idea notes *(optional)* | Say exactly what you want to find out, as PICO (Population, Intervention, Comparator, Outcomes); jot down early ideas with dates. Every version is kept. |
+| 1 | **Research question** | Question · Idea notes *(optional)* | Say exactly what you want to find out, as Population–Concept–Context; jot down early ideas with dates. Every version is kept. |
 | 2 | **Search strategy** | Keywords · Search strings · Test the search *(optional)* | One block of synonyms per idea in your question; ready-to-paste strings per database (Scopus, Web of Science, IEEE Xplore, OpenAlex, …); trial runs against papers you already know. |
-| 3 | **Inclusion rules** | Include / exclude rules · Other methods · Lock & register | Which studies are in and which are out, with the exclusion reasons (E1, E2 …) used while screening; the other protocol sections; freeze the plan before searching. |
+| 3 | **Inclusion rules** | Include / exclude rules · Other methods · Lock & register | Which sources are in and which are out, with the exclusion reasons (E1, E2 …) used while screening; the other protocol sections; freeze the plan before searching. |
 | 4 | **Search & import** | | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
 | 5 | **Screen papers** | Screen · Get full texts · Second reviewer | Title/abstract, then full text, with keyboard shortcuts; find and attach the PDFs; a blind second reviewer, with Cohen's κ. |
-| 6 | **Citation search** *(optional)* | | Follow the references of included studies until a round adds nothing new (snowballing). |
-| 7 | **Extract data** | | The extraction form for every included study, with page numbers. |
-| 8 | **Risk of bias** | | How trustworthy each study is, with a tool such as RoB 2 or ROBINS-I. |
-| 9 | **Synthesis** | | Narrative synthesis or meta-analysis (forest and funnel plots, R script) and the certainty of the evidence (GRADE). |
-| 10 | **Report** | | PRISMA flow diagram, PRISMA 2020 checklist, report draft and exports. |
+| 6 | **Citation search** *(optional)* | | Follow the references of included sources until a round adds nothing new (snowballing). |
+| 7 | **Chart the data** | | The charting form for every included source, with page numbers. |
+| 8 | **Quality check** *(optional)* | | Rate each source with an appraisal tool you name (e.g. MMAT, CASP), or skip it with a reason: PRISMA-ScR makes it optional. |
+| 9 | **Report** | | PRISMA flow diagram, PRISMA-ScR checklist, report draft and exports. |
 
-**The map is the navigation.** Folded to one slim line by default (numbered steps and the PRISMA counts), or unfolded with *Map ▾*. It runs from the planning steps through the boxes of the PRISMA flow diagram, with your live counts (records found, titles and abstracts screened, full texts sought and read, studies included), to the analysis steps and the report. *You are here* marks the page on screen; click any box to open it, or ⤢ for the full PRISMA diagram.
+**Where the app stops.** It covers the review up to the charted evidence: the charting table, the flow diagram, the checklist and the exports (CSV, RIS, BibTeX, your Obsidian library). How you summarise and analyse the charted data depends on your field, so that is done in the tools you already use; the protocol's *Synthesis of results* section records how.
 
-**A finished example.** [Open it directly](https://abdulhamid-baghdadi.github.io/systematic-review-workbench/web/#example) (the link `…/web/#example`), or click *Open the example* on the Homepage or *📘 Show me an example* at the top of any page. It is a small systematic review, finished up to the report: *Do sit-stand desks reduce sitting time at work?* A real OpenAlex search (66 records, string and date logged) is screened down to 8 randomised trials, read in full, with data extracted (page and table for each value), risk of bias judged with RoB 2, a random-effects meta-analysis of 7 trials (forest and funnel plot, R script) and GRADE. The open-access full texts come with it; papers without an open licence are marked "not retrieved" (sources and licences: `web/example/full-texts/LICENSES.md`). The example is copied fresh into the browser each time it is opened, so visitors can change anything; **💾 Save a copy…** puts the whole review (notes and PDFs) in a folder on your PC, ready to open in Obsidian. It is built by `npm run example` from the saved search in `web/example/openalex-search.json`. The judgements were made for this teaching example by one reviewer.
+**The map is the navigation.** Folded to one slim line by default (numbered steps and the PRISMA counts), or unfolded with *Map ▾*. It runs from the planning steps through the boxes of the PRISMA flow diagram, with your live counts (records found, titles and abstracts screened, full texts sought and read, sources included), to the charting step and the report. *You are here* marks the page on screen; click any box to open it, or ⤢ for the full PRISMA diagram.
 
-**Scoping reviews** (reported to PRISMA-ScR) are still supported: switch a review under ⚙ Settings → *Review type*. A scoping review uses Population–Concept–Context, calls step 7 *Chart the data* and step 8 an optional *Quality check*, and has no synthesis step. Reviews made before review types existed open as scoping reviews.
+**A finished example.** [Open it directly](https://abdulhamid-baghdadi.github.io/systematic-review-workbench/web/#example) (the link `…/web/#example`), or click *Open the example* on the Homepage or *📘 Show me an example* at the top of any page. It is a small engineering scoping review, finished up to the report: *What design features and methods that make lithium-ion battery packs easier to disassemble are described in the engineering literature?* A real OpenAlex search (111 records, string and date logged) is screened down to 20 papers for full text; the 4 with a CC BY full text are read in full and charted (page for each value). The other 16 are marked "not retrieved", because the example only ships openly licensed PDFs (sources and licences: `web/example/full-texts/LICENSES.md`). The example is copied fresh into the browser each time it is opened, so visitors can change anything; **💾 Save a copy…** puts the whole review (notes and PDFs) in a folder on your PC, ready to open in Obsidian. It is built by `npm run example` from the saved search in `web/example/openalex-search.json` (made with `scripts/fetch-example-search.js`). The judgements were made for this teaching example by one reviewer.
+
+**Reviews made as systematic reviews** (before 18 Oct 2026, when the app supported both types) still open: they are shown as scoping reviews, and everything they saved, including their PRISMA 2020 ticks and synthesis notes, stays in `review_state.json`.
 
 Links to a part of the app keep working: `…/web/#questions` opens the Question tab, `#protocol` the inclusion rules, `#screening` screening.
 
@@ -119,7 +120,7 @@ Each record note keeps its decisions in its properties, in full words (`title_ab
 - **Export to your Obsidian library.** *Report → Export to Obsidian library* turns the included papers into publication notes in your library folder, from your own publication template (⚙ Settings → Review settings → *Publication template*; otherwise the app's own), with `added_by` (the review) and `added_on` (the date), copies their PDFs (to the folder you chose, else `PDFs` in the library folder), and then updates the citations below. A paper already in the library only gets the review added to `included_in`.
 - **Citations in your library.** *Report → Check citations* looks up the papers of your publication library on OpenAlex (by DOI, about one request per 50 papers) and writes what each paper cites into `cites`: a link for a paper in your library, otherwise its DOI (or its OpenAlex id when it has none) (for Obsidian's graph; the papers citing a paper are its backlinks). Run it again after adding papers and the DOIs of papers now in your library become links. The old `cited_by` property and *Unlinked cited works* section are removed. A paper OpenAlex does not find keeps its `cites` (it is never emptied); only the entries of papers now in your library become links. It shows what would change first; nothing else in the notes is touched. (This used to be Library Studio's Citations page.)
   After adding papers by hand, run `node "<Systematic Review Workbench folder>/bin/check-citations.js"` from your vault: it shows, without going online, which DOIs and OpenAlex ids in `cites` now belong to papers in your library; add `--write` to turn them into links, and `--openalex` for the full *Check citations* (which also fetches the new papers' own reference lists). `--help` lists the options.
-- **Review package.** *Report → Make review package* writes `07 - Exports/Review package <date>/` and the same as a ZIP: the registered and current protocol, timeline and amendments, search strings and export files, every decision with its reason, the decision log, the second-reviewer sheets, the charting or extraction table, the flow diagram, the checklist and a report on AI use. `MANIFEST.md` lists the SHA-256 of every file, so a copy deposited on OSF or Zenodo can be checked.
+- **Review package.** *Report → Make review package* writes `07 - Exports/Review package <date>/` and the same as a ZIP: the registered and current protocol, timeline and amendments, search strings and export files, every decision with its reason, the decision log, the second-reviewer sheets, the charting table, the flow diagram, the checklist and a report on AI use. `MANIFEST.md` lists the SHA-256 of every file, so a copy deposited on OSF or Zenodo can be checked.
 
 ## AI assistance with Claude (optional)
 
@@ -128,8 +129,8 @@ Each step that can use help has an **🤖 AI assistance** card where you choose 
 - **pre-screen** titles and abstracts, or full texts, and suggest a decision with a reason;
 - **fetch full texts** (open access first) and attach the PDFs;
 - act as a **blind second reviewer** on the sample;
-- **prefill the charting form** (data extraction in a systematic review) from the PDFs, with page locators;
-- **suggest appraisal or risk-of-bias ratings** with the tool you chose (e.g. RoB 2), with reasons and page locators.
+- **prefill the charting form** from the PDFs, with page locators;
+- **suggest quality ratings** with the appraisal tool you chose (e.g. MMAT), with reasons and page locators, if you do a quality check.
 
 Claude only ever *suggests*: you confirm or change every suggestion in Systematic Review Workbench, each AI action is logged with the model and date, and the protocol's "Use of AI assistance" section is written for you.
 

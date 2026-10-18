@@ -28,7 +28,7 @@ Each box imports only from the boxes below it (and its own layer). `npm run chec
 |---|---|---|---|
 | **domain** | `src/domain/` | Pure functions and value objects: front matter, CSV, names, matching, importers, records, screening checks, PRISMA counts, κ, sampling (seeded, reproducible), review state and stage rules, search strings, protocol, citations, generated notes as text. No I/O, no clock, no randomness, no platform APIs. | domain |
 | **ports** | `src/ports/` | Interfaces the services need from outside: `Folder` (the review folder), `Clock`, `Http` (OpenAlex), `PdfText`. Types only. | domain, ports |
-| **services** | `src/services/` | Use cases (`screening`, `stage-actions`, `review-commands`, `library`, `library-citations`, `synthesis`, …). They load the review through a `Folder`, call the domain, and write the result back. Their ports are passed in (dependency injection). | domain, ports, services |
+| **services** | `src/services/` | Use cases (`screening`, `stage-actions`, `review-commands`, `library`, `library-citations`, …). They load the review through a `Folder`, call the domain, and write the result back. Their ports are passed in (dependency injection). | domain, ports, services |
 | **adapters** | `src/adapters/` | The ports for each platform: Node file system (tests, CLI), in memory (tests), `fetch` for Http, the browser's File System Access API, pdf.js, the browser's list of remembered reviews. | domain, ports, adapters |
 | **ui** | `src/ui/` | The browser shell of the engine: `Backend` answers the page's requests with a `ReviewSession` and knows where each review keeps its settings (a folder, the draft, the example); `view-model.js` builds the snapshot the page draws. | the public API (`src/index.js`), adapters |
 

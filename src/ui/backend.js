@@ -390,10 +390,6 @@ export class Backend {
       }
       case "prepare_charting": return s.prepareCharting(Boolean(a.appraisal));
       case "appraisal_tool": return s.setAppraisalTool(a.tool);
-      case "review_type": return s.setReviewType(a.type, amendment);
-      case "save_synthesis": return s.saveSynthesis(a.fields ?? {});
-      case "save_outcome": return s.saveOutcome(a.outcome);
-      case "delete_outcome": return s.deleteOutcome(a.id);
       case "record_history": return { raw: { rows: await s.decisionHistory(a.record_id) } };
       case "verify_log": return { raw: await s.verifyDecisionLog() };
       case "review_package": { const r = await s.reviewPackage(); return { message: r.message, download: r.path }; }

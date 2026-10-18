@@ -91,13 +91,11 @@ export function checklistEvidence({ st, searches, records, guideExists, flowExis
     flow: flowExists && searches.length ? "PRISMA flow generated" : "",
     charting: s.charting.status !== "not-started" ? `${words.charting} table` : "",
     appraisalData: s.appraisal.status === "skipped" ? "not performed (skipped)" : "",
-    synthesis: s.synthesis?.status === "done" ? "synthesis stage done" : "",
-    certainty: strip(st.protocol_text.certainty ?? "") ? "certainty method in the protocol" : "",
   };
   return Object.fromEntries(Object.entries(type.evidence).map(([fact, n]) => [n, facts[fact] ?? ""]));
 }
 
-/** The review's checklist note: 14 - PRISMA-ScR checklist.md or 15 - PRISMA 2020 checklist.md */
+/** The review's checklist note: 14 - PRISMA-ScR checklist.md */
 export function checklistNote({ reviewName, reviewLink, st, today, evidence }) {
   const type = reviewType(st), ticks = checklistOf(st);
   const lines = [frontmatter.serialize({ type: "prisma-checklist", review: reviewLink, guideline: type.guideline, generated: today }),

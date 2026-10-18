@@ -17,7 +17,7 @@ export const AI_STEPS = Object.freeze({
     ],
     checks: ["Read each record before its suggestion; at full text, open the PDF of every suggested exclusion you are unsure about.",
       "Decide yourself (I, U or E) wherever you disagree; Z undoes your last decision.",
-      "Report the AI assistance in the methods (PRISMA-ScR 9; PRISMA 2020 item 8 names automation tools explicitly)."],
+      "Report the AI assistance in the methods (PRISMA-ScR item 9, selection of sources of evidence)."],
   },
   reviewer: {
     skill: "review-second-reviewer",

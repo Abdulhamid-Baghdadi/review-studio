@@ -32,7 +32,7 @@ function drawer(title, ...body) {
 }
 
 export function openHelp(key) {
-  const x = (S.review_type?.key === "systematic" && H.stages_systematic?.[key]) || H.stages[key], s = stage(key), num = {};
+  const x = H.stages[key], s = stage(key), num = {};
   const rules = x.rules.map(([text, level, refs]) => h("div", { class: "rule" }, lvl(level), h("div", {}, withScr(text), refMarks(refs, num))));
   const terms = x.terms.map(t => h("div", { class: "term" }, h("b", {}, t), H.terms[t].definition, refMarks(H.terms[t].refs, num)));
   drawer("Help · " + stageName(key),
@@ -50,9 +50,8 @@ export function openHelp(key) {
  * The worked example's value for a field, as light-grey text in an empty field ("e.g. …"); "" when the example has none.
  * `name` is matched to the example's label, ignoring case and "_" (e.g. "main question", "study_type", "eligibility").
  */
-/** The worked example for the review's type: a real scoping run, or an illustrative systematic review. */
-const sysExample = () => S?.review_type?.key === "systematic" && H?.examples_systematic;
-const examples = () => (sysExample() ? H.examples_systematic : H?.examples) ?? {};
+/** The worked example: a real scoping run. */
+const examples = () => H?.examples ?? {};
 
 export function exampleFor(stageKey, name, part) {
   const norm = t => String(t).toLowerCase().replace(/[_\s]+/g, " ").trim();
@@ -65,11 +64,11 @@ export function exampleFor(stageKey, name, part) {
 export function openExample(key) {
   const ex = examples()[key] || {}, s = stage(key);
   drawer("Example · " + stageName(key),
-    h("div", { class: "callout", style: "margin:8px 0 14px" }, h("b", {}, "Worked example: "), sysExample() ? H.example_topic_systematic : H.example_topic),
+    h("div", { class: "callout", style: "margin:8px 0 14px" }, h("b", {}, "Worked example: "), H.example_topic),
     ex.items ? h("table", { class: "tbl" }, ex.items.map(([k, v]) => h("tr", {}, h("td", { style: "width:34%;color:var(--muted);font-weight:600" }, k), h("td", {}, v)))) : null,
     ex.code ? h("div", { class: "code", style: "margin-top:10px", html: hlQuery(ex.code) }) : null,
     ex.lesson ? h("div", { class: "callout ok", style: "margin-top:14px" }, h("b", {}, "Lesson: "), ex.lesson) : null,
-    h("p", { class: "small muted", style: "margin-top:16px" }, sysExample() ? H.example_note_systematic : "Real values from a run of this tool on 6 Oct 2026; screening decisions were illustrative."),
+    h("p", { class: "small muted", style: "margin-top:16px" }, "Real values from a run of this tool on 6 Oct 2026; screening decisions were illustrative."),
     h("div", { class: "row" }, btn("? Back to help", () => openHelp(key), "sm")));
 }
 
@@ -123,7 +122,7 @@ export function openClaudeGuide() {
       "Summarise or compare included papers, or draft parts of the report from the charting table. Check every claim against the paper."])),
     sec("5 · Rules that keep the review sound", ul([
       "The reviewer decides. AI suggestions are never final decisions, and a confirmed batch is recorded as yours with a note per record.",
-      "Report AI use in the methods (PRISMA-ScR item 9, selection of sources; PRISMA 2020 item 8 asks for automation tools explicitly): which steps, which model, how its output was checked. The protocol's 'Use of AI assistance' section is written for you.",
+      "Report AI use in the methods (PRISMA-ScR item 9, selection of sources of evidence): which steps, which model, how its output was checked. The protocol's 'Use of AI assistance' section is written for you.",
       "An AI second reviewer is not a second person. Say so; if you can, use a human for the second-reviewer sample.",
       "Never let AI solve CAPTCHAs, use shadow libraries or share logins when fetching PDFs."])),
     sec("6 · Other AI assistants", h("p", { style: "margin:0" },
@@ -165,7 +164,7 @@ export function openKeys() {
     h("table", { class: "tbl" }, letters.map(r => row(r, !singleKeys.on())), always.map(r => row(r, false)))) });
 }
 
-// ---------- Checklist item references: "PRISMA-ScR 3" or "PRISMA 2020 item 16a" → clickable chip, plus the full checklist
+// ---------- Checklist item references: "PRISMA-ScR 3" → clickable chip, plus the full checklist
 function scrChip(n) {
   n = String(n);
   const g = S.review_type.guideline;
@@ -174,7 +173,7 @@ function scrChip(n) {
     onclick: e => { e.preventDefault(); e.stopPropagation(); openChecklist(it?.n ?? n); } }, `${g === "PRISMA-ScR" ? "ScR" : "P2020"} ${n}`);
 }
 
-// Turns text such as "Rationale (PRISMA-ScR 3)", "(PRISMA-ScR items 10–11)" or "(PRISMA 2020 item 16a)" into text + clickable
+// Turns text such as "Rationale (PRISMA-ScR 3)" or "(PRISMA-ScR items 10–11)" into text + clickable
 // chips; a reference to the other guideline than the review's own stays plain text
 export function withScr(text) {
   const m = String(text).match(/^(.*?)\s*\((PRISMA-ScR|PRISMA 2020)(?: items?)?\s*([\da-f,\s–-]+)\)\s*(.*)$/);
@@ -191,9 +190,7 @@ export function withScr(text) {
 export function openChecklist(focus) {
   const auto = S.checklist_auto, cl = S.state.checklist, rt = S.review_type, items = S.checklist_items;
   const at = n => items.findIndex(it => it.n === n);
-  const intro = rt.key === "systematic"
-    ? `PRISMA 2020 (${rt.guidelineCitation}): 27 items, 42 with their sub-items, for reporting a systematic review. Report the abstract with the PRISMA 2020 for Abstracts checklist. Tick items on the Report stage.`
-    : `PRISMA-ScR (${rt.guidelineCitation}): 20 essential items and 2 optional ones (12 and 16, critical appraisal) for reporting a scoping review. Items 5–13 are written in the protocol; the rest come with the final paper. Tick items on the Report stage.`;
+  const intro = `PRISMA-ScR (${rt.guidelineCitation}): 20 essential items and 2 optional ones (12 and 16, critical appraisal) for reporting a scoping review. Items 5–13 are written in the protocol; the rest come with the final paper. Tick items on the Report stage.`;
   const body = h("div", {},
     h("p", { class: "muted small", style: "margin-top:0" }, intro),
     rt.checklistParts.map(([part, a, b]) => h("div", {},

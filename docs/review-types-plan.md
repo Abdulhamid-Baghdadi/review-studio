@@ -1,5 +1,7 @@
 # Plan: scoping and systematic reviews in one app
 
+> **2026-10-18: the systematic type was removed.** The app now supports scoping reviews only (PRISMA-ScR) and ends at the charted evidence and the report; meta-analysis, GRADE, RoB 2 and the PRISMA 2020 checklist are gone. The profile structure described below stays, so a second type can be added back as one more profile. Reviews saved as `"systematic"` open as scoping reviews and keep their saved data. The rest of this file is the plan as it was.
+
 Status (2026-10-12): steps 1–3 built (profiles, systematic type, type choice and rename to Systematic Review Workbench), plus a first version of step 4 (help for the systematic stages) and 5 (a record-only synthesis stage). Meta-analysis is recorded, not computed.
 
 ## Idea

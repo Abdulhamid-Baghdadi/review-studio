@@ -1,6 +1,6 @@
 # AI skills for Systematic Review Workbench
 
-Each skill helps with one step of a scoping or systematic review. The AI only suggests: the reviewer confirms or changes every suggestion in Systematic Review Workbench, and each AI action is logged with the model and date.
+Each skill helps with one step of a scoping review. The AI only suggests: the reviewer confirms or changes every suggestion in Systematic Review Workbench, and each AI action is logged with the model and date.
 
 | Skill | Step | What it does |
 |---|---|---|
@@ -8,8 +8,8 @@ Each skill helps with one step of a scoping or systematic review. The AI only su
 | [review-screen-fulltexts](review-screen-fulltexts/SKILL.md) | Screen papers → Screen (full text) | Reads each retrieved PDF against the eligibility criteria and suggests a decision |
 | [review-fetch-fulltexts](review-fetch-fulltexts/SKILL.md) | Screen papers → Get full texts | Finds the PDFs (open access first) and attaches them |
 | [review-second-reviewer](review-second-reviewer/SKILL.md) | Screen papers → Second reviewer | Screens the sample blind, as the second reviewer, when the review chose "AI as second reviewer" |
-| [review-chart-data](review-chart-data/SKILL.md) | Chart the data / Extract data | Prefills the charting or extraction form from the full texts, with page locators |
-| [review-appraise-sources](review-appraise-sources/SKILL.md) | Quality check / Risk of bias | Suggests appraisal or risk-of-bias ratings with the tool the reviewer chose |
+| [review-chart-data](review-chart-data/SKILL.md) | Chart the data | Prefills the charting form from the full texts, with page locators |
+| [review-appraise-sources](review-appraise-sources/SKILL.md) | Quality check *(optional)* | Suggests critical-appraisal ratings with the tool the reviewer chose |
 
 ## Using them
 

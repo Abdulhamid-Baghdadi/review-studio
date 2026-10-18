@@ -1,15 +1,16 @@
 // Builds the finished example review that the app opens from the Homepage ("Open the finished example").
 //   node scripts/build-example.js
 // Input: web/example/openalex-search.json, the records an OpenAlex search returned (saved as they came, with the
-// string, filter and date), and web/example/full-texts/*.pdf, the openly licensed full texts (see LICENSES.md there).
-// The review is made with the app's own ReviewSession on a folder in memory, step by step as a reviewer would, so
-// it has every file a real review has. Output: web/example/example-review.json, the review folder as {path: text};
-// the full texts stay separate files ("linked") that the browser fetches when the example is opened.
+// string, filter and date; made with scripts/fetch-example-search.js), and web/example/full-texts/*.pdf, the openly
+// licensed full texts (see LICENSES.md there). The review is made with the app's own ReviewSession on a folder in
+// memory, step by step as a reviewer would, so it has every file a real review has. Output:
+// web/example/example-review.json, the review folder as {path: text}; the full texts stay separate files ("linked")
+// that the browser fetches when the example is opened.
 //
-// Topic: sit-stand desks and sitting time at work (randomised trials). The papers are real. Titles and abstracts
-// were screened; the included trials were read in full; the data, risk of bias (RoB 2) and the meta-analysis come
-// from the full texts (page and table in "locators"). Judgements were made for this example by one reviewer.
-// Papers without an openly licensed full text are marked "not retrieved": the example only ships open papers.
+// Topic: design for disassembly of lithium-ion battery packs (an engineering scoping review). The papers are real.
+// Titles and abstracts were screened; the included papers were read in full and charted from the full texts (page
+// numbers in "locators"). Judgements were made for this example by one reviewer. Papers without a CC BY full text
+// that could be downloaded are marked "not retrieved": the example only ships openly licensed papers.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { memoryFolder } from "../src/adapters/memory-folder.js";
@@ -28,121 +29,100 @@ const clock = { today: () => DAY, now: () => `${DAY} ${String(Math.floor(minute 
 // ------------------------------------------------------------------ the review's plan
 
 const QUESTIONS = {
-  population: "Adults who work at a desk (office workers)",
-  concept: "A sit-stand desk or workstation at work, alone or with support to use it",
-  context: "A usual seated desk (or the same support without a sit-stand desk)",
-  outcome: "Sitting time at work, in minutes per 8-hour workday (device-measured or self-reported)",
-  main: "In office workers, do sit-stand desks reduce sitting time at work compared with a usual desk?",
-  sub: ["How large is the reduction, and does it last up to 12 months?", "Do the results depend on how sitting was measured or on extra support?"],
+  population: "Lithium-ion battery packs and modules (electric vehicles, light vehicles, stationary storage, portable devices)",
+  concept: "Design features and design methods that make a pack or module easier to disassemble (joining, fastening, architecture, assessment metrics)",
+  context: "Engineering research and practice, any year; journal articles and conference papers in English",
+  main: "What design features and methods that make lithium-ion battery packs easier to disassemble are described in the engineering literature?",
+  sub: ["Which joining and fastening choices are reported to help or hinder disassembly?", "How is the ease of disassembly assessed or measured?"],
 };
 
 const CONCEPTS = [
-  { name: "Sit-stand desk", role: "AND", terms: ["sit-stand desk", "height-adjustable desk", "standing desk", "sit-stand workstation"] },
-  { name: "Workplace", role: "AND", terms: ["office workers", "workplace"] },
-  { name: "Sitting", role: "AND", terms: ["sitting time", "sedentary time"] },
-  { name: "Randomised trial", role: "AND", terms: ["randomised", "randomized"] },
+  { name: "Battery pack", role: "AND", terms: ["battery pack", "battery module"] },
+  { name: "Disassembly", role: "AND", terms: ["disassembly", "dismantling"] },
+  { name: "Design", role: "AND", terms: ["design"] },
 ];
 
-const REASONS_TA = ["E1 Wrong population, intervention or comparison", "E2 Not a randomised comparison (review, qualitative or development study, one arm only)",
-  "E3 No sitting-time outcome", "E4 Protocol, dissertation, conference abstract, preprint or reference entry", "E5 Another report of a trial (follow-up, secondary or cost analysis)"];
+const REASONS_TA = ["E1 Not about battery packs or modules", "E2 Disassembly process, automation or recycling only, with no link to the pack's design",
+  "E3 Pack or module design without regard to disassembly", "E4 Not a journal article or conference paper (book, chapter, thesis, preprint, abstract, editorial, report)",
+  "E5 Not in English"];
 const REASONS_FT = REASONS_TA;
 
 const PROTOCOL = {
-  rationale: "Office workers sit for most of their working day, and long sitting is linked to poorer cardiometabolic health. Sit-stand desks let people change position without leaving their work. Many small trials have tested them, with different designs, follow-up and ways of measuring sitting. This review pools the randomised trials to estimate how much sitting at work a sit-stand desk saves.",
-  eligibility: "Include: randomised trials (parallel, cluster or crossover) in adults who work at a desk; a sit-stand desk or workstation, alone or with support (education, coaching, prompts); compared with a usual seated desk, or with the same support without the desk; reporting sitting time at work. Any year; journal articles in English.\nExclude: E1 wrong population, intervention or comparison (e.g. students, treadmill desks compared with sit-stand desks); E2 not a randomised comparison (reviews, qualitative and development studies, one-arm analyses); E3 no sitting-time outcome; E4 protocols, dissertations, conference abstracts, preprints, reference entries; E5 another report of a trial (follow-ups, secondary and cost analyses are linked to the main report, not counted again).",
-  sources: "OpenAlex (title and abstract search), searched once on the day of the search. This example searches one database only to stay small; a real systematic review searches at least two bibliographic databases (e.g. MEDLINE, Embase, Web of Science) and trial registers.",
-  selection: "One reviewer screened titles and abstracts, then the full texts. Records without an abstract went to full text as 'unsure'. A real systematic review has a second reviewer screen independently. Only openly licensed full texts are used in this example: the others are marked 'not retrieved' and reported as such.",
-  charting: "A data-extraction form with nine fields (design, setting, participants, intervention, comparison, follow-up, sitting measure, result, locators), filled from the full texts with page and table.",
-  appraisal: "Cochrane risk-of-bias tool for randomised trials (RoB 2), with the cluster and crossover variants where they apply; one overall judgement per trial (low, some concerns, high), with the five domains in the note.",
-  synthesis: "Outcome: difference in sitting time at work between the sit-stand desk and the comparison group, in minutes per 8-hour workday, at the last follow-up up to 12 months. Random-effects meta-analysis (DerSimonian–Laird, Hartung–Knapp adjustment) of the reported or derived differences with their 95% CI. Percent of work time is converted with 480 minutes. Trials reporting only whole-day sitting are described narratively. Heterogeneity with I² and the prediction interval; certainty with GRADE.",
-  certainty: "GRADE for the main outcome: start high (randomised trials), then judge risk of bias, inconsistency, indirectness, imprecision and publication bias.",
+  rationale: "Millions of lithium-ion battery packs will reach the end of their first life in the coming years. Whether they can be repaired, remanufactured, reused or recycled well depends largely on how easily they come apart, and that is decided when the pack is designed. Work on this is spread over product design, manufacturing and recycling research. This scoping review maps which design features and methods for easier disassembly are described, and how ease of disassembly is assessed.",
+  eligibility: "Include: sources about lithium-ion battery packs or modules (any application) that describe, propose or assess design features or design methods affecting how easily the pack or module can be disassembled. Journal articles and conference papers in English, any year, any study design (case studies, design concepts, assessments, reviews).\nExclude: E1 not about battery packs or modules; E2 disassembly processes, automation, planning or recycling only, with no link to the pack's design; E3 pack or module design without regard to disassembly (performance, thermal, electrical); E4 books, chapters, theses, preprints, conference abstracts, editorials and reports; E5 not in English.",
+  sources: "OpenAlex (title and abstract search), searched once on the day of the search. This example searches one database only to stay small; a real scoping review searches several (e.g. Scopus, Web of Science, IEEE Xplore) and grey literature.",
+  selection: "One reviewer screened titles and abstracts, then the full texts. Records without an abstract were judged on the title, or went to full text as 'unsure'. Only openly licensed (CC BY) full texts are used in this example: the others are marked 'not retrieved' and reported as such.",
+  charting: "A charting form with six fields (application, type of source, design features, how disassembly is assessed, main findings, locators), filled from the full texts with page numbers.",
+  appraisal: "No critical appraisal: this review maps the design approaches that exist (PRISMA-ScR item 12 is optional).",
+  synthesis: "Charted data are summarised in tables and grouped by design feature (joining and fastening, architecture and modularity, assessment methods), with a narrative summary per review question.",
   timeline: "Example review, built in one day from a real search. Reviewer: one person (example).",
 };
 
 // ------------------------------------------------------------------ decisions
 
-// Included trials, read in full. est/lo/hi: sitting at work, intervention minus control, min per 8-h workday.
+// Included at full text, read in full and charted. Page numbers are the journal's or book's own.
 const INCLUDED = {
-  W2055671197: { label: "Dutta 2014", design: "Randomised crossover trial, two 4-week periods with a 2-week washout", setting: "Office workers, one employer, Minneapolis (USA)",
-    participants: "29 randomised, 28 analysed", intervention: "Sit-stand workstation (desktop unit) with a short instruction", comparison: "Usual seated desk (control period)",
-    follow_up: "4 weeks per period", sitting_measure: "Thigh-worn accelerometer (MSR 145), % of work time sitting",
-    result: "Sitting at work −21% of work time (95% CI −25 to −18) = −100.8 min (−120.0 to −86.4) per 8-h workday",
-    locators: "Abstract p1; Results p5", est: -100.8, lo: -120.0, hi: -86.4,
-    rob: ["some concerns", "D1 some concerns (sequence generation not described; crossover order) · D2 low · D3 low (1 of 29 missing) · D4 low (device) · D5 some concerns (no published analysis plan)"] },
-  W2126997394: { label: "Chau 2014", design: "Pilot randomised crossover trial with a waiting-list control period", setting: "Office workers of a non-government health organisation, Sydney (Australia)",
-    participants: "42 randomised", intervention: "Sit-stand workstation with brief instructions and prompts", comparison: "Usual desk (waiting-list period)",
-    follow_up: "4 weeks", sitting_measure: "activPAL3 (thigh), sitting min per 8-h workday",
-    result: "Change in work sitting −73 min (−106 to −39) with the workstation vs +10 (−24 to 43) in control, p = 0.004; difference −83 min (95% CI −139.5 to −26.5, derived from the p value)",
-    locators: "Table 3, p7", est: -83, lo: -139.5, hi: -26.5,
-    rob: ["some concerns", "D1 some concerns (pilot; allocation concealment unclear) · D2 low · D3 some concerns (attrition between periods) · D4 low (activPAL) · D5 some concerns (CI derived from p)"] },
-  W2178400094: { label: "Graves 2015", design: "Randomised controlled trial (parallel), randomised within departments", setting: "University office staff, Liverpool (UK)",
-    participants: "47 randomised (26 intervention, 21 control)", intervention: "Sit-stand workstation (desk mounted) with ergonomic guidance", comparison: "Usual desk",
-    follow_up: "8 weeks", sitting_measure: "Ecological momentary assessment diary (self-report)",
-    result: "Sitting −80.2 min per 8-h workday (95% CI −129.0 to −31.4) at 8 weeks",
-    locators: "Abstract p1; Table 2, p8", est: -80.2, lo: -129.0, hi: -31.4,
-    rob: ["high", "D1 low (random number table) · D2 low · D3 low · D4 high (self-reported sitting by participants who knew their group) · D5 low"] },
-  W3208920239: { label: "Ma 2021", design: "Randomised controlled trial (parallel)", setting: "Desk workers of one company, Sendai (Japan)",
-    participants: "75 randomised (37 intervention, 38 control); 74 analysed", intervention: "Sit-stand desk with instructions", comparison: "Usual desk",
-    follow_up: "3 months", sitting_measure: "Waist accelerometer (Omron Active Style Pro) during work hours, min per work time (about 7.5 h)",
-    result: "Work sitting after 3 months 239.2 ± 42.2 vs 262.4 ± 58.8 min; difference −23.2 min (95% CI −46.4 to 0.0, derived); group × time p = 0.152",
-    locators: "Table 2, p6", est: -23.2, lo: -46.4, hi: 0.0,
-    rob: ["some concerns", "D1 some concerns (method not described; baseline sitting differed) · D2 low · D3 low · D4 low (device; waist-worn) · D5 some concerns (follow-up means, not adjusted)"] },
-  W4395661599: { label: "Júdice 2024", design: "Cluster randomised controlled trial (parallel), 27 clusters", setting: "Office workers, Lisbon (Portugal)",
-    participants: "39 randomised, 38 analysed (19 + 19)", intervention: "Sit-stand workstation (desktop) with an educational session and monthly prompts", comparison: "Usual desk",
-    follow_up: "6 months", sitting_measure: "activPAL, 24 h for 7 days: sitting min per day (whole day, not work only)",
-    result: "Change in daily sitting −9.9 (SD 54.7) vs +8.6 (SD 75.6) min/day, p = 0.392. Whole-day sitting only: described, not pooled",
-    locators: "Table 3, p7", rob: ["some concerns", "D1 some concerns (few participants per cluster) · D2 low · D3 low · D4 low (activPAL) · D5 some concerns"] },
-  W4292676900: { label: "Edwardson 2022", design: "Three-arm cluster randomised controlled trial (78 clusters); arm SWAL + desk vs control", setting: "Council offices in Leicester, Liverpool and Greater Manchester (UK)",
-    participants: "756 randomised; work-hours data 12 months: about 350 in the two arms compared", intervention: "SMART Work & Life programme plus a height-adjustable desk",
-    comparison: "Usual practice", follow_up: "12 months (also 3 months)", sitting_measure: "activPAL3, sitting during work hours normalised to an 8-h workday",
-    result: "Sitting during work hours −57.9 min per 8-h workday (95% CI −73.3 to −42.5) at 12 months; −74.3 (−90.8 to −57.7) at 3 months",
-    locators: "Table 3 (PMC9382450, open HTML)", est: -57.9, lo: -73.3, hi: -42.5,
-    rob: ["some concerns", "D1 low (clusters randomised by an independent statistician after baseline measures) · D2 low · D3 some concerns (about a quarter without valid 12-month work-hours data) · D4 low (activPAL) · D5 low (registered; work-hours outcome secondary)"] },
-  W2902369348: { label: "Mantzari 2018", design: "Feasibility study with a randomised controlled component (phase III)", setting: "Office workers of two companies, Cambridge (UK)",
-    participants: "20 randomised (10 + 10)", intervention: "Sit-stand desk (full desk or desk mount) at work", comparison: "Usual desk",
-    follow_up: "3 months", sitting_measure: "activPAL3, sitting during working hours on working days, min per 8-h day",
-    result: "Workplace sitting −94.2 min per 8-h workday (95% CI −170.7 to −17.7) at 3 months",
-    locators: "Abstract p1; Table 3, p7", est: -94.2, lo: -170.7, hi: -17.7,
-    rob: ["some concerns", "D1 low · D2 low · D3 some concerns (small, feasibility sample) · D4 low (activPAL) · D5 some concerns (feasibility, no powered primary outcome)"] },
-  W3094821849: { label: "Pereira 2019", design: "Group-randomised trial, 24 worksites", setting: "Worksites in Phoenix (Arizona) and Minneapolis (Minnesota), USA",
-    participants: "630 participants at 24 worksites", intervention: "STAND+: multilevel programme (MOVE+) plus a sit-stand workstation", comparison: "MOVE+: the same multilevel programme without a sit-stand workstation",
-    follow_up: "12 months (also 3 months)", sitting_measure: "activPAL3, workplace sitting min per 8-h workday",
-    result: "Sitting −59.2 min per 8-h workday (95% CI −74.6 to −43.8) at 12 months; −67.5 (−86.5 to −48.4) at 3 months",
-    locators: "Abstract p2; Table 3, p7", est: -59.2, lo: -74.6, hi: -43.8,
-    rob: ["low", "D1 low (worksites randomised before recruitment) · D2 low · D3 low · D4 low (activPAL) · D5 low (registered NCT02566317)"] },
+  W4410478850: { application: "Electric-car traction battery packs (designs of Tesla, GM, Rivian and Lucid compared)",
+    source_type: "Narrative review with comparison tables and a service case study",
+    design_features: "Modular pack architecture; accessible, snap-in and standardised fasteners; service panels and external harness connectors; labelled modules and QR codes; proposed 'smart' fasteners. Adhesives, welded joints and potting named as barriers",
+    assessment: "Indicative figures from the literature: disassembly time (min), service cost, technician hazard level (0–5), automation compatibility (0–5) and material recovery rate",
+    findings: "Fully modular packs take about 30–45 min to disassemble, integrated (welded) packs 120–180 min and potted packs over 180 min; modular designs score higher on automation readiness and material recovery",
+    locators: "Abstract p2205; Table 1 p2209; Table 3 p2213; Conclusion p2220" },
+  W7125753274: { application: "A 72 V 20 Ah lithium-ion battery pack with 80 cells (application not stated)",
+    source_type: "Case study: one pack disassembled in 25 operations, rated by two experts",
+    design_features: "Screws on the top and bottom covers (12 each), screwed controller and BMS boards in confined positions, nickel strips welded to the cells",
+    assessment: "Ease of Disassembly Metric (eDiM, standard time in seconds) combined with an expert difficulty rating (accessibility, positioning, force), normalised into one score",
+    findings: "Removing the welded nickel strips took longest (1,243.9 s) and was rated hardest; cover screws took long but were easy; screws in confined positions were quick but hard to reach. Time alone does not show how difficult an operation is",
+    locators: "Abstract p296; Table 4 p302; Discussion and Conclusion p304" },
+  W4379364418: { application: "Traction battery system of a commercial vehicle (truck), prismatic cells",
+    source_type: "Conceptual analysis of an exemplary pack design, with a literature review",
+    design_features: "Welded busbars and cell contacts, thermal glue and adhesive gap fillers, double-sided adhesive films between cells, poor accessibility. Proposed: detachable contacting (laser bonding, micro-clinching), plug-in cell frames, cable plugs, cooling integrated in the housing",
+    assessment: "Qualitative evaluation of the pack's materials and joining technologies against requirements for remanufacturing down to cell level",
+    findings: "Current pack designs cannot be taken apart to cell level without damage, mainly because of adhesive bonds and welded connections; the proposed modifications need more space and must keep performance, weight and size",
+    locators: "Abstract p376; main difficulties p382; Table 1 p383; Conclusion p384" },
+  W4413070517: { application: "Hybrid electric-vehicle battery pack (HELIOS prototype: high-energy and high-power modules)",
+    source_type: "Project paper: design concept, recycling experiments and life cycle assessment",
+    design_features: "Identical modules in plastic 'egg-box' housings; subpacks of four modules with their own cooling circuit; subpacks joined by copper busbars and wires for easy removal; parts made of the same material; disassembly pre-planned from CAD for robots",
+    assessment: "Not measured: the ease of disassembly is described qualitatively",
+    findings: "The modular subpacks can be removed easily for second-life use, and full dismantling is planned to be mainly automated; most of the paper is about graphite recovery and life cycle assessment",
+    locators: "Abstract p659; Section 3 pp662–663; Conclusions p675" },
 };
-// passed title and abstract but no openly licensed full text: not retrieved in this example
-const NOT_RETRIEVED = ["W2615845359", "W7154981631", "W2905394510", "W2972393671", "W2525911531", "W2997581599", "W2953612249"];
-const UNSURE = ["W2905394510", "W2972393671", "W2997581599"];                     // no abstract in OpenAlex
-const FT_EXCLUDED = { W1990094225: ["E3", "A stationary high desk was installed, but sitting time was not measured (only steps and physical activity)."] };
+// passed title and abstract but no CC BY full text that could be downloaded: not retrieved in this example
+const NOT_RETRIEVED = ["W3011769304", "W4313368198", "W7154726003", "W2615434793", "W7150802201", "W7132831355", "W7125700204", "W4403299344",
+  "W4298001737", "W4413830632", "W4417338114", "W7222743118", "W4413097404", "W7167023933", "W4401323499", "W2586994541"];
+const UNSURE = ["W3011769304"];                     // no abstract in OpenAlex; the title fits
+const FT_EXCLUDED = {};
 const TA_EXCLUDED = {
-  E1: ["W2897421585", "W2779981143", "W4294816697", "W4312048034", "W4308029028"],
-  E2: ["W4385303224", "W2037141473", "W2801744368", "W4389195364", "W4283730480", "W1517185146", "W2897822343", "W4211042409", "W4206473999",
-    "W4417081290", "W4411281608", "W7116043321", "W2565638279", "W4385264340", "W2738411161"],
-  E3: ["W2912391309", "W2618261581", "W2032706786"],
-  E4: ["W2464895288", "W2753590595", "W3194064345", "W4379536464", "W2891631960", "W2947101819", "W2465160719", "W3026051530", "W2594193004",
-    "W3009047757", "W4211244947", "W2944413253", "W2134832195", "W7119089097", "W7140498520", "W7168311983", "W3111684601", "W2327375991"],
-  E5: ["W2911063374", "W2901268824", "W4403949057", "W4407997153", "W2607879131", "W4220952550", "W4409212362", "W4409035362", "W4296066603"],
+  E1: ["W7161275879", "W7220108518", "W2977848555", "W7169684998", "W2884944762", "W4394584769", "W7208719530", "W1517711565", "W2323030707"],
+  E2: ["W3135422058", "W4389089739", "W4406000116", "W4387583596", "W7155059919", "W7168999189", "W4389249532", "W7125252604", "W3036983432",
+    "W3121088681", "W4416133357", "W4406763849", "W4225716353", "W4286603582", "W4407583712", "W4396888226", "W7220361934", "W4385641567",
+    "W3002753706", "W4320059063", "W4405599418", "W7127900962", "W7171090203", "W4394982298", "W4417166378", "W7164072240", "W4311434429",
+    "W3173281103", "W4405074583", "W4414567657", "W4377697250", "W7221620663", "W3045145622", "W7151236622", "W4415616736", "W4283816810",
+    "W7104013375", "W3201384012", "W2060226588", "W7164754231", "W4413097424", "W7220182964"],
+  E3: ["W2807585248", "W2960359457", "W3191534098", "W2903464391", "W4410081030", "W2036433538", "W4393015874", "W4293222135", "W2125643757",
+    "W1965998413", "W2143036127", "W4389662047", "W7221629229", "W7221189059"],
+  E4: ["W4285306384", "W3121675465", "W4392720819", "W7139927679", "W4405593728", "W7203574201", "W7221159669", "W4405564734", "W4388708180",
+    "W7220741364", "W4327850179", "W4396900126", "W4413953136", "W4415279292", "W4407143055", "W2499603214", "W2164383959", "W7212137206",
+    "W7128009798", "W4285397922", "W7135164275", "W7215193059", "W4412541928", "W4386834891", "W4391662925"],
+  E5: ["W7154446102"],
 };
 
 const FIELDS = [
-  { name: "design", description: "Trial design (parallel, cluster, crossover) and number of arms" },
-  { name: "setting", description: "Workplaces and country" },
-  { name: "participants", description: "Number randomised and analysed" },
-  { name: "intervention", description: "The sit-stand desk and any support" },
-  { name: "comparison", description: "What the control group had" },
-  { name: "follow_up", description: "Time of the outcome used" },
-  { name: "sitting_measure", description: "How sitting was measured (device or self-report) and its unit" },
-  { name: "result", description: "Sitting at work, intervention vs control, with 95% CI" },
+  { name: "application", description: "Battery application and the pack or module studied" },
+  { name: "source_type", description: "Type of source (case study, design concept, assessment method, review)" },
+  { name: "design_features", description: "Design features or principles addressed (joining, fastening, architecture, materials)" },
+  { name: "assessment", description: "How the ease of disassembly is assessed or measured" },
+  { name: "findings", description: "Main findings about disassembly" },
   { name: "locators", description: "Page and table of each value" },
 ];
 
 // ------------------------------------------------------------------ the export file: the search results as RIS
 
-// OpenAlex gives "Charlotte Louise Edwardson"; references and study labels want "Edwardson, Charlotte Louise"
+// OpenAlex gives "Melina Graner"; references want "Graner, Melina"
 const surnameFirst = a => { const p = a.trim().split(/\s+/); return p.length > 1 ? `${p.at(-1)}, ${p.slice(0, -1).join(" ")}` : a; };
+const RIS_TYPE = { "conference-paper": "CPAPER", "conference-abstract": "ABST", dissertation: "THES", preprint: "UNPB", "book-chapter": "CHAP", book: "BOOK", report: "RPRT" };
 const ris = search.works.map(w => [
-  `TY  - ${w.type === "conference-paper" ? "CPAPER" : w.type === "conference-abstract" ? "ABST" : w.type === "dissertation" ? "THES" : w.type === "preprint" ? "UNPB" : "JOUR"}`,
+  `TY  - ${RIS_TYPE[w.type] ?? "JOUR"}`,
   `TI  - ${w.title}`, ...w.authors.split("; ").filter(Boolean).map(a => `AU  - ${surnameFirst(a)}`), `PY  - ${w.year}`,
   w.journal ? `JO  - ${w.journal}` : null, w.doi ? `DO  - ${w.doi.replace("https://doi.org/", "")}` : null,
   `UR  - https://openalex.org/${w.id}`, w.abstract ? `AB  - ${w.abstract.replace(/\s+/g, " ")}` : null, "ER  - ",
@@ -154,19 +134,18 @@ const folder = memoryFolder({}, `${NAME} records`);
 const s = await ReviewSession.open(folder, {
   clock, settings: { name: NAME, recordsPath: `${NAME} records/08 - Records`, template: readFileSync(`${WEB}/templates/Review Record Template.md`, "utf8"), reviewer: "EX" },
 });
-if (s.st.review_type !== "systematic") throw new Error("a new review should be a systematic review");
+if (s.st.review_type !== "scoping") throw new Error("a new review should be a scoping review");
 
-await s.addIdea("Our office is getting sit-stand desks. Do they really make people sit less at work, and by how much?");
+await s.addIdea("Battery packs are glued and welded together. What has engineering research found about designing them to come apart again?");
 await s.saveQuestions(QUESTIONS, "first version");
-await s.saveConcepts(CONCEPTS, "four blocks: desk, workplace, sitting, randomised trial");
+await s.saveConcepts(CONCEPTS, "three blocks: battery pack, disassembly, design");
 await s.saveDatabases(["OpenAlex"]);
 const planned = buildQuery(s.st, "OpenAlex");
 if (planned !== search.query) throw new Error(`planned OpenAlex string differs from the search that was run:\n${planned}\n${search.query}`);
 await s.pilotFile({ fileName: "openalex-pilot.ris", bytes: new TextEncoder().encode(ris), database: "OpenAlex", note: "final string: small enough to screen every record" });
 await s.saveProtocolText(PROTOCOL, { generate: true });
 await s.saveReasons(REASONS_TA, REASONS_FT);
-await s.saveFields(FIELDS);                                   // the extraction form is part of the plan
-await s.setAppraisalTool("RoB 2 (Cochrane risk-of-bias tool for randomised trials), with the cluster and crossover variants");
+await s.saveFields(FIELDS);                                   // the charting form is part of the plan
 await s.lockProtocol("");
 await s.importSearch({ fileName: `openalex-${DAY}.ris`, bytes: new TextEncoder().encode(ris), database: "OpenAlex", query: search.query, date: DAY,
   filters: "none (title and abstract search)" });
@@ -178,70 +157,45 @@ for (const r of s.repo.records.values()) {
   if (m) idOf[m[0]] = r.id ?? r.props.record_id;
 }
 const rid = w => { if (!idOf[w]) throw new Error(`no record for ${w}`); return idOf[w]; };
-const work = Object.fromEntries(search.works.map(w => [w.id, w]));
 
 const toFullText = new Set([...Object.keys(INCLUDED), ...NOT_RETRIEVED, ...Object.keys(FT_EXCLUDED)]);
-const merged = search.works.filter(w => !idOf[w.id]).map(w => w.id);     // duplicates merged on import
 for (const w of search.works.filter(w => idOf[w.id])) {
   if (UNSURE.includes(w.id)) await s.decide(rid(w.id), "ta", "unsure", { notes: "No abstract in OpenAlex: the title fits; needs the full text." });
-  else if (toFullText.has(w.id)) await s.decide(rid(w.id), "ta", "include", { notes: "Randomised trial of a sit-stand desk in desk workers (title and abstract)." });
+  else if (toFullText.has(w.id)) await s.decide(rid(w.id), "ta", "include", { notes: "Battery pack or module design discussed with regard to disassembly (title and abstract)." });
   else {
     const code = Object.keys(TA_EXCLUDED).find(k => TA_EXCLUDED[k].includes(w.id));
     if (!code) throw new Error(`no decision for ${w.id} ${w.title}`);
-    await s.decide(rid(w.id), "ta", "exclude", { reason: code });
+    await s.decide(rid(w.id), "ta", "exclude", { reason: code, ...(w.abstract ? {} : { notes: "No abstract in OpenAlex: decided on the title." }) });
   }
 }
 
-// full texts: the openly licensed PDFs in web/example/full-texts; the BMJ trial is read in its open HTML (PMC)
+// full texts: the openly licensed PDFs in web/example/full-texts
 const linked = {};
-for (const w of [...Object.keys(INCLUDED), ...Object.keys(FT_EXCLUDED)]) {
+for (const w of Object.keys(INCLUDED)) {
   const pdf = `${WEB}/example/full-texts/${w}.pdf`;
-  if (existsSync(pdf)) {
-    await s.attachPdf(rid(w), new Uint8Array(readFileSync(pdf)));
-    const name = String(s.repo.records.get(rid(w)).props.pdf).replace(/^\[\[|\]\]$/g, "");
-    linked[`10 - Full texts/${name}`] = `full-texts/${w}.pdf`;
-  } else await s.setRecord(rid(w), { oa_url: w === "W4292676900" ? "https://pmc.ncbi.nlm.nih.gov/articles/PMC9382450/" : work[w].landing });
+  if (!existsSync(pdf)) throw new Error(`missing full text ${pdf}`);
+  await s.attachPdf(rid(w), new Uint8Array(readFileSync(pdf)));
+  const name = String(s.repo.records.get(rid(w)).props.pdf).replace(/^\[\[|\]\]$/g, "");
+  linked[`10 - Full texts/${name}`] = `full-texts/${w}.pdf`;
 }
 for (const w of NOT_RETRIEVED) {
-  await s.setRecord(rid(w), { notes: "Not openly licensed: this example only uses open-access full texts. In a real review, get it through your library." });
+  await s.setRecord(rid(w), { notes: "No CC BY full text that this example could ship. In a real review, get it through your library or the open-access link." });
   await s.markPdf(rid(w), "not-retrieved");
 }
 for (const w of Object.keys(INCLUDED)) await s.decide(rid(w), "ft", "include", { notes: "Read in full." });
 for (const [w, [code, note]] of Object.entries(FT_EXCLUDED)) await s.decide(rid(w), "ft", "exclude", { reason: code, notes: note });
 
-// data extraction and risk of bias, from the full texts
-await s.prepareCharting(true);
+// data charting, from the full texts
+await s.prepareCharting(false);
 for (const [w, d] of Object.entries(INCLUDED)) {
   const chart = Object.fromEntries(FIELDS.map(f => [`chart_${f.name}`, d[f.name]]));
-  await s.setRecord(rid(w), { ...chart, chart_basis: "full text", chart_checked_by: "reviewer", appraisal: d.rob[0], appraisal_note: d.rob[1], appraisal_by: "reviewer" });
+  await s.setRecord(rid(w), { ...chart, chart_basis: "full text", chart_checked_by: "reviewer" });
 }
-
-// the meta-analysis, with the app's engine
-const pooled = Object.entries(INCLUDED).filter(([, d]) => d.est !== undefined);
-await s.saveOutcome({
-  name: "Sitting time at work (min per 8-h workday)", type: "generic", measure: "difference", model: "random", hk: true, design: "rct",
-  comparison: "Sit-stand desk (alone or with support) vs usual desk",
-  rows: pooled.map(([w, d]) => ({ record_id: rid(w), est: d.est, lo: d.lo, hi: d.hi })),
-  grade: {
-    rob: { level: -1, reason: "Five of seven trials have some concerns and one is at high risk (self-reported sitting); the effect stays large without them.", confirmed: true },
-    inconsistency: { level: -1, reason: "All trials favour the desk, but the sizes differ a lot (I² over 80%) and the prediction interval reaches no effect.", confirmed: true },
-    indirectness: { level: 0, reason: "Office workers, sit-stand desks and sitting at work, as asked.", confirmed: true },
-    imprecision: { level: 0, reason: "The 95% CI lies well away from no effect, from about 1,200 participants.", confirmed: true },
-    publication: { level: 0, reason: "Too few trials for a funnel test; the large trials agree with the small ones.", confirmed: true },
-  },
-});
-await s.saveSynthesis({
-  approach: "Random-effects meta-analysis (DerSimonian–Laird with Hartung–Knapp) of the difference in sitting at work, min per 8-h workday, at the last follow-up up to 12 months; 7 trials. Júdice 2024 reported whole-day sitting only and is described narratively.",
-  software: "Systematic Review Workbench (formulas as metafor; the R script in 14 - Synthesis reproduces it)", results_file: "14 - Synthesis",
-  heterogeneity: "Large between-trial differences in size (short crossover trials with big effects; 12-month cluster trials with smaller ones). Reported with I², τ² and the prediction interval.",
-  reporting_bias: "Fewer than 10 trials: no funnel test. Small and large trials point the same way.",
-  certainty: "Low (GRADE): downgraded once for risk of bias and once for inconsistency.",
-  notes: "Without the desk the same support did little (Pereira 2019: MOVE+ alone hardly changed sitting). Effects are largest in the first weeks and smaller but lasting at 12 months (Edwardson 2022, Pereira 2019). Júdice 2024 found no difference in whole-day sitting at 6 months.",
-});
 
 for (const [stage, status, reason] of [["idea", "done"], ["questions", "done"], ["concepts", "done"], ["queries", "done"], ["pilot", "done"],
   ["protocol", "done"], ["registration", "skipped", "example review, not registered"], ["searches", "done"], ["screening", "done"], ["retrieval", "done"],
-  ["snowballing", "skipped", "not done in this example"], ["charting", "done"], ["appraisal", "done"], ["synthesis", "done"]])
+  ["reviewer", "skipped", "one reviewer in this example"], ["snowballing", "skipped", "not done in this example"], ["charting", "done"],
+  ["appraisal", "skipped", "a scoping review mapping design approaches; PRISMA-ScR item 12 is optional"]])
   await s.setStageStatus(stage, status, reason ?? "");
 
 // ------------------------------------------------------------------ write the folder as one file

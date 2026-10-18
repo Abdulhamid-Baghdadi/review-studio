@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Systematic Review Workbench</title>
-  <meta name="description" content="Systematic reviews reported to PRISMA 2020, in your browser; every review stays in a folder on your own PC.">
+  <meta name="description" content="Scoping reviews reported to PRISMA-ScR, in your browser; every review stays in a folder on your own PC.">
   <!-- where pdf.js comes from (the site build points these to its own copy) -->
   <script type="importmap">
     { "imports": { "pdfjs": "../node_modules/pdfjs-dist/build/pdf.mjs", "pdfjs/worker": "../node_modules/pdfjs-dist/build/pdf.worker.mjs" } }
@@ -36,8 +36,8 @@
     </aside>
     <section class="start-main">
       <div class="start-hero">
-        <span class="pill accent">Systematic reviews · reported to PRISMA 2020</span>
-        <h1>Your systematic review, <span class="grad">step by step.</span></h1>
+        <span class="pill accent">Scoping reviews · reported to PRISMA-ScR</span>
+        <h1>Your scoping review, <span class="grad">step by step.</span></h1>
         <p class="lead">From the first idea to the PRISMA flow diagram: your question, the search, inclusion rules, screening, full texts, charting and the report. Each review is a folder on your PC (notes, tables and PDFs) and nothing is uploaded.</p>
         <div id="startBody"></div>
       </div>
@@ -65,16 +65,14 @@
             <div class="popmenu review-menu" id="reviewMenu" hidden></div>
           </div>
           <span class="draft-bar" id="draftBar" hidden></span>
-          <button class="btn sm ghost" id="btnType" title="Review type: scoping (PRISMA-ScR) or systematic (PRISMA 2020); click to switch">🧭 Review type</button>
           <span class="spacer"></span>
           <button class="btn sm ghost" id="btnTimeline" title="Every dated event of this review (T)">🕘 Timeline</button>
-          <button class="btn sm ghost" id="btnScr" title="The reporting checklist of this review (PRISMA 2020)">☑ Checklist</button>
+          <button class="btn sm ghost" id="btnScr" title="The reporting checklist of this review (PRISMA-ScR)">☑ Checklist</button>
           <button class="btn sm ghost" id="btnClaude" title="How to use Claude (or another AI assistant) with this review">🤖 Claude</button>
           <div class="menu-wrap">
             <button class="btn sm ghost" id="btnSettings" aria-haspopup="true" aria-expanded="false">⚙ Settings</button>
             <div class="popmenu" id="settingsMenu" hidden>
               <button class="btn ghost" id="btnReviewSettings">📁 Review settings…</button>
-              <button class="btn ghost" id="btnTypeMenu" title="Systematic review (PRISMA 2020) or scoping review (PRISMA-ScR)">🧭 Review type…</button>
               <button class="btn ghost" id="btnGlossary" title="Terms used in the review (G)">📖 Glossary</button>
               <button class="btn ghost" id="btnKeys" title="Keyboard shortcuts">⌨ Keyboard shortcuts</button>
               <button class="btn ghost" id="btnSingleKeys" aria-pressed="true" title="Letter and number shortcuts (G, T, I, U, E, 1–9 …). Switch them off if they get in the way, e.g. with speech input.">⌨ Single-key shortcuts: on</button>

@@ -7,7 +7,7 @@ import { S } from "./state.js";
 
 // ---------- saving as you type: like an online document, there is no Save button
 // Each field saves itself a second after you stop typing (and when you leave it). After the protocol is locked, a
-// change to a protected part (questions, concepts, strings, protocol text, exclusion reasons, extraction form) is an
+// change to a protected part (questions, concepts, strings, protocol text, exclusion reasons, charting form) is an
 // amendment that needs a reason: those fields save when you leave them, and ask for the reason once.
 const PENDING = new Map();                 // what is waiting to be saved: key -> {timer, save}
 export let SAVE_STATE = ["", ""];

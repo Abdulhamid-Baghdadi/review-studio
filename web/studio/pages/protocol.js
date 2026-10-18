@@ -11,7 +11,7 @@ import { PAGES } from "../shell/registry.js";
 import { exampleFor, withScr } from "../shell/help.js";
 import { autosize, btn, card, iconBtn, openNote } from "../ui/components.js";
 
-/** A section's title without its reporting-item reference ("Rationale (PRISMA 2020 item 3)" → "Rationale"): the name of its text field. */
+/** A section's title without its reporting-item reference ("Background and rationale (PRISMA-ScR 3)" → "Background and rationale"): the name of its text field. */
 const plainTitle = t => String(t).replace(/\s*\((PRISMA-ScR|PRISMA 2020)[^)]*\)\s*/, " ").trim();
 /** The reporting items a section answers, as chips that open the checklist (inside the section: a fold's header holds no buttons). */
 const itemChips = t => { const chips = withScr(t).filter(x => x instanceof Node); return chips.length ? h("div", { class: "small muted", style: "margin-top:6px" }, "Reported as ", chips) : null; };

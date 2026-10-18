@@ -20,11 +20,11 @@ function flowHere() {
   if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
   return { idea: "question", questions: "question", concepts: "search", queries: "search", pilot: "search", protocol: "rules", registration: "rules",
     searches: "identified", snowballing: "citations", reviewer: "screened", retrieval: "sought",
-    charting: "extract", appraisal: "quality", synthesis: "synthesis", report: "report" }[CUR] ?? null;
+    charting: "extract", appraisal: "quality", report: "report" }[CUR] ?? null;
 }
 
 function flowGroups() {
-  const f = S.flow, sys = S.review_type.key === "systematic";
+  const f = S.flow;
   const step = key => S.steps.find(s => s.key === key);
   const stepNode = (id, key, label) => step(key) && { id, step: step(key), label, go: () => goStep(step(key)) };
   const screen = st => () => { SC.stage = st; store.set("sc_stage", st); SC.id = null; go("screening"); };
@@ -41,10 +41,9 @@ function flowGroups() {
         tip: "Screen papers → Get full texts: the papers that passed the title and abstract check." },
       { id: "assessed", label: "Full texts read", n: f.assessed, minus: f.ft_excluded ? `${f.ft_excluded} excluded` : "", open: f.ft_pending,
         go: screen("ft"), tip: `Screen papers: full texts (${f.ft_pending} still to do).` }] },
-    { phase: "Included", prisma: true, nodes: [{ id: "included", label: sys ? "Studies" : "Sources", n: f.included, good: true, go: screen("ft"),
+    { phase: "Included", prisma: true, nodes: [{ id: "included", label: "Sources", n: f.included, good: true, go: screen("ft"),
       tip: "The papers your review is based on." }] },
-    { phase: "Analyse", nodes: [stepNode("extract", "extract", sys ? "Extract data" : "Chart the data"), stepNode("quality", "quality", sys ? "Risk of bias" : "Quality check"),
-      sys ? stepNode("synthesis", "synthesis", "Synthesis") : null] },
+    { phase: "Analyse", nodes: [stepNode("extract", "extract", "Chart the data"), stepNode("quality", "quality", "Quality check")] },
     { phase: "Report", nodes: [stepNode("report", "report", "Report")] },
   ].map(g => ({ ...g, nodes: g.nodes.filter(Boolean) }));
 }
@@ -86,7 +85,7 @@ export function flowMap() {
       n.minus ? h("span", { class: "fm-minus" }, "− " + n.minus) : null,
       isHere ? h("span", { class: "fm-here" }, "You are here") : null);
   };
-  // the planning and analysis steps as short lists; citation searching under the database records, as in PRISMA 2020
+  // the planning and analysis steps as short lists; citation searching under the database records, as in the PRISMA flow diagram
   const nodesOf = g => !g.prisma || g.phase === "Identification"
     ? h("div", { class: "fm-nodes stack" }, g.nodes.map(node))
     : h("div", { class: "fm-nodes" }, g.nodes.flatMap((n, j) => [j ? arrow() : null, node(n)]));

@@ -8,7 +8,7 @@ import { aiMode, setAiMode } from "../domain/ai-steps.js";
 import { PROTOCOL_FILE } from "../domain/protocol.js";
 import { buildQuery } from "../domain/queries.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
-import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setReviewType, setStatus, touch } from "../domain/stages.js";
+import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setStatus, touch } from "../domain/stages.js";
 import { checkScreening, drawSample, importSearch, importSecondReviewer, addPaper, writeReport, ReviewError } from "./review-commands.js";
 import { fetchLibraryWorks, planLibraryCitations, writeLibraryCitations } from "./library-citations.js";
 import { addKeptToLibrary, applyLibrarySync, emptyLibrary, markTestSet, planLibrarySync } from "./library.js";
@@ -18,7 +18,6 @@ import { writePackage } from "./review-package.js";
 import { ReviewRepository } from "./review-repository.js";
 import * as actions from "./stage-actions.js";
 import * as screening from "./screening.js";
-import * as synthesis from "./synthesis.js";
 import { recordsWithoutFullText, scanForPdfs } from "./local-pdfs.js";
 
 /** A protected part of a locked protocol was changed without giving the reason for the amendment. */
@@ -430,36 +429,6 @@ export class ReviewSession {
     touch(this.st, "appraisal", this.now);
     event(this.st, "appraisal", `approach: ${tool}`, this.now);
     await this.save();
-  }
-
-  /** Scoping (PRISMA-ScR) or systematic (PRISMA 2020); after locking this is an amendment. */
-  async setReviewType(type, amendment = "") {
-    if (setReviewType(this.st, type, { reason: amendment, devMode: this.devMode, now: this.now })) {
-      await actions.writeChecklist(this.repo, this.st);
-      await this.save();
-    }
-  }
-
-  /** What was done in the synthesis stage of a systematic review (recorded only; the analysis runs elsewhere). */
-  async saveSynthesis(fields) {
-    const keys = ["approach", "software", "results_file", "heterogeneity", "reporting_bias", "certainty", "notes"];
-    this.st.synthesis = { ...this.st.synthesis, ...Object.fromEntries(keys.map(k => [k, strip(String(fields?.[k] ?? this.st.synthesis?.[k] ?? ""))])) };
-    touch(this.st, "synthesis", this.now);
-    event(this.st, "synthesis", "synthesis record updated", this.now);
-    await this.save();
-  }
-
-  /** Adds or updates an outcome of the meta-analysis and rewrites 14 - Synthesis. */
-  async saveOutcome(outcome) {
-    const id = await synthesis.saveOutcome(this.repo, this.st, outcome, this.now);
-    await this.save();
-    return { message: "Outcome saved; notes, plots and R script written to 14 - Synthesis.", id };
-  }
-
-  async deleteOutcome(id) {
-    const name = await synthesis.deleteOutcome(this.repo, this.st, id, this.now);
-    await this.save();
-    return name ? `Removed "${name}" from the synthesis (its files in 14 - Synthesis are kept).` : "";
   }
 
   async setChecklistItem(n, location = "", done = false) {

@@ -172,7 +172,7 @@ const stem = file => file.split("/").pop().replace(/\.md$/, "");
  * @param {Generator} [p.generator]
  */
 export function prismaFlowNote({ reviewName, reviewLink, today, counts: c, searches, agreement, testSet, missed, problems, generator = APP_GENERATOR, type = REVIEW_TYPES.scoping }) {
-  const included = type.key === "systematic" ? "Studies included" : "Sources included";
+  const included = "Sources included";
   const br = rows => rows.map(s => `<br/>${s.database} (n = ${s.records})`).join("");
   const mermaid = `\`\`\`mermaid
 flowchart TD

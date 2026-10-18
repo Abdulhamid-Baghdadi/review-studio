@@ -297,7 +297,7 @@ export async function exportZotero(repo, st) {
   return path;
 }
 
-/** Ticks an item of the review's checklist (PRISMA-ScR or PRISMA 2020) and records where the manuscript reports it. */
+/** Ticks an item of the review's checklist (PRISMA-ScR) and records where the manuscript reports it. */
 export function setChecklist(st, item, location, done, now) {
   checklistOf(st)[String(item)] = { location: strip(location), done: Boolean(done) };
   touch(st, "report", now);
@@ -309,7 +309,7 @@ export async function checklistAuto(repo, st) {
     guideExists: await repo.folder.exists(FILES.guide), flowExists: await repo.folder.exists(FILES.flow) });
 }
 
-/** Writes the review's checklist note (14 - PRISMA-ScR checklist.md or 15 - PRISMA 2020 checklist.md). */
+/** Writes the review's checklist note (14 - PRISMA-ScR checklist.md). */
 export async function writeChecklist(repo, st) {
   const evidence = await checklistAuto(repo, st);
   await repo.folder.writeText(reviewType(st).checklistFile, checklistNote({ reviewName: repo.name, reviewLink: repo.link, st, today: repo.clock.today(), evidence }));

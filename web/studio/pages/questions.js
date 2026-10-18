@@ -25,9 +25,7 @@ PAGES.questions = () => {
     return h("div", { class: "card", style: `border-top:3px solid ${color};margin:0` }, title, sub,
       labelBy(autosize(h("textarea", { rows: 2, value: d[k], placeholder: exampleFor("questions", label), oninput: bind(k) })), title, sub));
   };
-  const hints = rt.key === "systematic"
-    ? { population: "Who or what is studied, with the conditions that define it", concept: "The intervention or exposure being evaluated", context: "What it is compared with (another intervention, usual care, none)", outcome: "The outcomes measured, with the main outcome first" }
-    : { population: "What is studied? (products, systems, people…)", concept: "The core phenomenon, method or intervention", context: "Setting, domain, period, publication types" };
+  const hints = { population: "What is studied? (products, systems, people…)", concept: "The core phenomenon, method or intervention", context: "Setting, domain, period, publication types" };
   return saver.watch(h("div", {},
     h("div", { class: Q.outcome ? "grid4" : "grid3", style: "margin-bottom:16px" },
       pcc("population", Q.population, hints.population, "#4f46e5"),

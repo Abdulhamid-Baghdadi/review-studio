@@ -7,7 +7,7 @@ import { HOME, S } from "../core/state.js";
 import { openChecklist, openClaudeGuide, openGlossary, openKeys, openTimeline } from "./help.js";
 import { go } from "./navigation.js";
 import { openReviewSettings } from "./review-settings.js";
-import { openFinishedExample, openReviewType } from "./reviews.js";
+import { openFinishedExample } from "./reviews.js";
 
 // The review menu: opens on click, closes on Escape, outside click or after a choice
 {
@@ -20,10 +20,8 @@ import { openFinishedExample, openReviewType } from "./reviews.js";
 }
 $("#btnTheme").onclick = () => { const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = t; store.set("theme", t); };
 $("#btnGlossary").onclick = openGlossary;
-$("#btnTypeMenu").onclick = openReviewType;
 $("#btnClaude").onclick = openClaudeGuide;
 $("#btnTimeline").onclick = openTimeline;
-$("#btnType").onclick = openReviewType;
 $("#btnKeys").onclick = openKeys;
 const showSingleKeys = () => { const b = $("#btnSingleKeys"); b.textContent = `⌨ Single-key shortcuts: ${singleKeys.on() ? "on" : "off"}`; b.setAttribute("aria-pressed", String(singleKeys.on())); };
 $("#btnSingleKeys").onclick = () => { singleKeys.set(!singleKeys.on()); showSingleKeys(); };

@@ -10,7 +10,7 @@ import { btn } from "../ui/components.js";
 // Offered once on the first visit; the button on the Homepage replays it.
 const TOUR = [
   { title: "Welcome to Systematic Review Workbench 👋",
-    text: "This app guides you through a systematic review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
+    text: "This app guides you through a scoping review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
   { target: ".flowmap", title: "Your review, step by step",
     text: "The map shows the whole review: plan (question, search, inclusion rules), the PRISMA flow with your live counts (records found, screened, included), then analysis and the report. Click any step to open it; the ringed one is where you are. While you work it stays folded to this one line: Map ▾ unfolds it." },
   { target: "#topbar", title: "One step at a time",
@@ -18,7 +18,7 @@ const TOUR = [
   { target: "#draftBar", title: "Your files stay on your PC",
     text: "You start in a draft kept in this browser. Save it to a folder when you want to keep it: the review becomes plain notes, tables and PDFs on your PC. Nothing is uploaded." },
   { target: ".toolbar", title: "Tools for every step",
-    text: "The timeline of everything you did, the PRISMA 2020 reporting checklist and, if you want it, AI help from Claude, which only ever suggests. The glossary and keyboard shortcuts are under ⚙ Settings." },
+    text: "The timeline of everything you did, the PRISMA-ScR reporting checklist and, if you want it, AI help from Claude, which only ever suggests. The glossary and keyboard shortcuts are under ⚙ Settings." },
   { title: "Ready? Start with your question ✍️",
     text: "Step 1 is your research question. Not sure yet? Jot your idea down under Idea notes first; the Question tab makes it precise. You can replay this tour from the Homepage." },
 ];

@@ -1,5 +1,5 @@
 /**
- * Page: Charting / data extraction.
+ * Page: Data charting.
  * @module web/studio/pages/charting
  */
 import { api, busy } from "../core/api.js";

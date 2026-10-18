@@ -107,7 +107,7 @@ export async function aiContext(repo, st, step, { limit = 40, rel = p => p } = {
     const keys = fields.map(f => `chart_${f.name}`);
     const filled = (r, k) => strip(String(r.props[k] ?? ""));
     const todo = records.filter(r => isIncluded(r.props) && !keys.every(k => filled(r, k)) && r.props.chart_checked_by !== "reviewer");
-    Object.assign(out, { task: type.key === "systematic" ? "data extraction" : "data charting",
+    Object.assign(out, { task: "data charting",
       questions: (await criteria(repo, st, rel)).questions, fields, remaining: todo.length, records: [] });
     for (const r of todo.slice(0, limit)) {
       out.records.push({ id: r.props.record_id, title: r.props.title, pdf: (await hasPdf(r)) ? rel(pdfPath(r)) : "",
