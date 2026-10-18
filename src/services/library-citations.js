@@ -61,13 +61,15 @@ export async function planLibraryCitations(library, { works, refDois }) {
   const refsPdf = new Map([...library.notes].map(([stem, p]) => [stem, asList(p.references_pdf).map(linkTarget)]));
   const graph = citationGraph(dois, works, refsPdf, { ...(await knownLibraryIds(library)), refDois });
   const changes = [];
+  // found in OpenAlex with a reference list; a work OpenAlex holds without references is treated as not found
+  const answered = new Set([...graph.refs.keys()].filter(stem => graph.refs.get(stem).length || graph.external.get(stem)?.length));
   for (const stem of library.notes.keys()) {
-    if (!graph.refs.has(stem)) continue;                // not found in OpenAlex: only relinked, below
+    if (!answered.has(stem)) continue;                  // not found in OpenAlex, or no references there: only relinked, below
     const text = await library.folder.readText(`${stem}.md`);
     const next = withoutUnlinked(withCitations(text, graph.refs.get(stem), graph.cited.get(stem) ?? [], graph.external.get(stem) ?? []));
     if (next !== text) changes.push({ stem, text, next });
   }
-  const relinked = await planRelinkCitations(library, new Set(graph.refs.keys()));
+  const relinked = await planRelinkCitations(library, answered);
   return { summary: { ...citationSummary(dois, graph), relinked: relinked.length }, changes: [...changes, ...relinked] };
 }
 

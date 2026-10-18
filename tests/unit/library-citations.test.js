@@ -96,6 +96,14 @@ test("a note OpenAlex does not return keeps its cites, also when OpenAlex answer
   assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\n---$/m);
 });
 
+test("a note OpenAlex holds without any references keeps the cites read from its PDF", async () => {
+  const kept = note("10.1/empty").replace("category:", 'cites:\n  - "[[002 - B]]"\n  - "Baker, M. (1989) Marketing."\ncategory:');
+  const library = await openLibrary(memoryFolder({ "001 - A.md": kept, "002 - B.md": note("10.1/b") }));
+  const works = { ...WORKS, "10.1/empty": { id: "https://openalex.org/W40", doi: "https://doi.org/10.1/empty", referenced_works: [] } };
+  const { changes } = await planLibraryCitations(library, await fetchLibraryWorks(library, fakeOpenalex(works)));
+  assert.equal(changes.find(c => c.stem === "001 - A"), undefined, "an empty reference list from OpenAlex never empties cites");
+});
+
 /** Answers like OpenAlex: `count` matching works, `per-page` of them per page. */
 const pagedOpenalex = all => {
   const calls = [];
