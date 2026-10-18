@@ -9,7 +9,7 @@ import { btn } from "../ui/components.js";
 // A short, plain explanation of what the app is for, one highlighted part of the screen at a time.
 // Offered once on the first visit; the button on the Homepage replays it.
 const TOUR = [
-  { title: "Welcome to Review Studio 👋",
+  { title: "Welcome to Systematic Review Workbench 👋",
     text: "This app guides you through a systematic review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
   { target: ".flowmap", title: "Your review, step by step",
     text: "The map shows the whole review: plan (question, search, inclusion rules), the PRISMA flow with your live counts (records found, screened, included), then analysis and the report. Click any step to open it; the ringed one is where you are. While you work it stays folded to this one line: Map ▾ unfolds it." },
@@ -25,7 +25,7 @@ const TOUR = [
 
 export function offerTour() {
   const card = h("div", { class: "tour-offer", role: "region", "aria-label": "App tour" },
-    h("div", { class: "tour-offer-text" }, h("b", {}, "New here?"), " Take the 1-minute tour to see what Review Studio does."),
+    h("div", { class: "tour-offer-text" }, h("b", {}, "New here?"), " Take the 1-minute tour to see what Systematic Review Workbench does."),
     h("div", { class: "row" },
       btn("🎓 Start tour", () => { card.remove(); startTour(); }, "sm primary"),
       btn("Not now", () => { card.remove(); store.set("toured", "skipped"); }, "sm ghost")));

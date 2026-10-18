@@ -1,6 +1,6 @@
 # Architecture
 
-Review Studio is a browser app whose data is a folder on the user's PC. It has two halves: the **engine** (`src/`), which knows the review rules and the review-folder format, and the **page** (`web/`), which shows the review and turns clicks into engine actions. Both are plain ES modules with no build step and no framework, so the same files run in Node (tests, CLI) and in the browser, and the published site is the repository as it is.
+Systematic Review Workbench is a browser app whose data is a folder on the user's PC. It has two halves: the **engine** (`src/`), which knows the review rules and the review-folder format, and the **page** (`web/`), which shows the review and turns clicks into engine actions. Both are plain ES modules with no build step and no framework, so the same files run in Node (tests, CLI) and in the browser, and the published site is the repository as it is.
 
 ```
  web/  the page                                   src/  the engine

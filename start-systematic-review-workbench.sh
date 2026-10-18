@@ -1,6 +1,6 @@
 #!/bin/sh
-# Starts Review Studio on this Linux PC and opens it in Chrome, Chromium or Edge.
-# Run it from a terminal (./start-review-studio.sh) or double-click it; press Ctrl+C or close the terminal to stop it.
+# Starts Systematic Review Workbench on this Linux PC and opens it in Chrome, Chromium or Edge.
+# Run it from a terminal (./start-systematic-review-workbench.sh) or double-click it; press Ctrl+C or close the terminal to stop it.
 cd "$(dirname "$0")" || exit 1
 
 if ! command -v node >/dev/null 2>&1; then
@@ -23,5 +23,5 @@ URL="http://localhost:8770/web/"
   xdg-open "$URL" >/dev/null 2>&1
 ) &
 
-echo "Review Studio runs at $URL  (Ctrl+C to stop it)"
+echo "Systematic Review Workbench runs at $URL  (Ctrl+C to stop it)"
 exec node scripts/serve.js 8770

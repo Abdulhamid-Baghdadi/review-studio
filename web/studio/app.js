@@ -1,5 +1,5 @@
 /**
- * The Review Studio page: starts it, and imports every module that registers a page or listens to the page.
+ * The Systematic Review Workbench page: starts it, and imports every module that registers a page or listens to the page.
  * @module web/studio/app
  */
 import "./core/dom.js";

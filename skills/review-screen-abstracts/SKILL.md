@@ -1,21 +1,21 @@
 ---
 name: review-screen-abstracts
-description: Suggest title/abstract screening decisions for a scoping or systematic review (Review Studio) (Review Studio, step Screen papers, Screen tab). Use when the user asks to pre-screen, suggest decisions, or help with title/abstract screening of a review. The reviewer confirms every suggestion; this skill never decides.
+description: Suggest title/abstract screening decisions for a scoping or systematic review (Systematic Review Workbench) (Systematic Review Workbench, step Screen papers, Screen tab). Use when the user asks to pre-screen, suggest decisions, or help with title/abstract screening of a review. The reviewer confirms every suggestion; this skill never decides.
 ---
 
 # Suggest title/abstract decisions
 
-You suggest; the reviewer decides. You write only the AI suggestion (`ai_title_abstract_decision`, `ai_title_abstract_reason`, `ai_title_abstract_explanation` in the record note) on records that are still `pending`. The reviewer then confirms or changes each suggestion in Review Studio (Screening → **Suggested** queue), and only that writes the decision (`title_abstract_decision` in the record note).
+You suggest; the reviewer decides. You write only the AI suggestion (`ai_title_abstract_decision`, `ai_title_abstract_reason`, `ai_title_abstract_explanation` in the record note) on records that are still `pending`. The reviewer then confirms or changes each suggestion in Systematic Review Workbench (Screening → **Suggested** queue), and only that writes the decision (`title_abstract_decision` in the record note).
 
-All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes, `review_state.json` or the screening guide yourself.
+All reading and writing goes through `bin/ai-assist.js` (Systematic Review Workbench). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes, `review_state.json` or the screening guide yourself.
 
 ## Steps
 
-1. **Get the batch.** Run this from the Review Studio folder (the project open in Claude Code):
+1. **Get the batch.** Run this from the Systematic Review Workbench folder (the project open in Claude Code):
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context screening --limit 40
    ```
-   - If it says AI assistance is **off**, stop. Tell the user to switch it on in Review Studio: step Screen papers, the AI assistance card. Never switch it on yourself.
+   - If it says AI assistance is **off**, stop. Tell the user to switch it on in Systematic Review Workbench: step Screen papers, the AI assistance card. Never switch it on yourself.
    - The output has the review questions (PCC), the eligibility text, the exclusion reasons (`ta_reasons`, e.g. `E1 …`), `remaining`, and up to 40 records with title and abstract.
 
 2. **Judge each record against the eligibility criteria and the questions only.** Rules:
@@ -37,4 +37,4 @@ All reading and writing goes through `bin/ai-assist.js` (Review Studio). Pass `-
 
 4. **Repeat** while `remaining` > 0 and the user wants more. Batches of 40 keep each judgement careful.
 
-5. **Report:** how many records you suggested (include / unsure / exclude per reason), anything that made the criteria hard to apply, and a reminder to review the suggestions in Review Studio (Screen papers › Suggested): one record at a time, the suggestion under the abstract, Enter to accept or I/U/E to decide otherwise. Criteria problems belong to the reviewer; a change after the protocol lock is an amendment.
+5. **Report:** how many records you suggested (include / unsure / exclude per reason), anything that made the criteria hard to apply, and a reminder to review the suggestions in Systematic Review Workbench (Screen papers › Suggested): one record at a time, the suggestion under the abstract, Enter to accept or I/U/E to decide otherwise. Criteria problems belong to the reviewer; a change after the protocol lock is an amendment.

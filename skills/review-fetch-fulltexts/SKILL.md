@@ -1,6 +1,6 @@
 ---
 name: review-fetch-fulltexts
-description: Find and attach the full-text PDFs for records awaiting full-text screening in a scoping or systematic review (Review Studio) (Review Studio, step Screen papers, Get full texts tab). Use when the user asks to collect, download, or fetch the PDFs or full texts for a review.
+description: Find and attach the full-text PDFs for records awaiting full-text screening in a scoping or systematic review (Systematic Review Workbench) (Systematic Review Workbench, step Screen papers, Get full texts tab). Use when the user asks to collect, download, or fetch the PDFs or full texts for a review.
 ---
 
 # Fetch full texts
@@ -11,14 +11,14 @@ Your job is to get the full text of every record in the retrieval queue and atta
 
 ## Steps
 
-Run the commands from the Review Studio folder (the project open in Claude Code).
+Run the commands from the Systematic Review Workbench folder (the project open in Claude Code).
 
 1. **Get the queue:**
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context retrieval --limit 200
    ```
-   - If AI assistance is **off**, stop and tell the user where to switch it on (Review Studio, step Screen papers, Get full texts tab).
-   - Each record comes with title, authors, year, DOI, URL and `open_access_url`, which is filled when Review Studio found an open-access link.
+   - If AI assistance is **off**, stop and tell the user where to switch it on (Systematic Review Workbench, step Screen papers, Get full texts tab).
+   - Each record comes with title, authors, year, DOI, URL and `open_access_url`, which is filled when Systematic Review Workbench found an open-access link.
 
    - Before downloading anything, ask whether the user has already run "Find PDFs in a folder…" on the Retrieval page, which matches PDFs already on their PC (Downloads, Zotero, a library folder) by DOI or by title plus first author. Records it found are no longer in the queue.
 
@@ -43,4 +43,4 @@ Run the commands from the Review Studio folder (the project open in Claude Code)
 
 5. **Never bypass access controls:** no CAPTCHA solving, no shadow libraries (Sci-Hub, LibGen and the like), no sharing logins. If a site asks "are you a robot", leave that paper for the user.
 
-6. **Report:** how many attached (and how many of those are preprints), plus the list you couldn't get, with what you tried. The user can then try interlibrary loan or mark those papers as not retrieved in Review Studio.
+6. **Report:** how many attached (and how many of those are preprints), plus the list you couldn't get, with what you tried. The user can then try interlibrary loan or mark those papers as not retrieved in Systematic Review Workbench.

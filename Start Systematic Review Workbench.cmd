@@ -1,6 +1,6 @@
 @echo off
-rem Starts Review Studio on this PC and opens it in Chrome (or Edge). Close this window to stop it.
-title Review Studio
+rem Starts Systematic Review Workbench on this PC and opens it in Chrome (or Edge). Close this window to stop it.
+title Systematic Review Workbench
 cd /d "%~dp0"
 
 where node >nul 2>nul
@@ -28,5 +28,5 @@ if defined BROWSER (
   start "" cmd /c "timeout /t 2 >nul & start "" "%URL%""
 )
 
-echo Review Studio runs at %URL%  (close this window to stop it)
+echo Systematic Review Workbench runs at %URL%  (close this window to stop it)
 node scripts\serve.js 8770

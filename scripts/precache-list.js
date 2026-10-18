@@ -1,5 +1,5 @@
 // The files the offline service worker (web/sw.js) stores on first visit: the page, the engine and pdf.js.
-// Paths are relative to web/ (where sw.js is), so the site also works in a subfolder (GitHub Pages: /review-studio/).
+// Paths are relative to web/ (where sw.js is), so the site also works in a subfolder (GitHub Pages: /systematic-review-workbench/).
 // Used by serve.js (from the repository) and build-site.js (from dist/).
 import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";

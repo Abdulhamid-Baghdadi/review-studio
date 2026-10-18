@@ -104,17 +104,17 @@ export function openClaudeGuide() {
   modal({ title: "Working with Claude", wide: true, body: h("div", {},
     h("p", { class: "callout", style: "margin:0 0 16px" },
       "Claude can do the slow, repetitive parts of a review: pre-screening, finding PDFs, a blind second screening, filling the charting form. ",
-      "It only ever suggests. You confirm every decision in Review Studio, every AI action is logged with the model and date, and the protocol reports it."),
+      "It only ever suggests. You confirm every decision in Systematic Review Workbench, every AI action is logged with the model and date, and the protocol reports it."),
     sec("1 · Set up once", ol([
       "Install Claude Code: the Claude desktop app (Code tab) or the claude command in a terminal.",
-      ["Open the app's folder (the one that contains ", h("code", {}, "skills"), ") as the project in Claude Code. The AI skills come with the app as a Claude Code plugin, review-studio: when Claude Code asks, trust the folder and install it. Node.js, which the app already needs, runs them."],
-      "Keep Review Studio open next to it: Claude writes, Review Studio is where you check and confirm.",
+      ["Open the app's folder (the one that contains ", h("code", {}, "skills"), ") as the project in Claude Code. The AI skills come with the app as a Claude Code plugin, systematic-review-workbench: when Claude Code asks, trust the folder and install it. Node.js, which the app already needs, runs them."],
+      "Keep Systematic Review Workbench open next to it: Claude writes, Systematic Review Workbench is where you check and confirm.",
       "For paywalled papers: let Claude use a browser where you are signed in to your library (for example Claude in Chrome), only if you agree to that."])),
     sec("2 · How one step works", ol([
       "Open the step and choose a mode on its 🤖 AI assistance card. The choice is part of your method: after the protocol is locked it is an amendment.",
       "Press 📋 Copy prompt and paste it into Claude Code.",
       ["Claude follows the skill: it reads what it needs and writes its suggestions through ", h("code", {}, "bin/ai-assist.js"), ", which refuses when the mode is off and never sets a final decision. If two folders share the review's name (a review and its test copy), Claude asks you which one."],
-      "Back in Review Studio, review the suggestions (Suggested queue, blind-sheet agreement, 'checked by AI' papers) and confirm or change each one.",
+      "Back in Systematic Review Workbench, review the suggestions (Suggested queue, blind-sheet agreement, 'checked by AI' papers) and confirm or change each one.",
       "Work through the 'You check' list for that step."])),
     sec("3 · Steps Claude can help with", ...steps),
     sec("4 · Other things to ask Claude", ul([

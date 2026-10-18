@@ -54,7 +54,7 @@ export function synthesisResults(repo, st) {
 
 /** Writes the notes, plots, data and R script of every outcome, and the summary of findings. */
 export async function writeSynthesisFiles(repo, st) {
-  const labels = studyLabels(repo), today = repo.clock.today(), generatedBy = (repo.settings.generator ?? APP_GENERATOR).stagesBy ?? "Review Studio";
+  const labels = studyLabels(repo), today = repo.clock.today(), generatedBy = (repo.settings.generator ?? APP_GENERATOR).stagesBy ?? "Systematic Review Workbench";
   const items = synthesisResults(repo, st);
   for (const { outcome, analysis, grade } of items) {
     const stem = `${SYNTHESIS_DIR}/${outcomeStem(outcome)}`;

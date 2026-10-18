@@ -1,5 +1,5 @@
 /**
- * Start of Review Studio in the browser: checks that the browser can open folders, creates the backend (the review
+ * Start of Systematic Review Workbench in the browser: checks that the browser can open folders, creates the backend (the review
  * engine, src/ui/backend.js) with the help texts, templates, the worked example and pdf.js, and opens the draft
  * review, so the workspace is there straight away. The start screen is shown only when that fails.
  * @module web/main

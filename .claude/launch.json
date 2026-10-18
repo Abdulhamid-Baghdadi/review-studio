@@ -2,14 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Review Studio",
+      "name": "Systematic Review Workbench",
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/serve.js", "8770"],
       "port": 8770,
       "url": "http://localhost:8770"
     },
     {
-      "name": "Review Studio (second session)",
+      "name": "Systematic Review Workbench (second session)",
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/serve.js"],
       "port": 8772,

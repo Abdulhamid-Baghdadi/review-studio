@@ -30,12 +30,12 @@ const codes = reasons => new Set(reasons.map(r => r.split(" ")[0]));
 export function requireMode(st, step) {
   if (step === "fulltext") {
     if (aiMode(st, "screening") !== "suggest-ft") {
-      throw new AiNotAllowed("AI full-text suggestions are off for this review. The reviewer can choose 'AI suggests (+ full text)' in Review Studio (8 · Screening, AI assistance card).");
+      throw new AiNotAllowed("AI full-text suggestions are off for this review. The reviewer can choose 'AI suggests (+ full text)' in Systematic Review Workbench (8 · Screening, AI assistance card).");
     }
     return "suggest-ft";
   }
   const mode = aiMode(st, step);
-  if (mode === "off") throw new AiNotAllowed(`AI assistance for '${step}' is off for this review. Switch it on in Review Studio (stage page, AI assistance card) if the reviewer wants it.`);
+  if (mode === "off") throw new AiNotAllowed(`AI assistance for '${step}' is off for this review. Switch it on in Systematic Review Workbench (stage page, AI assistance card) if the reviewer wants it.`);
   return mode;
 }
 
@@ -93,7 +93,7 @@ export async function aiContext(repo, st, step, { limit = 40, rel = p => p } = {
     out.records = withPdf.slice(0, limit).map(r => ({ id: r.props.record_id, title: r.props.title, year: get(r.props, "year"), pdf: rel(pdfPath(r)) }));
   } else if (step === "reviewer") {
     const sheet = await latestSheet(repo.folder);
-    if (!sheet) throw new ReviewError("no blind sheet yet: draw the sample in Review Studio (9 · Second reviewer) first.");
+    if (!sheet) throw new ReviewError("no blind sheet yet: draw the sample in Systematic Review Workbench (9 · Second reviewer) first.");
     const rows = csv.readRecords(normalizeNewlines(await repo.folder.readText(`${SECOND_REVIEWER_DIR}/${sheet}`)).replace(/^﻿/, ""));
     Object.assign(out, await criteria(repo, st, rel), { sheet: rel(`${SECOND_REVIEWER_DIR}/${sheet}`), stage: sheet.slice(0, 2),
       records: rows.map(row => Object.fromEntries(["record_id", "title", "year", "journal", "abstract"].map(k => [k, row[k]]))) });
@@ -115,7 +115,7 @@ export async function aiContext(repo, st, step, { limit = 40, rel = p => p } = {
     }
   } else if (step === "appraisal") {
     const tool = strip(st.charting.appraisal_tool ?? "");
-    if (!tool) throw new ReviewError(`no appraisal tool chosen yet: the reviewer names it in Review Studio (${type.stages.find(s => s.key === "appraisal").title}, Approach).`);
+    if (!tool) throw new ReviewError(`no appraisal tool chosen yet: the reviewer names it in Systematic Review Workbench (${type.stages.find(s => s.key === "appraisal").title}, Approach).`);
     const todo = records.filter(r => isIncluded(r.props) && !strip(String(r.props.appraisal ?? "")) && r.props.appraisal_by !== "reviewer");
     Object.assign(out, { task: type.words.appraisal, tool, ratings: [...type.appraisalRatings], questions: (await criteria(repo, st, rel)).questions,
       remaining: todo.length, records: [] });
@@ -187,7 +187,7 @@ export async function aiSuggest(repo, st, items, { model, stage = "ta" }) {
     event(st, "screening", `AI (${model}) suggested ${ft ? "full-text" : "title/abstract"} decisions for ${written} record(s); awaiting the reviewer`, repo.clock.now());
     await saveState(repo, st);
   }
-  const message = `${written} suggestion(s) written. The reviewer confirms them in Review Studio (Screening, ${ft ? "Full text" : "Title / abstract"} tab, Suggested queue).`;
+  const message = `${written} suggestion(s) written. The reviewer confirms them in Systematic Review Workbench (Screening, ${ft ? "Full text" : "Title / abstract"} tab, Suggested queue).`;
   return { written, skipped, message };
 }
 

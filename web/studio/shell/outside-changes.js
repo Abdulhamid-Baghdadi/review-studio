@@ -7,7 +7,7 @@ import { REVIEW, S, SC, setS } from "../core/state.js";
 import { render } from "./chrome.js";
 import { toast } from "../ui/dialogs.js";
 
-// Changes made outside Review Studio (Claude through bin/ai-assist.js, another program): re-read the review
+// Changes made outside Systematic Review Workbench (Claude through bin/ai-assist.js, another program): re-read the review
 // when the window comes back into view, and every 15 s while it is visible.
 let checkingOutside = false;
 async function checkOutside() {
@@ -18,7 +18,7 @@ async function checkOutside() {
       setS(await getJSON(`/api/state?review=${encodeURIComponent(REVIEW)}`));
       SC.cache = {};
       render();
-      toast("Updated: the review was changed outside Review Studio (for example by Claude).", "ok");
+      toast("Updated: the review was changed outside Systematic Review Workbench (for example by Claude).", "ok");
     }
   } catch (e) { console.warn("checking for outside changes:", e); }
   finally { checkingOutside = false; }

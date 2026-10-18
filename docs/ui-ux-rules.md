@@ -1,4 +1,4 @@
-# UI and UX rules for Review Studio
+# UI and UX rules for Systematic Review Workbench
 
 What makes an interface good or bad here, as rules that can be checked. Every rule names its source and how strong
 the evidence behind it is, so a design argument can be settled by the evidence rather than by taste. The short

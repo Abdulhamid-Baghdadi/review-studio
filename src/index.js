@@ -1,7 +1,7 @@
 /**
- * Public API of Review Studio's engine. The UI and tools import from here only; the folders below are
+ * Public API of Systematic Review Workbench's engine. The UI and tools import from here only; the folders below are
  * internal and may be reorganised.
- * @module review-studio
+ * @module systematic-review-workbench
  */
 
 // domain: rules and formats

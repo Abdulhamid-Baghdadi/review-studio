@@ -1,12 +1,12 @@
 {
-  "name": "review-studio",
-  "description": "Review Studio's AI skills",
+  "name": "systematic-review-workbench",
+  "description": "Systematic Review Workbench's AI skills",
   "owner": { "name": "Abdulhamid Baghdadi" },
   "plugins": [
     {
-      "name": "review-studio",
+      "name": "systematic-review-workbench",
       "source": "./",
-      "description": "AI skills for scoping and systematic reviews in Review Studio"
+      "description": "AI skills for scoping and systematic reviews in Systematic Review Workbench"
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Plan: scoping and systematic reviews in one app
 
-Status (2026-10-12): steps 1–3 built (profiles, systematic type, type choice and rename to Review Studio), plus a first version of step 4 (help for the systematic stages) and 5 (a record-only synthesis stage). Meta-analysis is recorded, not computed.
+Status (2026-10-12): steps 1–3 built (profiles, systematic type, type choice and rename to Systematic Review Workbench), plus a first version of step 4 (help for the systematic stages) and 5 (a record-only synthesis stage). Meta-analysis is recorded, not computed.
 
 ## Idea
 
@@ -12,7 +12,7 @@ reviewer, full texts, Obsidian notes) stays shared.
 - A review without `review_type` is a **scoping** review, so every existing folder opens unchanged.
 - The type is chosen when a review is created. It can be changed until the protocol is locked; after that,
   changing it is an amendment and is written to the timeline.
-- The app name becomes **Review Studio**. Each review shows its type and guideline, e.g.
+- The app name becomes **Systematic Review Workbench**. Each review shows its type and guideline, e.g.
   "Scoping review · reported to PRISMA-ScR" or "Systematic review · reported to PRISMA 2020".
 
 ## Where the two types differ
@@ -46,7 +46,7 @@ reviewer, full texts, Obsidian notes) stays shared.
    `flowLabels`, `checklistFile`.
 2. `src/domain/stages.js`: `STAGES`, `CHECKLIST` and `PROTOCOL_SECTIONS` become functions of the profile
    (`stagesFor(st)` etc.); `newState` takes the type; loading an old state sets `"scoping"`.
-3. Callers (`progress.js`, `protocol.js`, `stage-notes.js`, `notes.js` flow note, `review-studio.js` (now `web/studio/`)) read
+3. Callers (`progress.js`, `protocol.js`, `stage-notes.js`, `notes.js` flow note, `systematic-review-workbench.js` (now `web/studio/`)) read
    the profile instead of the constants. Hard-coded "PRISMA-ScR n" texts move into the profile.
 4. `web/help.json`: help texts per stage get a `systematic` variant where they differ; glossary gets
    PICO, Risk of bias, Meta-analysis, GRADE, PROSPERO, Data extraction.
@@ -60,7 +60,7 @@ reviewer, full texts, Obsidian notes) stays shared.
 
 1. Profiles + stages/checklist as functions, scoping profile only (no visible change; tests prove it).
 2. Systematic profile: stages, PRISMA 2020 checklist, PICO, flow labels.
-3. UI: type choice, header, rename to Review Studio.
+3. UI: type choice, header, rename to Systematic Review Workbench.
 4. Help texts and glossary.
 5. Synthesis and certainty stage (the biggest new piece; it can ship after the rest).
 

@@ -232,7 +232,7 @@ await s.saveOutcome({
 });
 await s.saveSynthesis({
   approach: "Random-effects meta-analysis (DerSimonian–Laird with Hartung–Knapp) of the difference in sitting at work, min per 8-h workday, at the last follow-up up to 12 months; 7 trials. Júdice 2024 reported whole-day sitting only and is described narratively.",
-  software: "Review Studio (formulas as metafor; the R script in 14 - Synthesis reproduces it)", results_file: "14 - Synthesis",
+  software: "Systematic Review Workbench (formulas as metafor; the R script in 14 - Synthesis reproduces it)", results_file: "14 - Synthesis",
   heterogeneity: "Large between-trial differences in size (short crossover trials with big effects; 12-month cluster trials with smaller ones). Reported with I², τ² and the prediction interval.",
   reporting_bias: "Fewer than 10 trials: no funnel test. Small and large trials point the same way.",
   certainty: "Low (GRADE): downgraded once for risk of bias and once for inconsistency.",

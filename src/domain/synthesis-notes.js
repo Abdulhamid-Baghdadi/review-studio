@@ -126,7 +126,7 @@ export function outcomeCsv(outcome, labels) {
 }
 
 /** An R script (metafor) that reproduces the app's analysis from the CSV. */
-export function outcomeR(outcome, { generatedBy = "Review Studio", today = "" } = {}) {
+export function outcomeR(outcome, { generatedBy = "Systematic Review Workbench", today = "" } = {}) {
   const stem = outcomeStem(outcome);
   const esc = {
     binary: `dat <- escalc(measure = "${outcome.measure}", ai = e1, n1i = n1, ci = e2, n2i = n2, data = dat)`,
@@ -160,7 +160,7 @@ export function resultSentence(outcome, analysis) {
  * The outcome's note.
  * @param {object} p {outcome, analysis, grade (from certainty()), labels, reviewLink, today, generatedBy}
  */
-export function outcomeNote({ outcome, analysis, grade, labels, reviewLink, today, generatedBy = "Review Studio" }) {
+export function outcomeNote({ outcome, analysis, grade, labels, reviewLink, today, generatedBy = "Systematic Review Workbench" }) {
   const stem = outcomeStem(outcome);
   const { pooled, studies, egger } = analysis;
   const cols = OUTCOME_TYPES[outcome.type].columns;
@@ -197,7 +197,7 @@ export function outcomeNote({ outcome, analysis, grade, labels, reviewLink, toda
  * The summary-of-findings note over all outcomes.
  * @param {{outcome: object, analysis: object, grade: object}[]} items
  */
-export function summaryOfFindings({ items, reviewLink, today, generatedBy = "Review Studio" }) {
+export function summaryOfFindings({ items, reviewLink, today, generatedBy = "Systematic Review Workbench" }) {
   const props = { type: "review-summary-of-findings", review: reviewLink, updated: today, generated_by: generatedBy };
   const downgrades = g => GRADE_DOMAINS.filter(([k]) => g.domains[k].level < 0)
     .map(([k, label]) => `${label.toLowerCase()} (${g.domains[k].level})`).join(", ");
