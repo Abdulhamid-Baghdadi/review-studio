@@ -24,6 +24,8 @@ test("front matter: parse, serialize, replace one list", () => {
   assert.equal(body, "# Body\n");
   assert.equal(fm.serialize({ a: "x", n: 3, l: [], b: false }), '---\na: "x"\nn: 3\nl: []\nb: false\n---\n');
   assert.equal(fm.replaceList(text, "sources", ["X"]).split("\n").slice(4, 6).join("|"), 'sources:|  - "X"');
+  assert.equal(fm.replaceList('---\ntags: []\ncites:\n  - "W1"\n---\n', "included_in", ["[[R]]"]),
+    '---\ntags: []\nincluded_in:\n  - "[[R]]"\ncites:\n  - "W1"\n---\n', "a new list goes before cites, the last property");
   assert.deepEqual(fm.parse("no front matter"), [{}, "no front matter"]);
 });
 

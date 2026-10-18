@@ -45,7 +45,7 @@ test("only the generated parts change; line endings and the rest of the note sta
   const unlinked = `\r\n\r\n${UNLINKED[0]}\r\n\r\n## Unlinked cited works\r\n\r\nOpenAlex works cited outside this library: W9.\r\n\r\n${UNLINKED[1]}`;
   const text = note("10.1/a", unlinked, "\r\n").replace("type: publication", "type: publication\r\nreferences:\r\n  - \"[[old]]\"\r\ncited_by:\r\n  - \"[[old]]\"");
   const next = withoutUnlinked(withCitations(text, ["002 B"], [], ["10.9/outside", "W9"]));
-  assert.match(next, /^cites:\r\n  - "\[\[002 B\]\]"\r\n  - "10\.9\/outside"\r\n  - "W9"\r\ncategory:/m, "links first, then DOIs and ids, before category");
+  assert.match(next, /^category:\r\n  - "\[\[01- Foundations\]\]"\r\ncites:\r\n  - "\[\[002 B\]\]"\r\n  - "10\.9\/outside"\r\n  - "W9"\r\n---/m, "links first, then DOIs and ids; cites is the last property");
   assert.doesNotMatch(next, /^(references|cited_by):/m, "the retired properties are removed");
   assert.doesNotMatch(next, /Unlinked cited works/, "the old section is gone: those works are in cites");
   assert.match(next, /My own words\.\r\n$/);
@@ -67,8 +67,8 @@ test("from the Report page: a preview first, then the notes are written; a DOI b
   assert.equal(done.written, 2);
   assert.equal(await lib.readText("003 - C.md"), note(""), "a note OpenAlex did not return stays as it was");
   assert.equal(openalex.calls.length, 2, "the library's papers, then the cited works' DOIs; writing reuses the preview's");
-  assert.match(await lib.readText("001 - A.md"), /^cites:\n  - "\[\[002 - B\]\]"\n  - "10\.9\/outside"\n  - "W9"\ncategory:/m);
-  assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\ncategory:/m);
+  assert.match(await lib.readText("001 - A.md"), /^cites:\n  - "\[\[002 - B\]\]"\n  - "10\.9\/outside"\n  - "W9"\n---$/m, "a new cites goes last");
+  assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\n---$/m);
   assert.doesNotMatch(await lib.readText("002 - B.md"), /^cited_by:/m, "no cited_by");
   assert.match(await lib.readText("001 - A.md"), /## Summary\n\nMy own words\.\n$/);
   assert.equal((await s.libraryCitations()).changed, 0);
@@ -93,7 +93,7 @@ test("a note OpenAlex does not return keeps its cites, also when OpenAlex answer
   assert.equal(await lib.readText("001 - A.md"), kept);
   await (await open(fakeOpenalex())).libraryCitations({ apply: true });
   assert.equal(await lib.readText("001 - A.md"), kept, "only 002 - B is found; 001 - A is untouched, its Unlinked block too");
-  assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\ncategory:/m);
+  assert.match(await lib.readText("002 - B.md"), /^cites:\n  - "10\.9\/outside"\n---$/m);
 });
 
 /** Answers like OpenAlex: `count` matching works, `per-page` of them per page. */
@@ -149,7 +149,7 @@ test("Check citations relinks the notes OpenAlex does not return", async () => {
   const { summary, changes } = await planLibraryCitations(await openLibrary(lib), { works: new Map(), refDois: new Map() });
   assert.equal(summary.relinked, 1);
   assert.deepEqual(changes.map(c => c.stem), ["001 - A"]);
-  assert.match(changes[0].next, /^cites:\n  - "\[\[002 - B\]\]"\n  - "Baker, M\. \(1989\) Marketing\."\ncategory:/m);
+  assert.match(changes[0].next, /^cites:\n  - "\[\[002 - B\]\]"\n  - "Baker, M\. \(1989\) Marketing\."\ncategory:/m, "an existing cites is replaced where it is");
 });
 
 test("allWorks asks for the next page while works are missing", async () => {

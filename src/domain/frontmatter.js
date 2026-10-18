@@ -94,6 +94,9 @@ export function replaceList(text, key, values) {
     out.push(...listLines(key, values));
     replaced = true;
   }
-  if (!replaced) out.push(...listLines(key, values));
+  if (!replaced) {   // a new property goes before `cites`, which stays the last property of a publication note
+    const at = out.findIndex(l => /^cites\s*:/.test(l));
+    out.splice(at < 0 ? out.length : at, 0, ...listLines(key, values));
+  }
   return "---\n" + out.join("\n") + "\n---\n" + text.slice(m.index + m[0].length);
 }
