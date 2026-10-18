@@ -25,7 +25,7 @@ A browser app for scoping reviews (reported to PRISMA-ScR) and systematic review
 
 ## Open items (2026-10-08)
 
-- Test copy of the user's review: `Desktop\PRISMA Studio test\Project 2 review records` (5,683 records; never test on the original in the vault). Check the folder exists before using it: opening a missing path creates an empty review there.
+- Test copy of the user's review: `Desktop\PRISMA Studio test\Project 2 review records` (5,683 records; never test on the original in the vault). It was gone from the Desktop on 2026-10-18: ask the user for a fresh copy from the vault. Check the folder exists before using it: opening a missing path creates an empty review there.
 - Offline: `web/sw.js` stores the app on first visit (list from `scripts/precache-list.js`, served as `/web/precache.json`); it then opens at http://localhost:8770/web/ without the server. Chrome can install it as an app.
 - Speed on the full review (5,683 notes): `node scripts/bench-open.js "<copy>"` reads it in ~0.6 s; in the browser's private storage it opens in ~2.0 s and a screening click takes ~40 ms. Still to confirm from a real disk folder in the user's Chrome (the app shows the time when opening; `window.openTiming`).
 - Outside changes: saving a record merges edits made on disk since it was read (Obsidian); the app re-reads the review when `review_state.json` changed (Claude via `bin/ai-assist.js`), on focus, every 15 s and before each action.
