@@ -20,7 +20,7 @@ A browser app for scoping reviews (reported to PRISMA-ScR) and systematic review
 
 ## Experiments folder
 
-- Every example, demo or test review made in Systematic Review Workbench goes in `C:\Users\A-Bag\Desktop\literature-systematic-review-workbench experiments folder` (one subfolder per experiment, e.g. `2026-10-17 demo records`). In Chrome, choose that folder in the folder picker when creating or opening a review. Never put experiments in this repo folder, the test copy, or the vault.
+- Every example, demo or test review made in Systematic Review Workbench goes in `C:\Users\A-Bag\Desktop\systematic-review-workbench experiments folder` (one subfolder per experiment, e.g. `2026-10-17 demo records`). In Chrome, choose that folder in the folder picker when creating or opening a review. Never put experiments in this repo folder, the test copy, or the vault.
 - The folder picker is a Windows dialog that Chrome browser automation cannot click. Either use computer use for the dialog (type the path in the address bar), or ask the user to pick the folder.
 
 ## Open items (2026-10-08)
