@@ -1,12 +1,12 @@
 {
-  "name": "systematic-review-workbench",
-  "description": "Systematic Review Workbench's AI skills",
+  "name": "scoping-review-workbench",
+  "description": "Scoping Review Workbench's AI skills",
   "owner": { "name": "Abdulhamid Baghdadi" },
   "plugins": [
     {
-      "name": "systematic-review-workbench",
+      "name": "scoping-review-workbench",
       "source": "./",
-      "description": "AI skills for scoping and systematic reviews in Systematic Review Workbench"
+      "description": "AI skills for scoping reviews in Scoping Review Workbench"
     }
   ]
 }

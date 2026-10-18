@@ -1,21 +1,21 @@
 ---
 name: review-screen-fulltexts
-description: Suggest full-text screening decisions for a scoping or systematic review (Systematic Review Workbench) (Systematic Review Workbench, step Screen papers, Screen tab, Full text) by reading each retrieved PDF against the eligibility criteria. Use when the user asks to pre-screen, suggest decisions for, or help with full-text screening of a review. The reviewer confirms every suggestion; this skill never decides.
+description: Suggest full-text screening decisions for a scoping review (Scoping Review Workbench, step Screen papers, Screen tab, Full text) by reading each retrieved PDF against the eligibility criteria. Use when the user asks to pre-screen, suggest decisions for, or help with full-text screening of a review. The reviewer confirms every suggestion; this skill never decides.
 ---
 
 # Suggest full-text decisions
 
-You suggest; the reviewer decides. For records that passed title/abstract screening and have a PDF attached, you read the full text and write only the AI suggestion (`ai_full_text_decision`, `ai_full_text_reason`, `ai_full_text_explanation` in the record note). The reviewer then confirms or changes each suggestion in Systematic Review Workbench (Screening → Full text tab → **Suggested** queue), and only that writes the decision (`full_text_decision` in the record note).
+You suggest; the reviewer decides. For records that passed title/abstract screening and have a PDF attached, you read the full text and write only the AI suggestion (`ai_full_text_decision`, `ai_full_text_reason`, `ai_full_text_explanation` in the record note). The reviewer then confirms or changes each suggestion in Scoping Review Workbench (Screening → Full text tab → **Suggested** queue), and only that writes the decision (`full_text_decision` in the record note).
 
-All reading and writing goes through `bin/ai-assist.js` (Systematic Review Workbench). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes or `review_state.json` yourself.
+All reading and writing goes through `bin/ai-assist.js` (Scoping Review Workbench). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself. Never edit record notes or `review_state.json` yourself.
 
 ## Steps
 
-1. **Get the batch.** Run this from the Systematic Review Workbench folder (the project open in Claude Code):
+1. **Get the batch.** Run this from the Scoping Review Workbench folder (the project open in Claude Code):
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context fulltext --limit 5
    ```
-   - If it says full-text suggestions are **off**, stop. Tell the user that the reviewer can choose "AI suggests (+ full text)" in Systematic Review Workbench (step Screen papers, AI assistance card).
+   - If it says full-text suggestions are **off**, stop. Tell the user that the reviewer can choose "AI suggests (+ full text)" in Scoping Review Workbench (step Screen papers, AI assistance card).
    - The output has the review questions (PCC), the eligibility text, the full-text exclusion reasons (`ft_reasons`), `remaining`, `without_pdf` and up to 5 records with their `pdf` path.
    - Records without a PDF are not listed; retrieval comes first (skill `review-fetch-fulltexts`).
 

@@ -1,6 +1,6 @@
 # Builds the static site (npm run build -> dist/) after the tests pass and publishes it on GitHub Pages.
 # Also packs the app as a ZIP for running it locally (launchers for Windows, Mac and Linux) and attaches it
-# to the "latest" release: https://github.com/Abdulhamid-Baghdadi/systematic-review-workbench/releases/latest
+# to the "latest" release: https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench/releases/latest
 name: Pages
 
 on:
@@ -39,7 +39,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.repository == 'Abdulhamid-Baghdadi/systematic-review-workbench'   # copies (e.g. UA-SMARTLab) only test and build
+    if: github.repository == 'Abdulhamid-Baghdadi/scoping-review-workbench'   # copies (e.g. UA-SMARTLab) only test and build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -50,7 +50,7 @@ jobs:
 
   download:
     needs: build
-    if: github.repository == 'Abdulhamid-Baghdadi/systematic-review-workbench'
+    if: github.repository == 'Abdulhamid-Baghdadi/scoping-review-workbench'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -63,7 +63,7 @@ jobs:
       - run: npm ci --omit=dev
       - name: Pack the app with its launchers
         run: |
-          D="Systematic Review Workbench"
+          D="Scoping Review Workbench"
           mkdir -p "pack/$D/scripts" "pack/$D/node_modules" "pack/$D/.claude"
           cp -r bin src web package.json package-lock.json README.md LICENSE* "pack/$D/" 2>/dev/null || true
           cp scripts/serve.js scripts/precache-list.js "pack/$D/scripts/"
@@ -71,12 +71,12 @@ jobs:
           cp -r node_modules/pdfjs-dist/build node_modules/pdfjs-dist/legacy node_modules/pdfjs-dist/package.json node_modules/pdfjs-dist/LICENSE "pack/$D/node_modules/pdfjs-dist/"
           cp -r skills .claude-plugin "pack/$D/"   # the AI skills, as a Claude Code plugin
           cp .claude/settings.json "pack/$D/.claude/" 2>/dev/null || true   # turns that plugin on for the folder
-          cp "Start Systematic Review Workbench.cmd" "Start Systematic Review Workbench.command" start-systematic-review-workbench.sh "pack/$D/"
-          chmod +x "pack/$D/Start Systematic Review Workbench.command" "pack/$D/start-systematic-review-workbench.sh"
-          (cd pack && zip -qr ../systematic-review-workbench.zip "$D")
+          cp "Start Scoping Review Workbench.cmd" "Start Scoping Review Workbench.command" start-scoping-review-workbench.sh "pack/$D/"
+          chmod +x "pack/$D/Start Scoping Review Workbench.command" "pack/$D/start-scoping-review-workbench.sh"
+          (cd pack && zip -qr ../scoping-review-workbench.zip "$D")
       - name: Replace the "latest" release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest systematic-review-workbench.zip --latest             --title "Systematic Review Workbench (latest)"             --notes "The app to run on your own computer, built from ${{ github.sha }}. Unzip it, install Node.js 20 or newer (https://nodejs.org) and double-click the launcher: Windows: Start Systematic Review Workbench.cmd · Mac: Start Systematic Review Workbench.command (the first time: right-click → Open) · Linux: start-systematic-review-workbench.sh. It opens in Chrome or Edge at http://localhost:8770/web/."
+          gh release create latest scoping-review-workbench.zip --latest             --title "Scoping Review Workbench (latest)"             --notes "The app to run on your own computer, built from ${{ github.sha }}. Unzip it, install Node.js 20 or newer (https://nodejs.org) and double-click the launcher: Windows: Start Scoping Review Workbench.cmd · Mac: Start Scoping Review Workbench.command (the first time: right-click → Open) · Linux: start-scoping-review-workbench.sh. It opens in Chrome or Edge at http://localhost:8770/web/."

@@ -15,19 +15,19 @@ import { fullName } from "./record-properties.js";
  * How generated notes name the tool that wrote them.
  * @typedef {object} Generator
  * @property {string} path      written to `generated-by`
- * @property {string} rerun     how to regenerate the PRISMA flow note, e.g. "Systematic Review Workbench, 14 · Report"
+ * @property {string} rerun     how to regenerate the PRISMA flow note, e.g. "Scoping Review Workbench, 14 · Report"
  * @property {string} commands  last section of the screening guide (where the commands are)
- * @property {string} logBy     who writes the review log, e.g. "Systematic Review Workbench"
+ * @property {string} logBy     who writes the review log, e.g. "Scoping Review Workbench"
  * @property {string} stagesBy  `generated-by` of the protocol note
  */
 
 /** @type {Generator} */
 export const APP_GENERATOR = Object.freeze({
-  path: "Systematic Review Workbench",
-  rerun: "*Report* in Systematic Review Workbench",
-  commands: "Use Systematic Review Workbench. After a screening session open *Report* to refresh [[14 - PRISMA flow]].",
-  logBy: "Systematic Review Workbench",
-  stagesBy: "Systematic Review Workbench",
+  path: "Scoping Review Workbench",
+  rerun: "*Report* in Scoping Review Workbench",
+  commands: "Use Scoping Review Workbench. After a screening session open *Report* to refresh [[14 - PRISMA flow]].",
+  logBy: "Scoping Review Workbench",
+  stagesBy: "Scoping Review Workbench",
 });
 
 export const FILES = Object.freeze({
@@ -44,7 +44,7 @@ const guideBody = commands => `
 
 > [!warning] Replace the exclusion reasons in the properties above with the criteria of the registered protocol **before** screening starts. Changes after the pilot are protocol amendments: log them.
 
-Screening happens in Systematic Review Workbench, or in [[08 - Screening.base]] by editing the properties in the table.
+Screening happens in Scoping Review Workbench, or in [[08 - Screening.base]] by editing the properties in the table.
 
 ## Title and abstract — \`title_abstract_decision\`
 
@@ -70,7 +70,7 @@ Optional: \`screened_by\` (your initials), \`notes\` (free text). \`screened_on\
 
 ## Second reviewer
 
-\`second_reviewer_title_abstract_sample\` / \`second_reviewer_full_text_sample\` are set when the sample is drawn in Systematic Review Workbench (Screen papers → Second reviewer); the second reviewer never sees this vault's decisions, only the blind CSV sheet. Do not edit the other \`second_reviewer_…\` properties by hand: they are imported from the returned sheet.
+\`second_reviewer_title_abstract_sample\` / \`second_reviewer_full_text_sample\` are set when the sample is drawn in Scoping Review Workbench (Screen papers → Second reviewer); the second reviewer never sees this vault's decisions, only the blind CSV sheet. Do not edit the other \`second_reviewer_…\` properties by hand: they are imported from the returned sheet.
 
 ## Commands
 

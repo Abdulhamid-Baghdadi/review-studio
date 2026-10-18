@@ -2,14 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Systematic Review Workbench",
+      "name": "Scoping Review Workbench",
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/serve.js", "8770"],
       "port": 8770,
       "url": "http://localhost:8770"
     },
     {
-      "name": "Systematic Review Workbench (second session)",
+      "name": "Scoping Review Workbench (second session)",
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/serve.js"],
       "port": 8772,

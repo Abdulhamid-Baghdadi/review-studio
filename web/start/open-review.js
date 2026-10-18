@@ -1,5 +1,5 @@
 /**
- * Opening a review: the backend reads the folder (with progress on the start screen), then the Systematic Review Workbench page
+ * Opening a review: the backend reads the folder (with progress on the start screen), then the Scoping Review Workbench page
  * (web/studio/app.js) is loaded and draws its first page. How long that took is shown and kept as window.openTiming.
  * @module web/start/open-review
  */
@@ -25,7 +25,7 @@ export async function openReview(entry) {
 /** How long opening took, shown for 20 s (click to close) and kept as window.openTiming. */
 function showOpenTiming(t) {
   window.openTiming = t;
-  console.info("Systematic Review Workbench open timing", t);
+  console.info("Scoping Review Workbench open timing", t);
   if (!t.notes) return;                         // nothing worth timing (the draft, a new review)
   const note = document.createElement("div");
   note.className = "toast";

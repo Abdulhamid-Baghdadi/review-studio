@@ -1,11 +1,11 @@
 ---
 name: review-appraise-sources
-description: Suggest critical-appraisal ratings for the included papers of a scoping review in Systematic Review Workbench (step Quality check), using the tool the reviewer chose. Use when the user asks to appraise or suggest quality ratings for included papers. The reviewer confirms every rating; this skill never decides.
+description: Suggest critical-appraisal ratings for the included papers of a scoping review in Scoping Review Workbench (step Quality check), using the tool the reviewer chose. Use when the user asks to appraise or suggest quality ratings for included papers. The reviewer confirms every rating; this skill never decides.
 ---
 
 # Suggest critical-appraisal ratings
 
-You read each included paper with the appraisal tool the reviewer chose (for example MMAT, CASP or a JBI checklist) and suggest one overall rating with reasons and page locators. Each rating you write stays "suggested by AI" (`appraisal_by: AI`) until the reviewer confirms or changes it in Systematic Review Workbench. You never overwrite a rating already there, and `ai-assist.js` enforces that.
+You read each included paper with the appraisal tool the reviewer chose (for example MMAT, CASP or a JBI checklist) and suggest one overall rating with reasons and page locators. Each rating you write stays "suggested by AI" (`appraisal_by: AI`) until the reviewer confirms or changes it in Scoping Review Workbench. You never overwrite a rating already there, and `ai-assist.js` enforces that.
 
 This is the optional critical appraisal of a scoping review (PRISMA-ScR items 12 and 16). The context output names the tool and the allowed ratings; use its words.
 
@@ -13,13 +13,13 @@ This is the optional critical appraisal of a scoping review (PRISMA-ScR items 12
 
 ## Steps
 
-Run the commands from the Systematic Review Workbench folder (the project open in Claude Code).
+Run the commands from the Scoping Review Workbench folder (the project open in Claude Code).
 
 1. **Get the next papers:**
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context appraisal --limit 5
    ```
-   - If AI assistance is **off**, stop and tell the user where to switch it on (Systematic Review Workbench, step Quality check, AI assistance card).
+   - If AI assistance is **off**, stop and tell the user where to switch it on (Scoping Review Workbench, step Quality check, AI assistance card).
    - If no tool is chosen yet, stop and ask the reviewer to name it in the step Quality check (Approach). Don't choose one yourself.
    - The output has the review questions, the `tool`, the allowed `ratings`, and per paper its `pdf` path and `study_type` when it was charted.
 

@@ -23,7 +23,7 @@ async function install() {
     return;
   }
   // no prompt from the browser (Firefox, Safari, or Chrome has not offered it yet): say how to do it by hand
-  alert("To install Systematic Review Workbench as an app, open it in Chrome or Edge and choose \"Install\" in the address bar or in the browser menu (⋮ → Cast, save and share → Install page as app). It then opens in its own window and works offline.");
+  alert("To install Scoping Review Workbench as an app, open it in Chrome or Edge and choose \"Install\" in the address bar or in the browser menu (⋮ → Cast, save and share → Install page as app). It then opens in its own window and works offline.");
 }
 
 for (const id of BUTTONS) document.getElementById(id)?.addEventListener("click", install);

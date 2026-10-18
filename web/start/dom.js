@@ -1,5 +1,5 @@
 /**
- * Small DOM helpers of the start screen (it runs before the Systematic Review Workbench page is loaded).
+ * Small DOM helpers of the start screen (it runs before the Scoping Review Workbench page is loaded).
  * @module web/start/dom
  */
 export const $ = s => document.querySelector(s);

@@ -119,7 +119,7 @@ PAGES.home = () => {
       choice("🎓", "Take the 1-minute tour", "What each part of the screen is for.", () => { go("questions"); setTimeout(() => startTour(), 250); })),
     card("How a review goes", "Five phases, one minute. Click a part of the circle to jump to it.", homeDemo()),
     h("p", { class: "home-foot small muted" }, "📝 Plain Markdown notes and CSV tables · 🟣 opens in Obsidian · 🔒 nothing is uploaded, no account · ",
-      h("a", { href: "https://github.com/Abdulhamid-Baghdadi/systematic-review-workbench/releases/latest/download/systematic-review-workbench.zip" }, "💾 desktop version")));
+      h("a", { href: "https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench/releases/latest/download/scoping-review-workbench.zip" }, "💾 desktop version")));
 };
 
 /** Opens the finished example review (backend.exampleEntry), on its Report step: the result first, Back walks through it. */

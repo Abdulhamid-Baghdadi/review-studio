@@ -1,7 +1,7 @@
 {
-  "name": "systematic-review-workbench",
-  "description": "AI skills for Systematic Review Workbench: suggest screening decisions, fetch full texts, appraise sources and chart data for scoping and systematic reviews. The reviewer confirms every suggestion.",
+  "name": "scoping-review-workbench",
+  "description": "AI skills for Scoping Review Workbench: suggest screening decisions, fetch full texts, appraise sources and chart data for scoping reviews. The reviewer confirms every suggestion.",
   "author": { "name": "Abdulhamid Baghdadi" },
-  "homepage": "https://abdulhamid-baghdadi.github.io/systematic-review-workbench/",
-  "repository": "https://github.com/Abdulhamid-Baghdadi/systematic-review-workbench"
+  "homepage": "https://abdulhamid-baghdadi.github.io/scoping-review-workbench/",
+  "repository": "https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench"
 }

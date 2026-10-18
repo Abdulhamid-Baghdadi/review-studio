@@ -1,24 +1,24 @@
 ---
 name: review-second-reviewer
-description: Act as the independent (blind) second reviewer on the screening sample of a scoping or systematic review (Systematic Review Workbench) (Systematic Review Workbench, step Screen papers, Second reviewer tab), when the review chose "AI as second reviewer". Use when the user asks the AI to fill the second-reviewer sheet or compute agreement with an AI reviewer.
+description: Act as the independent (blind) second reviewer on the screening sample of a scoping review (Scoping Review Workbench, step Screen papers, Second reviewer tab), when the review chose "AI as second reviewer". Use when the user asks the AI to fill the second-reviewer sheet or compute agreement with an AI reviewer.
 ---
 
 # Blind second reviewer
 
 You screen the random sample independently. Blindness is the whole point of this step. You see only the blind sheet and the criteria, never the first reviewer's decisions. So do not open record notes, `Screening.base`, the PRISMA flow, or the timeline for this review while you work.
 
-All reading and writing goes through `bin/ai-assist.js` (Systematic Review Workbench). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself.
+All reading and writing goes through `bin/ai-assist.js` (Scoping Review Workbench). Pass `--review` the review's name (e.g. `Project 2 review`) or the full path of its `<name> records` folder. When a name fits more than one folder (a review and its test copy) the command lists them: ask the reviewer which one, never pick yourself.
 
 ## Steps
 
-Run the commands from the Systematic Review Workbench folder (the project open in Claude Code).
+Run the commands from the Scoping Review Workbench folder (the project open in Claude Code).
 
 1. **Get the sheet:**
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context reviewer
    ```
    - If it says AI assistance is **off**, stop: this review uses a human second reviewer.
-   - If there's no sheet yet, the reviewer first draws the sample in Systematic Review Workbench (step Screen papers, Second reviewer tab).
+   - If there's no sheet yet, the reviewer first draws the sample in Scoping Review Workbench (step Screen papers, Second reviewer tab).
    - The output has the questions, the eligibility text, the reasons, `stage` (`ta` = title/abstract, `ft` = full text) and the sampled records.
 
 2. **Decide every record:** `include`, `exclude` or `unsure`.
@@ -36,4 +36,4 @@ Run the commands from the Systematic Review Workbench folder (the project open i
    ```
    This saves a filled copy of the sheet named `… (AI).csv`, imports it, recomputes Cohen's κ and logs the model and date.
 
-4. **Report to the user:** the number decided and κ (from the output). Tell them to read every disagreement in Systematic Review Workbench and settle each one. Remind them the report must name the second reviewer as an AI (model, date); the protocol does this automatically.
+4. **Report to the user:** the number decided and κ (from the output). Tell them to read every disagreement in Scoping Review Workbench and settle each one. Remind them the report must name the second reviewer as an AI (model, date); the protocol does this automatically.

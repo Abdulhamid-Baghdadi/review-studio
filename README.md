@@ -1,14 +1,14 @@
-# Systematic Review Workbench
+# Scoping Review Workbench
 
 **A workbench for scoping reviews, reported to PRISMA-ScR, that runs in your browser and keeps every review in a folder on your own PC. The methods follow the JBI Manual and Arksey & O'Malley. It covers the review from the first idea to the charted evidence and the report; analyse the charted data further in the tools your field uses.**
 
-**[▶ Open it in your browser](https://abdulhamid-baghdadi.github.io/systematic-review-workbench/)** · **[💾 Download for Windows, Mac and Linux](https://github.com/Abdulhamid-Baghdadi/systematic-review-workbench/releases/latest/download/systematic-review-workbench.zip)** · Chrome or Edge on a computer
+**[▶ Open it in your browser](https://abdulhamid-baghdadi.github.io/scoping-review-workbench/)** · **[💾 Download for Windows, Mac and Linux](https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench/releases/latest/download/scoping-review-workbench.zip)** · Chrome or Edge on a computer
 
-Systematic Review Workbench walks you through a scoping review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
+Scoping Review Workbench walks you through a scoping review from the first idea to the PRISMA flow diagram: questions, search strings, protocol, database imports, screening, full texts, charting and the report. Your review is a plain folder of Markdown notes, CSV tables and PDFs: nothing is uploaded, there is no account, and the folder opens in Obsidian or any text editor.
 
-![Systematic Review Workbench: screening a record, with the map of the review's steps and the PRISMA flow at the top](docs/screenshot.png)
+![Scoping Review Workbench: screening a record, with the map of the review's steps and the PRISMA flow at the top](docs/screenshot.png)
 
-*Screening in Systematic Review Workbench (example data). Search terms are highlighted in the abstract; I / U / E decide.*
+*Screening in Scoping Review Workbench (example data). Search terms are highlighted in the abstract; I / U / E decide.*
 
 ![The app tour highlighting the steps](docs/tour.png)
 
@@ -35,7 +35,7 @@ Systematic Review Workbench walks you through a scoping review from the first id
 
 ## Getting started
 
-1. Open **https://abdulhamid-baghdadi.github.io/systematic-review-workbench/** in **Chrome or Edge** on a computer.
+1. Open **https://abdulhamid-baghdadi.github.io/scoping-review-workbench/** in **Chrome or Edge** on a computer.
 2. You start on the **Homepage**: a one-minute animated walk through a review, and the **🎓 tour** of the screen.
 3. Pick a step in the map at the top of the page. Your work starts as **My review**, kept in the browser, so you can begin with your idea and research questions right away. There is no Save button: everything you type is saved as you go (*✓ Saved* in the top bar).
 4. To keep it as files on your PC, open the review menu (top left, next to the logo) → **💾 Save my review to a folder…**, give it a name and pick a place. From then on every change is written to that folder. Once the protocol is locked, a change to it is an amendment: those fields save when you leave them and ask for the reason.
@@ -47,9 +47,9 @@ Handy: **⌂ Home** (top left) explains the app and offers three ways in: start 
 
 | | How | Good for |
 |---|---|---|
-| 🌐 **In the browser** | Open the [website](https://abdulhamid-baghdadi.github.io/systematic-review-workbench/). | Trying it, everyday use. Always the newest version. |
+| 🌐 **In the browser** | Open the [website](https://abdulhamid-baghdadi.github.io/scoping-review-workbench/). | Trying it, everyday use. Always the newest version. |
 | 📲 **As an app** | On the website: **⚙ Settings → ⬇ Install as an app** (or the install icon in the address bar). | Its own window and Start-menu icon; works offline; updates itself. |
-| 💾 **On your own computer** | [Download the ZIP](https://github.com/Abdulhamid-Baghdadi/systematic-review-workbench/releases/latest/download/systematic-review-workbench.zip) and double-click the launcher (below). | Working without the website, keeping a fixed version, using Claude Code with the AI skills, or changing the code. |
+| 💾 **On your own computer** | [Download the ZIP](https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench/releases/latest/download/scoping-review-workbench.zip) and double-click the launcher (below). | Working without the website, keeping a fixed version, using Claude Code with the AI skills, or changing the code. |
 
 ### Running the download
 
@@ -57,9 +57,9 @@ You need **[Node.js](https://nodejs.org) 20 or newer** (free; install it once) a
 
 | System | Double-click | Notes |
 |---|---|---|
-| **Windows** | `Start Systematic Review Workbench.cmd` | If Windows SmartScreen warns, choose *More info → Run anyway*. |
-| **Mac** | `Start Systematic Review Workbench.command` | The first time macOS may block it: **right-click → Open → Open**. |
-| **Linux** | `start-systematic-review-workbench.sh` | Or run `./start-systematic-review-workbench.sh` in a terminal (if needed: `chmod +x start-systematic-review-workbench.sh`). |
+| **Windows** | `Start Scoping Review Workbench.cmd` | If Windows SmartScreen warns, choose *More info → Run anyway*. |
+| **Mac** | `Start Scoping Review Workbench.command` | The first time macOS may block it: **right-click → Open → Open**. |
+| **Linux** | `start-scoping-review-workbench.sh` | Or run `./start-scoping-review-workbench.sh` in a terminal (if needed: `chmod +x start-scoping-review-workbench.sh`). |
 
 The launcher starts the app on your computer and opens it at **http://localhost:8770/web/**. Keep its window open while you work; close it (or press Ctrl+C) to stop. Your reviews are not inside the app's folder: they are wherever you saved them, so you can replace the app with a newer download at any time.
 
@@ -83,7 +83,7 @@ A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of ev
 
 **The map is the navigation.** Folded to one slim line by default (numbered steps and the PRISMA counts), or unfolded with *Map ▾*. It runs from the planning steps through the boxes of the PRISMA flow diagram, with your live counts (records found, titles and abstracts screened, full texts sought and read, sources included), to the charting step and the report. *You are here* marks the page on screen; click any box to open it, or ⤢ for the full PRISMA diagram.
 
-**A finished example.** [Open it directly](https://abdulhamid-baghdadi.github.io/systematic-review-workbench/web/#example) (the link `…/web/#example`), or click *Open the example* on the Homepage or *📘 Show me an example* at the top of any page. It is a small engineering scoping review, finished up to the report: *What design features and methods that make lithium-ion battery packs easier to disassemble are described in the engineering literature?* A real OpenAlex search (111 records, string and date logged) is screened down to 20 papers for full text; the 4 with a CC BY full text are read in full and charted (page for each value). The other 16 are marked "not retrieved", because the example only ships openly licensed PDFs (sources and licences: `web/example/full-texts/LICENSES.md`). The example is copied fresh into the browser each time it is opened, so visitors can change anything; **💾 Save a copy…** puts the whole review (notes and PDFs) in a folder on your PC, ready to open in Obsidian. It is built by `npm run example` from the saved search in `web/example/openalex-search.json` (made with `scripts/fetch-example-search.js`). The judgements were made for this teaching example by one reviewer.
+**A finished example.** [Open it directly](https://abdulhamid-baghdadi.github.io/scoping-review-workbench/web/#example) (the link `…/web/#example`), or click *Open the example* on the Homepage or *📘 Show me an example* at the top of any page. It is a small engineering scoping review, finished up to the report: *What design features and methods that make lithium-ion battery packs easier to disassemble are described in the engineering literature?* A real OpenAlex search (111 records, string and date logged) is screened down to 20 papers for full text; the 4 with a CC BY full text are read in full and charted (page for each value). The other 16 are marked "not retrieved", because the example only ships openly licensed PDFs (sources and licences: `web/example/full-texts/LICENSES.md`). The example is copied fresh into the browser each time it is opened, so visitors can change anything; **💾 Save a copy…** puts the whole review (notes and PDFs) in a folder on your PC, ready to open in Obsidian. It is built by `npm run example` from the saved search in `web/example/openalex-search.json` (made with `scripts/fetch-example-search.js`). The judgements were made for this teaching example by one reviewer.
 
 **Reviews made as systematic reviews** (before 18 Oct 2026, when the app supported both types) still open: they are shown as scoping reviews, and everything they saved, including their PRISMA 2020 ticks and synthesis notes, stays in `review_state.json`.
 
@@ -119,7 +119,7 @@ Each record note keeps its decisions in its properties, in full words (`title_ab
 - **Decision log.** Every change of a screening decision (title/abstract, full text, second reviewer) is a row in `08 - Decision log.csv`: when, old → new decision, reason, who (your initials, set in *Settings → Review settings*) and how (by hand, a reviewed AI suggestion, a rule, an imported sheet, or an edit outside the app such as in Obsidian). Each row's SHA-256 covers the row before it, so an edited or deleted row shows: *Report → Check the decision log*. Each record shows its own history under the screening buttons.
 - **Export to your Obsidian library.** *Report → Export to Obsidian library* turns the included papers into publication notes in your library folder, from your own publication template (⚙ Settings → Review settings → *Publication template*; otherwise the app's own), with `added_by` (the review) and `added_on` (the date), copies their PDFs (to the folder you chose, else `PDFs` in the library folder), and then updates the citations below. A paper already in the library only gets the review added to `included_in`.
 - **Citations in your library.** *Report → Check citations* looks up the papers of your publication library on OpenAlex (by DOI, about one request per 50 papers) and writes what each paper cites into `cites`: a link for a paper in your library, otherwise its DOI (or its OpenAlex id when it has none) (for Obsidian's graph; the papers citing a paper are its backlinks). Run it again after adding papers and the DOIs of papers now in your library become links. The old `cited_by` property and *Unlinked cited works* section are removed. A paper OpenAlex does not find keeps its `cites` (it is never emptied); only the entries of papers now in your library become links. It shows what would change first; nothing else in the notes is touched. (This used to be Library Studio's Citations page.)
-  After adding papers by hand, run `node "<Systematic Review Workbench folder>/bin/check-citations.js"` from your vault: it shows, without going online, which DOIs and OpenAlex ids in `cites` now belong to papers in your library; add `--write` to turn them into links, and `--openalex` for the full *Check citations* (which also fetches the new papers' own reference lists). `--help` lists the options.
+  After adding papers by hand, run `node "<Scoping Review Workbench folder>/bin/check-citations.js"` from your vault: it shows, without going online, which DOIs and OpenAlex ids in `cites` now belong to papers in your library; add `--write` to turn them into links, and `--openalex` for the full *Check citations* (which also fetches the new papers' own reference lists). `--help` lists the options.
 - **Review package.** *Report → Make review package* writes `07 - Exports/Review package <date>/` and the same as a ZIP: the registered and current protocol, timeline and amendments, search strings and export files, every decision with its reason, the decision log, the second-reviewer sheets, the charting table, the flow diagram, the checklist and a report on AI use. `MANIFEST.md` lists the SHA-256 of every file, so a copy deposited on OSF or Zenodo can be checked.
 
 ## AI assistance with Claude (optional)
@@ -132,9 +132,9 @@ Each step that can use help has an **🤖 AI assistance** card where you choose 
 - **prefill the charting form** from the PDFs, with page locators;
 - **suggest quality ratings** with the appraisal tool you chose (e.g. MMAT), with reasons and page locators, if you do a quality check.
 
-Claude only ever *suggests*: you confirm or change every suggestion in Systematic Review Workbench, each AI action is logged with the model and date, and the protocol's "Use of AI assistance" section is written for you.
+Claude only ever *suggests*: you confirm or change every suggestion in Scoping Review Workbench, each AI action is logged with the model and date, and the protocol's "Use of AI assistance" section is written for you.
 
-How to use it: open the app's folder (the download, or a clone of this repository) in Claude Code; when it asks, trust the folder and install the **systematic-review-workbench** plugin, which brings the AI skills. Then press **📋 Copy prompt** on the AI card and paste it. The AI skills are in [`skills/`](skills/README.md); they work through `node bin/ai-assist.js`, which refuses whenever the review has the AI switched off for that step. Keep Systematic Review Workbench open next to it: it notices Claude's changes and shows them.
+How to use it: open the app's folder (the download, or a clone of this repository) in Claude Code; when it asks, trust the folder and install the **scoping-review-workbench** plugin, which brings the AI skills. Then press **📋 Copy prompt** on the AI card and paste it. The AI skills are in [`skills/`](skills/README.md); they work through `node bin/ai-assist.js`, which refuses whenever the review has the AI switched off for that step. Keep Scoping Review Workbench open next to it: it notices Claude's changes and shows them.
 
 ## Privacy and data safety
 
@@ -149,7 +149,7 @@ How to use it: open the app's folder (the download, or a clone of this repositor
 - **The launcher says Node.js is needed.** Install it from https://nodejs.org (the LTS version) and start the launcher again.
 - **Port 8770 is already in use.** The app is probably already running: open http://localhost:8770/web/, or close the other launcher window.
 - **I don't see the newest version.** The app stores itself for offline use and updates on the next visit; reload the page once more.
-- **Something else?** [Open an issue](https://github.com/Abdulhamid-Baghdadi/systematic-review-workbench/issues).
+- **Something else?** [Open an issue](https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench/issues).
 
 ## For developers
 
@@ -165,4 +165,4 @@ node scripts/bench-open.js "<copy of a … records folder>"   # how fast a revie
 node scripts/readme-screenshot.js   # docs/screenshot.png and docs/tour.png, with example data (needs npm run serve)
 ```
 
-Every push to `main` is tested, built and published on GitHub Pages, and the download ZIP on the [latest release](https://github.com/Abdulhamid-Baghdadi/systematic-review-workbench/releases/latest) is rebuilt (`.github/workflows/pages.yml`). Review data is never part of this repository.
+Every push to `main` is tested, built and published on GitHub Pages, and the download ZIP on the [latest release](https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench/releases/latest) is rebuilt (`.github/workflows/pages.yml`). Review data is never part of this repository.

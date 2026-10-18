@@ -55,7 +55,7 @@ function renderTop() {
   const mapbar = $("#mapbar");
   if (CUR === HOME) {                                               // the Homepage explains; the page itself holds the choices
     mapbar.replaceChildren();
-    $("#topbar").replaceChildren(h("div", { class: "home-hero" }, h("h1", {}, "Welcome to Systematic Review Workbench"),
+    $("#topbar").replaceChildren(h("div", { class: "home-hero" }, h("h1", {}, "Welcome to Scoping Review Workbench"),
       h("p", {}, `A guided ${S.review_type.label.toLowerCase()}, from your question to the PRISMA report. Everything stays on your PC.`)));
     return;
   }

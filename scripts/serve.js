@@ -27,4 +27,4 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(url.pathname === "/" ? 302 : 404, url.pathname === "/" ? { Location: "/web/" } : {}).end();
   }
-}).listen(PORT, () => console.log(`Systematic Review Workbench: http://localhost:${PORT}/web/`));
+}).listen(PORT, () => console.log(`Scoping Review Workbench: http://localhost:${PORT}/web/`));

@@ -1,6 +1,6 @@
 {
   "extraKnownMarketplaces": {
-    "systematic-review-workbench": { "source": { "source": "directory", "path": "." } }
+    "scoping-review-workbench": { "source": { "source": "directory", "path": "." } }
   },
-  "enabledPlugins": { "systematic-review-workbench@systematic-review-workbench": true }
+  "enabledPlugins": { "scoping-review-workbench@scoping-review-workbench": true }
 }

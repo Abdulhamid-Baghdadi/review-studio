@@ -326,7 +326,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: non
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
-/* Systematic Review Workbench tool row (Timeline, PRISMA-ScR, Glossary, Shortcuts, Settings) above the stage header */
+/* Scoping Review Workbench tool row (Timeline, PRISMA-ScR, Glossary, Shortcuts, Settings) above the stage header */
 .toolbar { display: flex; align-items: center; gap: 4px; margin: -8px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
 .toolbar .spacer { flex: 1; }
 .menu-wrap { position: relative; }

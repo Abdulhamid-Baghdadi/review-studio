@@ -1,6 +1,6 @@
 @echo off
-rem Starts Systematic Review Workbench on this PC and opens it in Chrome (or Edge). Close this window to stop it.
-title Systematic Review Workbench
+rem Starts Scoping Review Workbench on this PC and opens it in Chrome (or Edge). Close this window to stop it.
+title Scoping Review Workbench
 cd /d "%~dp0"
 
 where node >nul 2>nul
@@ -28,5 +28,5 @@ if defined BROWSER (
   start "" cmd /c "timeout /t 2 >nul & start "" "%URL%""
 )
 
-echo Systematic Review Workbench runs at %URL%  (close this window to stop it)
+echo Scoping Review Workbench runs at %URL%  (close this window to stop it)
 node scripts\serve.js 8770

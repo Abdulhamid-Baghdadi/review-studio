@@ -1,7 +1,7 @@
 /**
- * Public API of Systematic Review Workbench's engine. The UI and tools import from here only; the folders below are
+ * Public API of Scoping Review Workbench's engine. The UI and tools import from here only; the folders below are
  * internal and may be reorganised.
- * @module systematic-review-workbench
+ * @module scoping-review-workbench
  */
 
 // domain: rules and formats

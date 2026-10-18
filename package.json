@@ -1,5 +1,5 @@
 {
-  "name": "systematic-review-workbench",
+  "name": "scoping-review-workbench",
   "version": "0.1.0",
   "private": true,
   "description": "Workbench for scoping reviews (PRISMA-ScR) that runs in the browser and keeps every review in a folder on your own PC.",

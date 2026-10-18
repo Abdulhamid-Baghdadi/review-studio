@@ -36,7 +36,7 @@ function aiUse(st, records, logRows, type) {
   const aiEvents = st.events.filter(e => /\bAI\b/.test(String(e.text)));
   return [
     "# Use of AI assistance\n",
-    "Every AI step in Systematic Review Workbench only suggests; the reviewer confirms or changes each suggestion. This file lists what was switched on and what the AI did.\n",
+    "Every AI step in Scoping Review Workbench only suggests; the reviewer confirms or changes each suggestion. This file lists what was switched on and what the AI did.\n",
     "## Modes chosen per stage\n", "| Stage | Mode |", "|---|---|", ...steps.map(([s, m]) => `| ${s} | ${m} |`), "",
     "## Outcome of AI suggestions\n",
     `- Screening suggestions confirmed unchanged by the reviewer: ${count("suggestion confirmed by reviewer")}`,
@@ -103,7 +103,7 @@ export async function writePackage(repo, st) {
   const manifest = [
     `# ${repo.name} — review package\n`,
     `- Review type: ${type.label}, reported to ${type.guideline} (${type.guidelineCitation})`,
-    `- Made on: ${today}, by ${repo.settings.generator?.path ?? "Systematic Review Workbench"}`,
+    `- Made on: ${today}, by ${repo.settings.generator?.path ?? "Scoping Review Workbench"}`,
     `- Protocol registered: ${st.protocol.locked || "no"}${st.protocol.registration ? ` (${st.protocol.registration})` : ""}` +
       (st.protocol.sha256 ? `; SHA-256 at registration \`${st.protocol.sha256}\`` : ""),
     `- Records: ${records.length}; included: ${records.filter(r => isIncluded(r.props)).length}`,
