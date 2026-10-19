@@ -11,6 +11,9 @@ import { render } from "../shell/chrome.js";
 import { exampleFor } from "../shell/help.js";
 import { autosize, bar, btn, card, decDot, field, iconBtn, openNote, pill, segmented } from "../ui/components.js";
 
+/** A charting field's name as words: "source_type" → "Source type" (the name itself stays the column and property). */
+const fieldLabel = name => { const t = String(name).replace(/_/g, " ").trim(); return t.charAt(0).toUpperCase() + t.slice(1); };
+
 PAGES.charting = () => {
   const fields = D.fields ??= S.state.charting.fields.map(f => ({ ...f }));
   const fieldSaver = autoSave("fields", () => api("save_fields", { fields }, { render: false, silent: true }), "charting");
@@ -59,11 +62,11 @@ PAGES.charting = () => {
         }), "primary") : btn("Undo checked", () => api("set_record", { record_id: r.record_id, fields: { chart_checked_by: "AI" } }), "ghost"),
         btn("Next ›", () => { const nx = next(); if (nx) { D.chartSel = nx.record_id; render(); } }, "ghost")),
       r.notes ? h("details", { class: "small", style: "margin-bottom:10px" }, h("summary", { class: "muted" }, "Notes on this record"), h("div", { class: "muted", style: "margin-top:4px;white-space:pre-wrap" }, r.notes)) : null,
-      ...(hasCols ? S.state.charting.fields.filter(f => f.name !== "checked_by").map(f => field(f.name, autosize(h("textarea", {
+      ...(hasCols ? S.state.charting.fields.filter(f => f.name !== "checked_by").map(f => field(fieldLabel(f.name), autosize(h("textarea", {
         rows: 2, value: r.chart[f.name] || "", placeholder: exampleFor("charting", f.name),
         oninput: e => { r.chart[f.name] = e.target.value; const v = e.target.value;
           autoSave(`chart:${r.record_id}:${f.name}`, () => api("set_record", { record_id: r.record_id, fields: { ["chart_" + f.name]: v } }, { render: false, silent: true })).schedule(); },
-      })), f.description)) : [h("div", { class: "callout warn" }, "Add the charting columns first (Charting form, below).")]));
+      })), f.description, { hintFirst: true })) : [h("div", { class: "callout warn" }, "Add the charting columns first (Charting form, below).")]));
   };
   drawForm();
   return h("div", {},

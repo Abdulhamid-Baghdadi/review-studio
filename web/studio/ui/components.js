@@ -14,10 +14,10 @@ let ids = 0;
 const idOf = el => el.id || (el.id = `lbl-${++ids}`);
 const isField = el => ["INPUT", "SELECT", "TEXTAREA"].includes(el?.tagName);
 /** A field with its visible label around it; the hint under it is linked as the field's description. */
-export function field(label, input, hint) {
-  const note = hint ? h("div", { class: "small muted", style: "margin-top:3px" }, hint) : null;
+export function field(label, input, hint, { hintFirst = false } = {}) {
+  const note = hint ? h("div", { class: "small muted", style: hintFirst ? "margin:-2px 0 3px" : "margin-top:3px" }, hint) : null;
   if (note && isField(input)) input.setAttribute("aria-describedby", idOf(note));
-  return h("label", { class: "field" }, h("span", {}, label), input, note);
+  return h("label", { class: "field" }, h("span", {}, label), ...(hintFirst ? [note, input] : [input, note]));
 }
 /**
  * Names a field by text already visible on the page (a card title, a table's column and row): the field points to
