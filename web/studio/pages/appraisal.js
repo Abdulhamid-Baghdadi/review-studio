@@ -26,7 +26,7 @@ PAGES.appraisal = () => {
         const id = h("b", {}, r.record_id);            // each field is named by its column and this record id
         return h("tr", {}, h("td", { style: "width:34%" }, id, " ", r.title),
           h("td", { style: "width:170px" }, labelBy(h("select", { onchange: e => api("set_record", { record_id: r.record_id, fields: { appraisal: e.target.value, ...mine } }, { silent: true }) },
-            ["", ...S.review_type.appraisalRatings].map(v => h("option", { value: v, selected: (r.appraisal || "") === v }, v || "—"))), [head[1], id])),
+            [...new Set(["", ...S.review_type.appraisalRatings, r.appraisal || ""])].map(v => h("option", { value: v, selected: (r.appraisal || "") === v }, v || "—"))), [head[1], id])),
           h("td", {}, labelBy(h("input", { type: "text", value: r.appraisal_note || "", onchange: e => api("set_record", { record_id: r.record_id, fields: { appraisal_note: e.target.value, ...mine } }, { silent: true }) }), [head[2], id])),
           h("td", { style: "width:120px" }, r.appraisal_by === "AI" ? h("div", { class: "row" }, pill("AI", "warn"),
             btn("Confirm", () => api("set_record", { record_id: r.record_id, fields: mine }), "sm")) : null));

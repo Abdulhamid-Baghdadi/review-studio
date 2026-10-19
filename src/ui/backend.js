@@ -147,6 +147,14 @@ export class Backend {
   /** Takes a review off the list of recent reviews (its folder stays as it is). */
   forgetReview(id) { return forgetReview(id); }
 
+  /** Takes the review folder named `name` off this browser's list; the draft and the example stay. @returns {Promise<boolean>} */
+  async forgetReviewNamed(name) {
+    const entry = await this.#reviewByName(name);
+    if (!entry || entry.draft || entry.example) return false;
+    await forgetReview(entry.id);
+    return true;
+  }
+
   /**
    * Saves the Review settings of the open review and opens it again with them. The draft and the example have no
    * folder of their own: their settings are kept apart and the page stays as it is; a folder's settings are kept

@@ -2,7 +2,7 @@
  * Everything around the page: top bar, tabs, metrics, AI card, where files are kept; render() draws it all.
  * @module web/studio/shell/chrome
  */
-import { api, backend, busy } from "../core/api.js";
+import { api, backend, busy, getJSON } from "../core/api.js";
 import { $, h, store } from "../core/dom.js";
 import { CUR, HOME, REVIEW, S } from "../core/state.js";
 import { PAGES } from "./registry.js";
@@ -10,7 +10,8 @@ import { openHelp } from "./help.js";
 import { flowMap } from "./journey-map.js";
 import { curTab, go, goTab, skipStage, stage, stepOf, tabSequence } from "./navigation.js";
 import { openReviewFolder, renderDraftBar, saveDraft, switchReview } from "./reviews.js";
-import { btn, copy, libraryName, openNote, pill, segmented, statusKind } from "../ui/components.js";
+import { btn, copy, iconBtn, libraryName, openNote, pill, segmented, statusKind } from "../ui/components.js";
+import { toast } from "../ui/dialogs.js";
 
 /** "AI" next to a step where AI can help: grey while off, in the accent colour when the review switched it on. */
 export function aiMark(keys) {
@@ -29,12 +30,25 @@ function renderPicker() {
   const icon = backend.entry?.example ? "📘" : backend.entry?.draft ? "📝" : "📁";
   b.replaceChildren(h("span", { class: "rb-icon", "aria-hidden": "true" }, icon), h("span", { class: "rb-name" }, reviewLabel(REVIEW)), h("span", { class: "rb-caret", "aria-hidden": "true" }, "▾"));
   b.title = /[\\/]/.test(REVIEW) ? `${REVIEW} — switch review, open a folder, save` : "Your reviews: switch, open a folder, save";
-  const item = r => h("button", { class: "btn ghost" + (r === REVIEW ? " current" : ""), onclick: () => r !== REVIEW && switchReview(r) },
+  const folder = r => r !== S.reviews[0] && !r.startsWith("📘");      // a review folder on the PC (not the draft or the example)
+  const pick = r => h("button", { class: "btn ghost" + (r === REVIEW ? " current" : ""), onclick: () => r !== REVIEW && switchReview(r) },
     h("span", { class: "rm-check" }, r === REVIEW ? "✓" : ""), r.startsWith("📘") ? "📘 " : r === S.reviews[0] ? "📝 " : "📁 ", reviewLabel(r),
     r === S.reviews[0] ? h("span", { class: "rm-note" }, "in this browser") : r.startsWith("📘") ? h("span", { class: "rm-note" }, "finished, not kept") : null);
+  const item = r => folder(r) ? h("div", { class: "rm-row" }, pick(r),
+    iconBtn("✕", `Remove ${reviewLabel(r)} from this list (its folder stays on your PC)`, () => forgetFromList(r), "sm")) : pick(r);
   menu.replaceChildren(h("div", { class: "rm-head" }, "Your reviews"), ...S.reviews.map(item), h("div", { class: "rm-line" }),
     backend.entry?.draft ? btn("💾 Save my review to a folder…", e => busy(e.currentTarget, saveDraft), "ghost") : null,
     btn("📂 Open a review folder…", openReviewFolder, "ghost"));
+}
+
+/** Takes a review folder off the list of reviews (the folder itself stays on the PC); leaving it if it is open. */
+async function forgetFromList(r) {
+  try {
+    await backend.forgetReviewNamed(r);
+    S.reviews = (await getJSON("/api/reviews")).reviews;
+    if (r === REVIEW) await switchReview(S.reviews[0]); else renderPicker();
+    toast(`Removed "${reviewLabel(r)}" from the list. Its folder is still on your PC: open it again with Open a review folder….`, "ok");
+  } catch (e) { toast(e.message, "err"); }
 }
 
 // What a part of a split stage page is for (the stage's own description covers the rest)
