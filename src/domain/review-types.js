@@ -26,8 +26,7 @@ const SCOPING_STAGES = [
   ["reviewer", "9 · Second reviewer", true, "A second person (or Claude) screens a sample of at least 20 % without seeing your decisions; the app measures how well you agree (Cohen's κ)."],
   ["retrieval", "10 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
   ["charting", "11 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
-  ["appraisal", "12 · Critical appraisal", true, "Rate the quality of each included paper. Optional in scoping reviews."],
-  ["report", "13 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
+  ["report", "12 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
 ];
 
 /**
@@ -41,10 +40,9 @@ const SCOPING_STEPS = [
   ["search", "Search strategy", "Keywords and database search strings", "Plan", [["concepts", "Keywords"], ["queries", "Search strings"], ["pilot", "Test the search"]]],
   ["rules", "Inclusion rules", "Which papers are in, which are out", "Plan",
     [["protocol", "Include / exclude rules", "rules"], ["protocol", "Other methods", "methods"], ["registration", "Lock & register"]]],
-  ["import", "Search & import", "Run the searches, load the results", "Find & select", [["searches", "Search & import"]]],
-  ["screen", "Screen papers", "Include or exclude each paper", "Find & select", [["screening", "Screen"], ["retrieval", "Get full texts"], ["reviewer", "Second reviewer"]]],
-  ["extract", "Chart the data", "Fill in a form for each paper", "Analyse", [["charting", "Chart the data"]]],
-  ["quality", "Quality check", "Critical appraisal · optional", "Analyse", [["appraisal", "Quality check"]]],
+  ["import", "Search & import", "Run the searches, load the results", "Find", [["searches", "Search & import"]]],
+  ["screen", "Screen papers", "Include or exclude each paper", "Select", [["screening", "Screen"], ["retrieval", "Get full texts"], ["reviewer", "Second reviewer"]]],
+  ["extract", "Chart the data", "Fill in a form for each paper", "Chart", [["charting", "Chart the data"]]],
   ["report", "Report", "Flow diagram, checklist, exports", "Report", [["report", "Report"]]],
 ];
 
@@ -106,10 +104,8 @@ const SCOPING = freeze({
   refs: freeze({ objectives: "PRISMA-ScR 4", search: "PRISMA-ScR 8", dataItems: "PRISMA-ScR 11", flow: "PRISMA-ScR item 14", sources: "PRISMA-ScR items 7–8", selection: "PRISMA-ScR 9" }),
   /** which checklist item each piece of evidence the tool can see belongs to */
   evidence: freeze({ questions: "4", registration: "5", criteria: "6", sources: "7", strings: "8", screening: "9", dataItems: "11",
-    appraisalMethods: "12", flow: "14", charting: "15", appraisalData: "16" }),
+    flow: "14", charting: "15" }),
   words: freeze({ unit: "source of evidence", units: "sources of evidence", chart: "chart", charting: "charting", charted: "charted", appraisal: "critical appraisal" }),
-  /** the overall rating per source on the appraisal stage (methodological quality) */
-  appraisalRatings: freeze(["high", "moderate", "low", "unclear"]),
 });
 
 export const REVIEW_TYPES = freeze({ scoping: SCOPING });

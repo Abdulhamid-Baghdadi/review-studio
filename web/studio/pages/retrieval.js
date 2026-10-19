@@ -45,11 +45,10 @@ function scanResults() {
 PAGES.retrieval = () => {
   const all = S.records.filter(r => ["include", "unsure"].includes(r.ta_decision));
   const st = r => r.pdf_status === "found" ? "found" : r.pdf_status === "not-retrieved" ? "not" : "find";
-  const f = D.rfilter ??= "find";
-  const inc = D.rinc ?? true;                       // included sources first: they are the ones to read
-  const pool = all.filter(r => !inc || r.ft_decision === "include");
-  const n = k => pool.filter(r => st(r) === k).length;
-  const recs = pool.filter(r => f === "all" || st(r) === f);
+  // every paper that passed title and abstract is sought, before its full-text decision (PRISMA "reports sought")
+  const n = k => all.filter(r => st(r) === k).length;
+  const f = D.rfilter ?? (n("find") ? "find" : "all");     // nothing left to find: show them all
+  const recs = all.filter(r => f === "all" || st(r) === f);
   const stat = r => ({ found: pill("found", "ok"), not: pill("not retrieved", "bad"), find: pill("to find", "warn") })[st(r)];
   const actions = r => {
     const file = h("input", { type: "file", accept: ".pdf", style: "display:none", onchange: async () => { const p = await upload(file.files[0]); api("attach_pdf", { record_id: r.record_id, path: p }); } });
@@ -61,7 +60,7 @@ PAGES.retrieval = () => {
     return box;
   };
   return h("div", {},
-    card("10 - Full texts", `${n("found")} found · ${n("not")} not retrieved · ${n("find")} to find`,
+    card("Full texts", `${all.length} papers passed the title and abstract check: ${n("found")} found · ${n("not")} not retrieved · ${n("find")} to find`,
       h("div", { class: "row", style: "margin-bottom:12px" },
         btn("📁 Find PDFs in a folder…", e => busy(e.currentTarget, () => scanPdfs()), "primary"),
         S.pdf_folders.slice(0, 3).map(f => btn("↻ " + f.split(/[\\/]/).pop(), e => busy(e.currentTarget, () => scanPdfs(f)), "sm ghost")),
@@ -69,9 +68,7 @@ PAGES.retrieval = () => {
         h("span", { class: "small muted" }, "First the PDFs you already have, then open access, then your university access via the DOI. A missing PDF is not an exclusion.")),
       D.scan ? scanResults() : null,
       h("div", { class: "row", style: "margin-bottom:10px" },
-        segmented([["find", `To find (${n("find")})`], ["found", `Found (${n("found")})`], ["not", `Not retrieved (${n("not")})`], ["all", "All"]], f, v => { D.rfilter = v; render(); }, "Show papers"),
-        h("label", { class: "small", style: "display:flex;gap:6px;align-items:center" },
-          h("input", { type: "checkbox", checked: inc, onchange: e => { D.rinc = e.target.checked; render(); } }), "Included sources only")),
+        segmented([["find", `To find (${n("find")})`], ["found", `Found (${n("found")})`], ["not", `Not retrieved (${n("not")})`], ["all", `All (${all.length})`]], f, v => { D.rfilter = v; render(); }, "Show papers")),
       recs.length ? h("div", { class: "scroll", style: "max-height:600px;overflow-x:auto" }, h("table", { class: "tbl", style: "width:100%" },
         h("tr", {}, ["Record", "Status", "Links", "Actions"].map(t => h("th", {}, t))),
         recs.map(r => h("tr", {},

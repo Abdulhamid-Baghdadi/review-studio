@@ -20,7 +20,7 @@ function flowHere() {
   if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
   return { idea: "question", questions: "question", concepts: "search", queries: "search", pilot: "search", protocol: "rules", registration: "rules",
     searches: "identified", reviewer: "screened", retrieval: "sought",
-    charting: "extract", appraisal: "quality", report: "report" }[CUR] ?? null;
+    charting: "extract", report: "report" }[CUR] ?? null;
 }
 
 function flowGroups() {
@@ -30,19 +30,18 @@ function flowGroups() {
   const screen = st => () => { SC.stage = st; store.set("sc_stage", st); SC.id = null; go("screening"); };
   return [
     { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Inclusion rules")] },
-    { phase: "Identification", prisma: true, nodes: [
+    { phase: "Find", prisma: true, nodes: [
       { id: "identified", step: step("import"), label: "Records found", n: f.n_db + f.n_other, minus: f.duplicates > 0 ? `${f.duplicates} duplicates` : "", go: () => go("searches"),
         tip: `Search & import: records from the databases (${f.n_db}) and other sources (${f.n_other}); duplicates are removed before screening.` },] },
-    { phase: "Screening", prisma: true, nodes: [
+    { phase: "Select", prisma: true, nodes: [
       { id: "screened", step: step("screen"), label: "Titles & abstracts", n: f.unique, minus: f.ta_excluded ? `${f.ta_excluded} excluded` : "", open: f.ta_pending,
         go: screen("ta"), tip: `Screen papers: titles and abstracts (${f.ta_pending} still to do).` },
       { id: "sought", label: "Full texts sought", n: f.sought, minus: f.not_retrieved ? `${f.not_retrieved} not found` : "", go: () => go("retrieval"),
         tip: "Screen papers → Get full texts: the papers that passed the title and abstract check." },
       { id: "assessed", label: "Full texts read", n: f.assessed, minus: f.ft_excluded ? `${f.ft_excluded} excluded` : "", open: f.ft_pending,
-        go: screen("ft"), tip: `Screen papers: full texts (${f.ft_pending} still to do).` }] },
-    { phase: "Included", prisma: true, nodes: [{ id: "included", label: "Sources", n: f.included, good: true, go: screen("ft"),
-      tip: "The papers your review is based on." }] },
-    { phase: "Analyse", nodes: [stepNode("extract", "extract", "Chart the data"), stepNode("quality", "quality", "Quality check")] },
+        go: screen("ft"), tip: `Screen papers: full texts (${f.ft_pending} still to do).` },
+      { id: "included", label: "Included", n: f.included, good: true, go: screen("ft"), tip: "The papers your review is based on." }] },
+    { phase: "Chart", nodes: [stepNode("extract", "extract", "Chart the data")] },
     { phase: "Report", nodes: [stepNode("report", "report", "Report")] },
   ].map(g => ({ ...g, nodes: g.nodes.filter(Boolean) }));
 }
@@ -69,7 +68,7 @@ export function flowMap() {
     };
     return h("nav", { class: "flowmap compact", "aria-label": "Steps of the review, with the PRISMA flow" },
       groups.flatMap((g, i) => [i ? arrow() : null, h("span", { class: `fmc-group ${g.prisma ? "prisma" : "steps"}`, title: g.phase },
-        h("span", { class: "fmc-phase" }, g.phase), g.nodes.flatMap((n, j) => [j && g.prisma && g.phase !== "Identification" ? h("span", { class: "fmc-sep" }, "›") : null, item(n)]))]),
+        h("span", { class: "fmc-phase" }, g.phase), g.nodes.flatMap((n, j) => [j && g.prisma && g.phase !== "Find" ? h("span", { class: "fmc-sep" }, "›") : null, item(n)]))]),
       h("span", { class: "spacer" }),
       iconBtn("⤢", "Show the full PRISMA flow diagram", full),
       h("button", { class: "btn sm ghost fm-toggle", onclick: toggle, "aria-expanded": "false", title: "Unfold the map: every step with its name, and the PRISMA counts" }, "Map ▾"));
@@ -85,7 +84,7 @@ export function flowMap() {
       isHere ? h("span", { class: "fm-here" }, "You are here") : null);
   };
   // the planning and analysis steps as short lists
-  const nodesOf = g => !g.prisma || g.phase === "Identification"
+  const nodesOf = g => !g.prisma || g.phase === "Find"
     ? h("div", { class: "fm-nodes stack" }, g.nodes.map(node))
     : h("div", { class: "fm-nodes" }, g.nodes.flatMap((n, j) => [j ? arrow() : null, node(n)]));
   return h("nav", { class: "flowmap", "aria-label": "Steps of the review, with the PRISMA flow" },

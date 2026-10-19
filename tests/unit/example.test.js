@@ -25,7 +25,6 @@ test("the finished example opens: 110 records from its planned OpenAlex search, 
   const included = props.filter(p => p.ft_decision === "include");
   assert.ok(included.every(p => p.chart_design_features && p.chart_assessment && p.chart_locators && p.chart_basis === "full text"));
   assert.ok(included.every(p => p.pdf), "every included paper has its full text");
-  assert.equal(s.st.stages.appraisal.status, "skipped", "critical appraisal is optional in a scoping review");
 });
 
 test("every full text shipped with the example has its licence listed, and only CC BY ones are shipped", () => {

@@ -16,7 +16,6 @@ import "./pages/screening.js";
 import "./pages/reviewer.js";
 import "./pages/retrieval.js";
 import "./pages/charting.js";
-import "./pages/appraisal.js";
 import "./pages/report.js";
 import "./core/autosave.js";
 import "./shell/keyboard.js";

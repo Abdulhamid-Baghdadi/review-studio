@@ -630,7 +630,6 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .hc-text { font-size: 13px; color: var(--muted); }
 .home-foot { margin-top: 14px; }
 @media (max-width: 900px) { .home-choices { grid-template-columns: minmax(0, 1fr); } }
-.fmc-group.prisma .fmc-phase { display: none; }
 .flowmap:not(.compact) .fm-track { padding-right: 56px; }
 .content { max-width: 1440px; }
 @media (max-width: 1250px) {

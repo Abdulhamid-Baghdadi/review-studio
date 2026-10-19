@@ -34,9 +34,6 @@ export function workComplete(st, records) {
   const [done, total] = chartingProgress(st, records);
   if (total && done === total) {
     out.charting = `all ${total} included sources charted`;
-    if (st.charting.appraisal_tool && records.filter(isIncluded).every(p => strip(String(p.appraisal ?? "")))) {
-      out.appraisal = `all ${total} included sources appraised`;
-    }
   }
   const type = reviewType(st), ticks = checklistOf(st);
   if (type.checklist.every(it => it.optional || (ticks[it.n] ?? {}).done)) out.report = `all ${type.guideline} checklist items ticked`;

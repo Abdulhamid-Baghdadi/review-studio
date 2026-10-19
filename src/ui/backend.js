@@ -395,8 +395,7 @@ export class Backend {
         if (!this.session.library.folder) throw new Error("Choose a library folder in Settings first.");
         return { raw: await s.libraryCitations({ apply: Boolean(a.apply) }) };
       }
-      case "prepare_charting": return s.prepareCharting(Boolean(a.appraisal));
-      case "appraisal_tool": return s.setAppraisalTool(a.tool);
+      case "prepare_charting": return s.prepareCharting();
       case "record_history": return { raw: { rows: await s.decisionHistory(a.record_id) } };
       case "verify_log": return { raw: await s.verifyDecisionLog() };
       case "review_package": { const r = await s.reviewPackage(); return { message: r.message, download: r.path }; }

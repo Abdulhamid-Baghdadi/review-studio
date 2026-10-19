@@ -9,7 +9,6 @@ Each skill helps with one step of a scoping review. The AI only suggests: the re
 | [review-fetch-fulltexts](review-fetch-fulltexts/SKILL.md) | Screen papers → Get full texts | Finds the PDFs (open access first) and attaches them |
 | [review-second-reviewer](review-second-reviewer/SKILL.md) | Screen papers → Second reviewer | Screens the sample blind, as the second reviewer, when the review chose "AI as second reviewer" |
 | [review-chart-data](review-chart-data/SKILL.md) | Chart the data | Prefills the charting form from the full texts, with page locators |
-| [review-appraise-sources](review-appraise-sources/SKILL.md) | Quality check *(optional)* | Suggests critical-appraisal ratings with the tool the reviewer chose |
 
 ## Using them
 

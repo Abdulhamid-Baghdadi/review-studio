@@ -324,7 +324,6 @@ export class ReviewSession {
     this.repo.put({ ...r, props: { ...r.props, ...Object.fromEntries(allowed) } });
     await this.repo.save();
     if (Object.keys(fields).some(k => k.startsWith("chart_"))) touch(this.st, "charting", this.now);
-    if (Object.keys(fields).some(k => k.startsWith("appraisal"))) touch(this.st, "appraisal", this.now);
     await this.save();
   }
 
@@ -400,7 +399,7 @@ export class ReviewSession {
     await this.save();
   }
 
-  // ------------------------------------------------------------ charting, appraisal, report
+  // ------------------------------------------------------------ charting, report
 
   /** @param {{name: string, description?: string}[]} fields */
   async saveFields(fields, amendment = "") {
@@ -412,17 +411,10 @@ export class ReviewSession {
     await this.save();
   }
 
-  async prepareCharting(appraisal = false) {
-    const n = await actions.prepareCharting(this.repo, this.st, { appraisal });
+  async prepareCharting() {
+    const n = await actions.prepareCharting(this.repo, this.st);
     await this.save();
     return `Columns added to ${n} included record(s).`;
-  }
-
-  async setAppraisalTool(tool) {
-    this.st.charting.appraisal_tool = tool;
-    touch(this.st, "appraisal", this.now);
-    event(this.st, "appraisal", `approach: ${tool}`, this.now);
-    await this.save();
   }
 
   async setChecklistItem(n, location = "", done = false) {

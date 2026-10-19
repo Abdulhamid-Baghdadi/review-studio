@@ -99,8 +99,8 @@ export async function snapshot(session, { review, reviews, vault }) {
   const keep = k => Object.fromEntries(k.map(key => [key, st[key]]));
   return {
     review, reviews, dev_mode: session.devMode, vault, folder: folder.name, library_name: library.folder?.name ?? "",
-    review_type: (({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts, appraisalRatings }) =>
-      ({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts, appraisalRatings }))(stages.reviewType(st)),
+    review_type: (({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts }) =>
+      ({ key, label, guideline, guidelineCitation, methods, question, words, refs, checklistFile, checklistParts }))(stages.reviewType(st)),
     stages: stages.reviewType(st).stages.map(s => ({ key: s.key, title: s.title, optional: s.optional, desc: s.description, ...st.stages[s.key] })),
     steps: stages.reviewType(st).steps,
     state: { ...keep(["idea", "questions", "concepts", "queries", "pilots", "protocol_text", "protocol_meta", "supervisor_review",

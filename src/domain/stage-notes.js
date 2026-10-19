@@ -87,10 +87,8 @@ export function checklistEvidence({ st, searches, records, guideExists, flowExis
     strings: databases ? "full strings in Search strategy" : "",
     screening: records.some(r => r.ta_decision !== "pending") ? "screening decisions recorded" : "",
     dataItems: `${st.charting.fields.length} data items defined`,
-    appraisalMethods: s.appraisal.status === "skipped" ? "skipped: " + s.appraisal.reason : s.appraisal.status !== "not-started" ? `${words.appraisal} recorded` : "",
     flow: flowExists && searches.length ? "PRISMA flow generated" : "",
     charting: s.charting.status !== "not-started" ? `${words.charting} table` : "",
-    appraisalData: s.appraisal.status === "skipped" ? "not performed (skipped)" : "",
   };
   return Object.fromEntries(Object.entries(type.evidence).map(([fact, n]) => [n, facts[fact] ?? ""]));
 }

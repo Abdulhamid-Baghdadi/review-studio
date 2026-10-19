@@ -110,10 +110,6 @@
    "text": "Polanin, J. R., Pigott, T. D., Espelage, D. L., & Grotpeter, J. K. (2019). Best practice guidelines for abstract screening large-evidence systematic reviews and meta-analyses. Research Synthesis Methods, 10(3), 330–342.",
    "doi": "10.1002/jrsm.1354"
   },
-  "hong2018": {
-   "text": "Hong, Q. N., Fàbregues, S., Bartlett, G., et al. (2018). The Mixed Methods Appraisal Tool (MMAT) version 2018 for information professionals and researchers. Education for Information, 34(4), 285–291.",
-   "doi": "10.3233/EFI-180221"
-  },
   "priem2022": {
    "text": "Priem, J., Piwowar, H., & Orr, R. (2022). OpenAlex: A fully-open index of scholarly works, authors, venues, institutions, and concepts. arXiv:2205.01833.",
    "doi": "10.48550/arXiv.2205.01833"
@@ -247,13 +243,6 @@
    "refs": [
     "arksey2005",
     "peters2020"
-   ]
-  },
-  "Critical appraisal": {
-   "definition": "Assessing the methodological quality or risk of bias of each included source of evidence. Optional in scoping reviews (PRISMA-ScR items 12 and 16) and usually not done; required in systematic reviews.",
-   "refs": [
-    "munn2018",
-    "hong2018"
    ]
   },
   "PRISMA flow diagram": {
@@ -732,40 +721,6 @@
     ]
    ]
   },
-  "appraisal": {
-   "what": "Rate the quality of each included source.",
-   "how": [
-    "Pick a tool that fits the designs (e.g. MMAT).",
-    "Skipping? Report 'not performed'."
-   ],
-   "terms": [
-    "Critical appraisal"
-   ],
-   "rules": [
-    [
-     "Report appraisal if done (PRISMA-ScR 12, 16).",
-     "report",
-     [
-      "tricco2018"
-     ]
-    ],
-    [
-     "Usually not required in scoping reviews.",
-     "guidance",
-     [
-      "munn2018",
-      "peters2020"
-     ]
-    ],
-    [
-     "Some argue it should be considered.",
-     "convention",
-     [
-      "levac2010"
-     ]
-    ]
-   ]
-  },
   "report": {
    "what": "Flow diagram, checklist and exports for writing.",
    "how": [
@@ -960,14 +915,6 @@
     [
      "locators",
      "from the full text, with page numbers"
-    ]
-   ]
-  },
-  "appraisal": {
-   "items": [
-    [
-     "Decision",
-     "Skipped — 'optional in scoping reviews; not planned in the protocol'"
     ]
    ]
   },

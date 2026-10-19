@@ -1,6 +1,6 @@
 {
   "name": "scoping-review-workbench",
-  "description": "AI skills for Scoping Review Workbench: suggest screening decisions, fetch full texts, appraise sources and chart data for scoping reviews. The reviewer confirms every suggestion.",
+  "description": "AI skills for Scoping Review Workbench: suggest screening decisions, fetch full texts and chart data for scoping reviews. The reviewer confirms every suggestion.",
   "author": { "name": "Abdulhamid Baghdadi" },
   "homepage": "https://abdulhamid-baghdadi.github.io/scoping-review-workbench/",
   "repository": "https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench"

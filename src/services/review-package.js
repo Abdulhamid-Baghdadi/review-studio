@@ -43,7 +43,6 @@ function aiUse(st, records, logRows, type) {
     `- Screening suggestions changed by the reviewer: ${count("reviewer changed AI")}`,
     `- Decisions in the decision log made through reviewed AI suggestions: ${logRows.filter(r => r.how === HOW.ai).length}`,
     `- Charting prefilled by AI and not yet checked by the reviewer: ${records.filter(r => isIncluded(r.props) && r.props.chart_checked_by === "AI").length}`,
-    `- Appraisal ratings suggested by AI and not yet confirmed: ${records.filter(r => r.props.appraisal_by === "AI").length}`,
     ...Object.entries(st.reviewer_ai ?? {}).map(([stage, r]) => `- Second reviewer (${stage === "ta" ? "title/abstract" : "full text"}) was an AI: ${r.model}, ${r.when}, sheet ${r.sheet}`),
     "", "## Every AI event in the timeline\n", "| When | Stage | What |", "|---|---|---|",
     ...(aiEvents.length ? aiEvents.map(e => `| ${e.when} | ${e.stage} | ${String(e.text).replaceAll("|", "/")} |`) : ["| — | | none |"]), "",
@@ -87,8 +86,8 @@ export async function writePackage(repo, st) {
   }
 
   const charting = "Data charting";
-  add(`05 ${charting}/${charting} and appraisal.csv`, chartingCsv(st, records.filter(r => isIncluded(r.props)).map(r => r.props)),
-    `the ${type.words.charting} values and ${type.words.appraisal} ratings of every included ${type.words.unit}`);
+  add(`05 ${charting}/${charting}.csv`, chartingCsv(st, records.filter(r => isIncluded(r.props)).map(r => r.props)),
+    `the ${type.words.charting} values of every included ${type.words.unit}`);
 
 
   await copy(FILES.flow, `07 Report/${FILES.flow}`, "PRISMA flow diagram and counts, exclusion reasons, agreement");

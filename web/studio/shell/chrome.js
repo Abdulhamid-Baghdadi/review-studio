@@ -61,7 +61,7 @@ const PART_DESC = {
 function nothingYet(key) {
   const included = S.records.some(r => r.ft_decision === "include");
   if (key === "screening") return S.flow.unique ? "" : "No records yet: import a search first";
-  if (["retrieval", "charting", "appraisal"].includes(key)) return included ? "" : "No included papers yet";
+  if (["retrieval", "charting"].includes(key)) return included ? "" : "No included papers yet";
   return "";
 }
 
@@ -153,7 +153,6 @@ const STORAGE = {
   reviewer: [["09 - Second reviewer", "blind CSV sheets"], ["08 - Records", "second_reviewer_ properties"]],
   retrieval: [["08 - Records", "full_text_status, open_access_url"], ["10 - Full texts", "attached PDFs"]],
   charting: [["08 - Records", "extracted_ properties"], ["12 - Charting.base", "the same as an Obsidian table"], ["review_state.json", "the form"]],
-  appraisal: [["08 - Records", "appraisal properties"], ["12 - Charting.base", "Appraisal view"]],
   report: [["14 - PRISMA flow.md", "flow diagram"], ["08 - Decision log.csv", "every decision change"], ["@checklist", "checklist"], ["07 - Exports", "BibTeX, CSV"], ["@library", "included_in on publication notes"]],
 };
 
@@ -190,7 +189,7 @@ function renderMetrics() {
     queries: ["test"], pilot: ["test"], searches: ["unique", "problems"],
     screening: ["unique", "ta", "ft", "included", "problems"], reviewer: ["kappa"],
     retrieval: ["included", "pdfs"],
-    charting: ["included", "pdfs", "charted", "checked"], appraisal: ["included", "checked"],
+    charting: ["included", "pdfs", "charted", "checked"],
     report: ["unique", "included", "pdfs", "checked", "problems"],
   };
   const keys = (PER_STAGE[CUR] || []).filter(x => x !== "kappa" || stage("reviewer").status !== "skipped");

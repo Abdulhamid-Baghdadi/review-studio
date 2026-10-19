@@ -1,6 +1,6 @@
 /**
  * Use cases of the stages around the records: protocol (write, lock, checks), pilots,
- * full-text retrieval, charting and appraisal, checklist and exports. Each changes the state object it is
+ * full-text retrieval, charting, checklist and exports. Each changes the state object it is
  * given; the caller saves it with review-state.saveState().
  * @module services/stage-actions
  */
@@ -170,11 +170,11 @@ export async function markPdf(repo, st, recordId, status) {
   event(st, "retrieval", `${recordId}: pdf_status ${status}`, repo.clock.now());
 }
 
-// ---------------------------------------------------------------- charting, appraisal, checklist, exports
+// ---------------------------------------------------------------- charting, checklist, exports
 
-/** Adds the charting (and appraisal) columns to every included record and writes 12 - Charting.base. */
-export async function prepareCharting(repo, st, { appraisal = false } = {}) {
-  const keys = [...st.charting.fields.map(f => `chart_${f.name}`), ...(appraisal ? ["appraisal", "appraisal_note"] : [])];
+/** Adds the charting columns to every included record and writes 12 - Charting.base. */
+export async function prepareCharting(repo, st) {
+  const keys = st.charting.fields.map(f => `chart_${f.name}`);
   let n = 0;
   for (const r of [...repo.records.values()].filter(x => isIncluded(x.props))) {
     const missing = keys.filter(k => !(k in r.props));
@@ -183,15 +183,13 @@ export async function prepareCharting(repo, st, { appraisal = false } = {}) {
     n++;
   }
   await repo.save();
-  await writeChartingBase(repo, st, appraisal || ["in-progress", "done"].includes(st.stages.appraisal.status));
-  const stage = appraisal ? "appraisal" : "charting";
-  touch(st, stage, repo.clock.now());
-  event(st, stage, `${stage} columns added to ${n} included records`, repo.clock.now());
+  await writeChartingBase(repo, st);
+  touch(st, "charting", repo.clock.now());
+  event(st, "charting", `charting columns added to ${n} included records`, repo.clock.now());
   return n;
 }
 
-export const writeChartingBase = (repo, st, withAppraisal) =>
-  repo.folder.writeText(STAGE_FILES.chartingBase, chartingBase(st, withAppraisal));
+export const writeChartingBase = (repo, st) => repo.folder.writeText(STAGE_FILES.chartingBase, chartingBase(st, false));
 
 /** Charting table of the included records as CSV in 07 - Exports. @returns {Promise<string>} path */
 export async function exportCharting(repo, st) {
