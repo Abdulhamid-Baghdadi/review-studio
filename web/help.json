@@ -110,10 +110,6 @@
    "text": "Polanin, J. R., Pigott, T. D., Espelage, D. L., & Grotpeter, J. K. (2019). Best practice guidelines for abstract screening large-evidence systematic reviews and meta-analyses. Research Synthesis Methods, 10(3), 330–342.",
    "doi": "10.1002/jrsm.1354"
   },
-  "wohlin2014": {
-   "text": "Wohlin, C. (2014). Guidelines for snowballing in systematic literature studies and a replication in software engineering. Proceedings of EASE '14, Article 38.",
-   "doi": "10.1145/2601248.2601268"
-  },
   "hong2018": {
    "text": "Hong, Q. N., Fàbregues, S., Bartlett, G., et al. (2018). The Mixed Methods Appraisal Tool (MMAT) version 2018 for information professionals and researchers. Education for Information, 34(4), 285–291.",
    "doi": "10.3233/EFI-180221"
@@ -239,12 +235,6 @@
     "mchugh2012"
    ]
   },
-  "Snowballing": {
-   "definition": "Finding studies through the references (backward) and citations (forward) of included studies, in iterations until no new studies are found.",
-   "refs": [
-    "wohlin2014"
-   ]
-  },
   "Grey literature": {
    "definition": "Material not published in journals: reports, standards, theses, policy documents.",
    "refs": [
@@ -274,7 +264,7 @@
    ]
   },
   "OpenAlex": {
-   "definition": "A free, open index of scholarly works used here for pilot counts, snowballing and open-access links.",
+   "definition": "A free, open index of scholarly works used here for pilot counts and open-access links.",
    "refs": [
     "priem2022"
    ]
@@ -565,7 +555,7 @@
    ]
   },
   "searches": {
-   "what": "Import the export of every planned database search, with the exact string, date and filters. Records only come in from these searches (and later from the citation search).",
+   "what": "Import the export of every planned database search, with the exact string, date and filters. Records only come in from these searches.",
    "how": [
     "Pick the database: the planned search string is filled in.",
     "Run that string in the database and export all results as RIS.",
@@ -685,38 +675,6 @@
     ],
     [
      "Counting an AI as the second reviewer — no agreed rule yet; say so and name the model.",
-     "convention",
-     []
-    ]
-   ]
-  },
-  "snowballing": {
-   "what": "Search the references and citations of included studies.",
-   "how": [
-    "Seeds = studies included at full text.",
-    "New records go back through 8 · Screening and 10 · Retrieval (same criteria).",
-    "Stop when a round adds no new included study."
-   ],
-   "terms": [
-    "Snowballing"
-   ],
-   "rules": [
-    [
-     "Report other sources used (PRISMA-ScR 7).",
-     "report",
-     [
-      "tricco2018"
-     ]
-    ],
-    [
-     "Iterate until no new studies.",
-     "guidance",
-     [
-      "wohlin2014"
-     ]
-    ],
-    [
-     "Doing it at all.",
      "convention",
      []
     ]
@@ -972,14 +930,6 @@
     ]
    ],
    "lesson": "Both disagreements were about 'unsure' — agree on its meaning beforehand."
-  },
-  "snowballing": {
-   "items": [
-    [
-     "Round 1",
-     "7 seeds · backward · 31 new records to screen"
-    ]
-   ]
   },
   "retrieval": {
    "items": [

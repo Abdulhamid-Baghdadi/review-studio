@@ -118,7 +118,6 @@ PAGES.searches = () => {
   return h("div", {},
     card("How it works", `Every record comes from a search you planned in step 2. Do this once for each database (${imported} of ${dbs.length} done).`, importStrip()),
     dbs.length ? dbs.map(dbCard) : h("div", { class: "callout warn" }, "No databases planned yet. Choose them in step 2, Search strategy → Search strings."),
-    h("p", { class: "small muted" }, "Papers found through the references of included studies are added later, in the step Citation search."),
     card("Searches", `${S.searches.length} run(s) logged — this is the table reported under ${S.review_type.refs.sources}.`,
       S.searches.length ? h("div", { class: "scroll" }, h("table", { class: "tbl" },
         h("tr", {}, ["ID", "Source", "Date", "08 - Records", "New", "Dupl.", "Query"].map(t => h("th", {}, t))),

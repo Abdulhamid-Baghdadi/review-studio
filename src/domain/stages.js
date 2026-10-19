@@ -79,7 +79,6 @@ export function defaultState(type = DEFAULT_REVIEW_TYPE) {
     concepts_history: [],
     protocol: { locked: "", file: "", sha256: "", registration: "", commit: "", snapshot: {} },
     amendments: [],
-    snowballing: { rounds: [] },
     charting: { fields: DEFAULT_FIELDS.map(f => ({ ...f })), appraisal_tool: "" },
     checklist: {},
     ai: {},

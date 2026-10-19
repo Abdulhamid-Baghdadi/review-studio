@@ -354,13 +354,7 @@ export class ReviewSession {
     return msg;
   }
 
-  // ------------------------------------------------------------ snowballing and retrieval
-
-  async snowball({ directions, seeds = "included", perSeed = 200, log }) {
-    const s = await actions.snowballRound(this.repo, this.st, this.#requireOpenalex(), this.library, { directions, seeds, perSeed, log });
-    await this.save();
-    return `Round ${s.round}: ` + s.directions.map(d => `${d} ${s[d].new} new`).join(", ");
-  }
+  // ------------------------------------------------------------ retrieval
 
   async findOpenAccess() {
     const n = await actions.findOpenAccess(this.repo, this.st, this.#requireOpenalex());

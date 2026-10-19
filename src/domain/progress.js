@@ -31,10 +31,6 @@ export function workComplete(st, records) {
   if (sought.length && sought.every(f => f.pdf_status === "found" || f.pdf_status === "not-retrieved")) {
     out.retrieval = "every report sought has its PDF attached or is marked not retrieved";
   }
-  const last = st.snowballing.rounds.at(-1);
-  if (last && last.directions.filter(d => d in last).every(d => last[d].new === 0)) {
-    out.snowballing = `round ${last.round} found no new records (stop rule)`;
-  }
   const [done, total] = chartingProgress(st, records);
   if (total && done === total) {
     out.charting = `all ${total} included sources charted`;

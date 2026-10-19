@@ -19,7 +19,7 @@ function flowHere() {
   if (CUR === HOME) return null;
   if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
   return { idea: "question", questions: "question", concepts: "search", queries: "search", pilot: "search", protocol: "rules", registration: "rules",
-    searches: "identified", snowballing: "citations", reviewer: "screened", retrieval: "sought",
+    searches: "identified", reviewer: "screened", retrieval: "sought",
     charting: "extract", appraisal: "quality", report: "report" }[CUR] ?? null;
 }
 
@@ -32,8 +32,7 @@ function flowGroups() {
     { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Inclusion rules")] },
     { phase: "Identification", prisma: true, nodes: [
       { id: "identified", step: step("import"), label: "Records found", n: f.n_db + f.n_other, minus: f.duplicates > 0 ? `${f.duplicates} duplicates` : "", go: () => go("searches"),
-        tip: `Search & import: records from the databases (${f.n_db}) and from citation searching (${f.n_other}); duplicates are removed before screening.` },
-      { ...stepNode("citations", "citations", "Citation search"), small: true }] },
+        tip: `Search & import: records from the databases (${f.n_db}) and other sources (${f.n_other}); duplicates are removed before screening.` },] },
     { phase: "Screening", prisma: true, nodes: [
       { id: "screened", step: step("screen"), label: "Titles & abstracts", n: f.unique, minus: f.ta_excluded ? `${f.ta_excluded} excluded` : "", open: f.ta_pending,
         go: screen("ta"), tip: `Screen papers: titles and abstracts (${f.ta_pending} still to do).` },
@@ -85,7 +84,7 @@ export function flowMap() {
       n.minus ? h("span", { class: "fm-minus" }, "− " + n.minus) : null,
       isHere ? h("span", { class: "fm-here" }, "You are here") : null);
   };
-  // the planning and analysis steps as short lists; citation searching under the database records, as in the PRISMA flow diagram
+  // the planning and analysis steps as short lists
   const nodesOf = g => !g.prisma || g.phase === "Identification"
     ? h("div", { class: "fm-nodes stack" }, g.nodes.map(node))
     : h("div", { class: "fm-nodes" }, g.nodes.flatMap((n, j) => [j ? arrow() : null, node(n)]));

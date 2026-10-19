@@ -1,12 +1,11 @@
 /**
- * Use cases of the stages around the records: protocol (write, lock, checks), pilots, snowballing,
+ * Use cases of the stages around the records: protocol (write, lock, checks), pilots,
  * full-text retrieval, charting and appraisal, checklist and exports. Each changes the state object it is
  * given; the caller saves it with review-state.saveState().
  * @module services/stage-actions
  */
 import { DuplicateIndex, normalizeDoi, yearOf } from "../domain/matching.js";
 import { parseExport } from "../domain/importers.js";
-import { shortId, WORK_FIELDS, workToEntry } from "../domain/openalex.js";
 import { isIncluded } from "../domain/progress.js";
 import { frozenProtocolName, integrityProblems, lockChecks, protocolMarkdown, PROTOCOL_FILE } from "../domain/protocol.js";
 import { openalexQuery } from "../domain/queries.js";
@@ -16,7 +15,7 @@ import { NO_ABSTRACT } from "../domain/vocabulary.js";
 import { bibtex, zoteroRis, chartingBase, chartingCsv, checklistEvidence, checklistNote, STAGE_FILES } from "../domain/stage-notes.js";
 import * as frontmatter from "../domain/frontmatter.js";
 import { APP_GENERATOR, FILES, GUIDE_REASONS, screeningGuide, upgradeGuide } from "../domain/notes.js";
-import { addEntries, decodeExport, ReviewError } from "./review-commands.js";
+import { decodeExport, ReviewError } from "./review-commands.js";
 import { emptyLibrary, testSet } from "./library.js";
 import { allWorks } from "./openalex-client.js";
 import { STATE_FILE } from "./review-state.js";
@@ -121,70 +120,6 @@ export function pilotManual(st, { database, query, hits, note = "", retrieved = 
   touch(st, "pilot", now);
   event(st, "pilot", `${database} pilot: ${hits} hits` + (checked ? `, test set ${retrieved}/${available}` : "") + " (entered by hand)", now);
   return row;
-}
-
-// ---------------------------------------------------------------- snowballing
-
-/**
- * One snowballing round in OpenAlex: references (backward) and citing works (forward) of the seed records
- * are imported as a new "other" source per direction.
- * @param {object} options @param {string[]} [options.directions] @param {"included"|"sought"} [options.seeds]
- * @param {number} [options.perSeed] @param {(line: string) => void} [options.log]
- */
-export async function snowballRound(repo, st, openalex, library = emptyLibrary(), { directions = ["backward", "forward"], seeds = "included", perSeed = 200, log = () => {} } = {}) {
-  const records = [...repo.records.values()];
-  const pool = (seeds === "included" ? records.filter(r => isIncluded(r.props)) : records.filter(r => ["include", "unsure"].includes(r.props.ta_decision)))
-    .filter(r => r.props.doi);
-  if (!pool.length) throw new ReviewError("No seed records with a DOI (included records are used as seeds).");
-  const n = st.snowballing.rounds.length + 1;
-  const summary = { round: n, when: repo.clock.now(), seeds: pool.length, directions: [...directions] };
-  for (const direction of directions) {
-    const found = new Map();
-    for (const [i, r] of pool.entries()) {
-      let w;
-      try { w = await openalex.get(`works/doi:${normalizeDoi(r.props.doi)}`, { select: "id,referenced_works" }); }
-      catch (e) { log(`  ${r.props.record_id}: not found in OpenAlex (${e.message})`); continue; }
-      if (direction === "backward") {
-        const ids = (w.referenced_works ?? []).map(shortId).slice(0, perSeed);
-        for (let j = 0; j < ids.length; j += 50) {
-          const res = await openalex.get("works", { filter: "openalex:" + ids.slice(j, j + 50).join("|"), "per-page": 50, select: WORK_FIELDS });
-          for (const x of res.results) found.set(x.id, x);
-        }
-      } else {
-        let cursor = "*", got = 0;
-        while (cursor && got < perSeed) {
-          const res = await openalex.get("works", { filter: `cites:${shortId(w.id)}`, cursor, "per-page": Math.min(200, perSeed), select: WORK_FIELDS });
-          for (const x of res.results) found.set(x.id, x);
-          got += res.results.length;
-          cursor = res.results.length ? res.meta.next_cursor : null;
-        }
-      }
-      log(`  ${direction}: seed ${i + 1}/${pool.length} done, ${found.size} unique so far`);
-    }
-    const entries = [...found.values()].map(workToEntry);
-    const rows = await repo.searches();
-    const id = `S${String(rows.length + 1).padStart(2, "0")}`;
-    const { added, duplicates } = await addEntries(repo, entries, id, library);
-    rows.push({ id, kind: "other", database: `Snowballing round ${n} (${direction}, OpenAlex)`, date: repo.clock.today(),
-      query: `${direction} citations of ${pool.length} ${seeds} records`, filters: `max ${perSeed} per seed`, export: "",
-      records: entries.length, new: added, duplicates });
-    await repo.writeSearches(rows);
-    await repo.log("snowball", `round ${n} ${direction}: ${entries.length} records, ${added} new`);
-    summary[direction] = { search: id, records: entries.length, new: added };
-  }
-  st.snowballing.rounds.push(summary);
-  touch(st, "snowballing", repo.clock.now());
-  event(st, "snowballing", `round ${n}: ` + directions.map(d => `${d} ${summary[d].new} new`).join(", "), repo.clock.now());
-  return summary;
-}
-
-/** Per round: records it added and how many of those are now included. @returns {[number, number, number][]} */
-export function roundYield(repo, st) {
-  return st.snowballing.rounds.map(round => {
-    const searches = new Set(round.directions.filter(d => d in round).map(d => round[d].search));
-    const added = [...repo.records.values()].filter(r => searches.has((r.props.sources || [null])[0]));
-    return [round.round, added.length, added.filter(r => isIncluded(r.props)).length];
-  });
 }
 
 // ---------------------------------------------------------------- retrieval

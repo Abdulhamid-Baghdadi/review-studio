@@ -16,7 +16,7 @@ Scoping Review Workbench walks you through a scoping review from the first idea 
 
 **Highlights**
 
-- 🧭 **Guided, step by step:** 9 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
+- 🧭 **Guided, step by step:** 8 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
 - 🔒 **Your files, your PC:** no account, no upload, no database. A review is a folder of Markdown, CSV and PDFs.
 - 🟣 **Opens in Obsidian:** a review folder is an Obsidian vault as it is, with the screening and charting tables as `.base` files.
 - 🤖 **AI only if you want it:** Claude can pre-screen, fetch PDFs, be the blind second reviewer or prefill charting. It suggests; you confirm.
@@ -26,7 +26,7 @@ Scoping Review Workbench walks you through a scoping review from the first idea 
 
 - [Getting started](#getting-started)
 - [Three ways to use it](#three-ways-to-use-it)
-- [The 9 steps](#the-9-steps)
+- [The 8 steps](#the-8-steps)
 - [Your review folder](#your-review-folder)
 - [AI assistance with Claude (optional)](#ai-assistance-with-claude-optional)
 - [Privacy and data safety](#privacy-and-data-safety)
@@ -63,9 +63,9 @@ You need **[Node.js](https://nodejs.org) 20 or newer** (free; install it once) a
 
 The launcher starts the app on your computer and opens it at **http://localhost:8770/web/**. Keep its window open while you work; close it (or press Ctrl+C) to stop. Your reviews are not inside the app's folder: they are wherever you saved them, so you can replace the app with a newer download at any time.
 
-## The 9 steps
+## The 8 steps
 
-A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of every page shows the nine steps in plain words; steps with more than one part show them as tabs on their page.
+A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of every page shows the eight steps in plain words; steps with more than one part show them as tabs on their page.
 
 | # | Step | Tabs | What you do |
 |---:|---|---|---|
@@ -74,10 +74,9 @@ A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of ev
 | 3 | **Inclusion rules** | Include / exclude rules · Other methods · Lock & register | Which sources are in and which are out, with the exclusion reasons (E1, E2 …) used while screening; the other protocol sections; freeze the plan before searching. |
 | 4 | **Search & import** | | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
 | 5 | **Screen papers** | Screen · Get full texts · Second reviewer | Title/abstract, then full text, with keyboard shortcuts; find and attach the PDFs; a blind second reviewer, with Cohen's κ. |
-| 6 | **Citation search** *(optional)* | | Follow the references of included sources until a round adds nothing new (snowballing). |
-| 7 | **Chart the data** | | The charting form for every included source, with page numbers. |
-| 8 | **Quality check** *(optional)* | | Rate each source with an appraisal tool you name (e.g. MMAT, CASP), or skip it with a reason: PRISMA-ScR makes it optional. |
-| 9 | **Report** | | PRISMA flow diagram, PRISMA-ScR checklist, report draft and exports. |
+| 6 | **Chart the data** | | The charting form for every included source, with page numbers. |
+| 7 | **Quality check** *(optional)* | | Rate each source with an appraisal tool you name (e.g. MMAT, CASP), or skip it with a reason: PRISMA-ScR makes it optional. |
+| 8 | **Report** | | PRISMA flow diagram, PRISMA-ScR checklist, report draft and exports. |
 
 **Where the app stops.** It covers the review up to the charted evidence: the charting table, the flow diagram, the checklist and the exports (CSV, RIS, BibTeX, your Obsidian library). How you summarise and analyse the charted data depends on your field, so that is done in the tools you already use; the protocol's *Synthesis of results* section records how.
 

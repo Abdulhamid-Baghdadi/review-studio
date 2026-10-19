@@ -13,7 +13,7 @@ test("a state without a review type is a scoping review", () => {
   const st = restoreState({ questions: { main: "Q?" } });
   assert.equal(st.review_type, "scoping");
   assert.equal(reviewType(st).guideline, "PRISMA-ScR");
-  assert.equal(stagesOf(st).length, 15);
+  assert.equal(stagesOf(st).length, 14);
   assert.equal(reviewType(st).checklist.length, 22);
   assert.deepEqual(reviewType(st).checklist.filter(i => i.optional).map(i => i.n), ["12", "16"]);
 });
@@ -51,7 +51,7 @@ test("the page's steps: every stage of a review type sits in exactly one step", 
     assert.ok(owners.every(n => n === 1), `${type.key}: a stage in two steps`);
     assert.ok(type.steps.every(s => s.title && s.hint && s.phase && s.tabs.length), type.key);
   }
-  assert.equal(REVIEW_TYPES.scoping.steps.length, 9);
+  assert.equal(REVIEW_TYPES.scoping.steps.length, 8);
   assert.deepEqual(Object.keys(REVIEW_TYPES), ["scoping"]);
 });
 
@@ -61,7 +61,7 @@ test("a new review is a scoping review; a review saved as systematic opens as on
   const old = await loadState(memoryFolder({ "review_state.json": JSON.stringify({ review_type: "systematic", synthesis: { approach: "narrative" }, checklist_prisma2020: { 3: { done: true } } }) }));
   assert.equal(old.review_type, "systematic");                    // kept as saved
   assert.equal(reviewType(old).key, "scoping");                    // shown as a scoping review
-  assert.equal(stagesOf(old).length, 15);
+  assert.equal(stagesOf(old).length, 14);
   assert.equal(old.synthesis.approach, "narrative");               // nothing the review saved is dropped
   assert.equal(old.checklist_prisma2020[3].done, true);
 });

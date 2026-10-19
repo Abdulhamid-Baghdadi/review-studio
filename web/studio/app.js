@@ -14,7 +14,6 @@ import "./pages/registration.js";
 import "./pages/searches.js";
 import "./pages/screening.js";
 import "./pages/reviewer.js";
-import "./pages/snowballing.js";
 import "./pages/retrieval.js";
 import "./pages/charting.js";
 import "./pages/appraisal.js";

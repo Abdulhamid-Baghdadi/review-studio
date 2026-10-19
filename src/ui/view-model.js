@@ -104,7 +104,7 @@ export async function snapshot(session, { review, reviews, vault }) {
     stages: stages.reviewType(st).stages.map(s => ({ key: s.key, title: s.title, optional: s.optional, desc: s.description, ...st.stages[s.key] })),
     steps: stages.reviewType(st).steps,
     state: { ...keep(["idea", "questions", "concepts", "queries", "pilots", "protocol_text", "protocol_meta", "supervisor_review",
-      "concepts_history", "protocol", "amendments", "snowballing", "charting"]), checklist: stages.checklistOf(st) },
+      "concepts_history", "protocol", "amendments", "charting"]), checklist: stages.checklistOf(st) },
     events: st.events.slice(-200).reverse(),
     queries: Object.fromEntries(st.queries.databases.map(db => [db, buildQuery(st, db)])),
     manual: Object.keys(st.queries.manual),
@@ -116,7 +116,6 @@ export async function snapshot(session, { review, reviews, vault }) {
     test_set: { size: tests.length, found: tests.filter(s => found.has(s)).length,
       dois: tests.map(s => normalizeDoi(library.notes.get(s).doi)).filter(Boolean).sort(), papers: [...tests].sort() },
     records: session.records().map(r => recordView(r)),
-    rounds: stageActions.roundYield(repo, st).map(([round, added, included]) => ({ round, added, included })),
     charting_progress: [chartDone, chartTotal],
     pdf_folders: st.pdf_folders ?? [],
     ai: {

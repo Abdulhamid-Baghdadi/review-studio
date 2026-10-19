@@ -151,7 +151,6 @@ const STORAGE = {
   searches: [["07 - Searches.csv", "one row per search"], ["07 - Exports", "copies of the export files"], ["08 - Records", "one note per paper"]],
   screening: [["08 - Records", "title_abstract_ / full_text_decision in each paper's note"], ["08 - Screening.base", "the same as an Obsidian table"], ["08 - Decision log.csv", "every change, with who and how"]],
   reviewer: [["09 - Second reviewer", "blind CSV sheets"], ["08 - Records", "second_reviewer_ properties"]],
-  snowballing: [["07 - Searches.csv", "one row per round"], ["08 - Records", "new papers"]],
   retrieval: [["08 - Records", "full_text_status, open_access_url"], ["10 - Full texts", "attached PDFs"]],
   charting: [["08 - Records", "extracted_ properties"], ["12 - Charting.base", "the same as an Obsidian table"], ["review_state.json", "the form"]],
   appraisal: [["08 - Records", "appraisal properties"], ["12 - Charting.base", "Appraisal view"]],
@@ -190,7 +189,7 @@ function renderMetrics() {
   const PER_STAGE = {
     queries: ["test"], pilot: ["test"], searches: ["unique", "problems"],
     screening: ["unique", "ta", "ft", "included", "problems"], reviewer: ["kappa"],
-    snowballing: ["unique", "included"], retrieval: ["included", "pdfs"],
+    retrieval: ["included", "pdfs"],
     charting: ["included", "pdfs", "charted", "checked"], appraisal: ["included", "checked"],
     report: ["unique", "included", "pdfs", "checked", "problems"],
   };

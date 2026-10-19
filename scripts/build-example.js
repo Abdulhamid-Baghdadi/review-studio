@@ -194,7 +194,7 @@ for (const [w, d] of Object.entries(INCLUDED)) {
 
 for (const [stage, status, reason] of [["idea", "done"], ["questions", "done"], ["concepts", "done"], ["queries", "done"], ["pilot", "done"],
   ["protocol", "done"], ["registration", "skipped", "example review, not registered"], ["searches", "done"], ["screening", "done"], ["retrieval", "done"],
-  ["reviewer", "skipped", "one reviewer in this example"], ["snowballing", "skipped", "not done in this example"], ["charting", "done"],
+  ["reviewer", "skipped", "one reviewer in this example"], ["charting", "done"],
   ["appraisal", "skipped", "a scoping review mapping design approaches; PRISMA-ScR item 12 is optional"]])
   await s.setStageStatus(stage, status, reason ?? "");
 

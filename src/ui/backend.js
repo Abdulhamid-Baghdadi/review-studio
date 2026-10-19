@@ -372,7 +372,6 @@ export class Backend {
         return `Drew ${r.drawn} of ${r.pool} records (seed ${r.seed}). Blind sheet for the second reviewer: ${r.sheet}`;
       }
       case "import_r2": { const f = await this.#uploaded(a.path); return s.importSecondReviewer({ fileName: f.name, text: new TextDecoder().decode(f.bytes), stage: a.stage }); }
-      case "snowball": return s.snowball({ directions: a.directions, seeds: a.seeds ?? "included", perSeed: Number(a.per_seed ?? 200) });
       case "find_oa": return s.findOpenAccess();
       case "scan_pdfs": {
         const handle = (a.folder && this.#pdfFolders.get(a.folder)) || (await window.showDirectoryPicker({ id: "pdfs", mode: "read" }));

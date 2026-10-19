@@ -84,8 +84,8 @@ export async function importSearch(repo, { fileName, bytes, database, query, dat
   return `${id} ${database}: ${entries.length} records -> ${added} new, ${duplicates} duplicates (export kept as ${kept})\n${report}`;
 }
 
-/** Adds one paper found another way (snowballing, a colleague…) under an "other" source named `via`. */
-export async function addPaper(repo, { title, authors = "", year = "", journal = "", doi = "", via, database = "Snowballing" }, library) {
+/** Adds one paper found another way (a reference list, a colleague…) under an "other" source named `via`. */
+export async function addPaper(repo, { title, authors = "", year = "", journal = "", doi = "", via, database = "Other source" }, library) {
   const rows = await repo.searches();
   let row = rows.find(r => r.kind === "other" && r.query === via);
   if (!row) {

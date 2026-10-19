@@ -25,10 +25,9 @@ const SCOPING_STAGES = [
   ["screening", "8 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
   ["reviewer", "9 · Second reviewer", true, "A second person (or Claude) screens a sample of at least 20 % without seeing your decisions; the app measures how well you agree (Cohen's κ)."],
   ["retrieval", "10 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
-  ["snowballing", "11 · Snowballing", true, "Look through the references of (and citations to) your included papers for ones the search missed. Repeat until a round finds nothing new."],
-  ["charting", "12 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
-  ["appraisal", "13 · Critical appraisal", true, "Rate the quality of each included paper. Optional in scoping reviews."],
-  ["report", "14 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
+  ["charting", "11 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
+  ["appraisal", "12 · Critical appraisal", true, "Rate the quality of each included paper. Optional in scoping reviews."],
+  ["report", "13 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
 ];
 
 /**
@@ -44,7 +43,6 @@ const SCOPING_STEPS = [
     [["protocol", "Include / exclude rules", "rules"], ["protocol", "Other methods", "methods"], ["registration", "Lock & register"]]],
   ["import", "Search & import", "Run the searches, load the results", "Find & select", [["searches", "Search & import"]]],
   ["screen", "Screen papers", "Include or exclude each paper", "Find & select", [["screening", "Screen"], ["retrieval", "Get full texts"], ["reviewer", "Second reviewer"]]],
-  ["citations", "Citation search", "Follow references · optional", "Find & select", [["snowballing", "Citation search"]]],
   ["extract", "Chart the data", "Fill in a form for each paper", "Analyse", [["charting", "Chart the data"]]],
   ["quality", "Quality check", "Critical appraisal · optional", "Analyse", [["appraisal", "Quality check"]]],
   ["report", "Report", "Flow diagram, checklist, exports", "Report", [["report", "Report"]]],

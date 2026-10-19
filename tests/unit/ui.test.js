@@ -23,11 +23,11 @@ test("snapshot has everything the page reads", async () => {
   const backend = await backendWithReview();
   const s = await snapshot(backend.session, { review: "Demo records", reviews: [], vault: "" });
   for (const key of ["stages", "state", "events", "queries", "searches", "flow", "agreement", "problems", "reasons", "test_set", "records",
-    "rounds", "charting_progress", "ai", "library", "lock_checks", "checklist_auto", "checklist_items", "protocol_sections", "sheets"]) {
+    "charting_progress", "ai", "library", "lock_checks", "checklist_auto", "checklist_items", "protocol_sections", "sheets"]) {
     assert.ok(key in s, `snapshot.${key}`);
   }
-  assert.equal(s.stages.length, 15);                                   // a new review is a scoping review
-  assert.equal(s.steps.length, 9);
+  assert.equal(s.stages.length, 14);                                   // a new review is a scoping review
+  assert.equal(s.steps.length, 8);
   assert.equal(s.checklist_items.length, 22);
   assert.deepEqual(Object.keys(s.ai.modes), ["screening", "reviewer", "retrieval", "charting", "appraisal"]);
 });
