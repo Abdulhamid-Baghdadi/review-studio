@@ -1,5 +1,5 @@
 /**
- * Page: Concepts.
+ * Page: Search strategy — the keyword blocks and, beside them, the search string they make for each database.
  * @module web/studio/pages/concepts
  */
 import { api } from "../core/api.js";
@@ -7,26 +7,22 @@ import { autoSave } from "../core/autosave.js";
 import { debounce, h } from "../core/dom.js";
 import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
-import { btn, card, chipsInput, copy, field, hlQuery, iconBtn, segmented } from "../ui/components.js";
+import { btn, card, chipsInput, field, iconBtn, segmented } from "../ui/components.js";
+import { searchStringCards } from "./queries.js";
 import { announce } from "../ui/dialogs.js";
 
 PAGES.concepts = () => {
   const d = D.concepts ??= JSON.parse(JSON.stringify(S.state.concepts));
-  const list = h("div", {}), preview = h("div", { class: "code" });
-  const tabs = h("div", { class: "tabs", role: "group", "aria-label": "Database" });
-  let db = D.previewDb || S.state.queries.databases[0];
+  const list = h("div", {});
+  const strings = searchStringCards(() => D.previews || S.queries);
   const saver = autoSave("concepts", () => api("save_concepts", { concepts: d, why: D.cwhy || "" }, { render: false, silent: true }), "concepts");
   const refresh = debounce(async () => {
     if (JSON.stringify(d) !== JSON.stringify(S.state.concepts)) saver.schedule();
     try {
       const r = await api("preview_queries", { concepts: d }, { silent: true, quietError: true });
-      D.previews = r.queries; drawPreview();
+      D.previews = r.queries; strings.update();
     } catch (e) { /* ignore */ }
   }, 250);
-  const drawPreview = () => {
-    tabs.replaceChildren(...S.state.queries.databases.map(x => h("button", { class: x === db ? "on" : "", "aria-pressed": String(x === db), onclick: () => { db = D.previewDb = x; drawPreview(); } }, x)));
-    preview.innerHTML = hlQuery((D.previews || S.queries)[db] || "(add a concept with terms)");
-  };
   // a deleted block stays one click away: its place shows "deleted · Undo" until the next change of the blocks
   const restore = () => { const { block, index } = D.deletedBlock; d.splice(Math.min(index, d.length), 0, block); D.deletedBlock = null; draw(); refresh();
     announce(`Block “${block.name || "unnamed"}” restored.`); };
@@ -50,7 +46,7 @@ PAGES.concepts = () => {
     if (D.deletedBlock) blocks.splice(Math.min(D.deletedBlock.index, d.length) * 2, 0, deleted());   // two nodes per block (joiner + block)
     list.replaceChildren(...blocks.flat());
   };
-  draw(); drawPreview(); refresh();
+  draw(); refresh();
   const page = h("div", { onfocusout: saver.commit },
     h("div", { class: "grid2" },
       h("div", {}, card("Keyword blocks", "One block per idea in your question. A paper needs any word from a block (OR) and a match in every block (AND).",
@@ -60,8 +56,7 @@ PAGES.concepts = () => {
         h("div", { style: "margin-top:8px" }, field("Why it changed (optional; kept with this version)",
           h("input", { type: "text", placeholder: "e.g. added synonyms found in the first papers", value: D.cwhy || "", oninput: e => { D.cwhy = e.target.value; saver.schedule(); } })))),
         conceptHistory()),
-      h("div", {}, card("Live search string", "Updates as you type. The final strings, and hand edits, are on the Search strings tab.", tabs, preview,
-        h("div", { class: "row end", style: "margin-top:10px" }, btn("Copy", () => copy(preview.textContent), "sm"))))));
+      strings.el));
   return page;
 };
 

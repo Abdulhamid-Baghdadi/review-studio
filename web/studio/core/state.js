@@ -7,7 +7,8 @@ import { store } from "./dom.js";
 export let S = null;            // server snapshot
 export let H = null;            // help texts
 export let REVIEW = store.get("review", "Project 2 review");
-export let CUR = location.hash.slice(1) || store.get("stage", "home");
+const MOVED = { queries: "concepts" };            // pages merged into another (old links and saved places)
+export let CUR = (k => MOVED[k] ?? k)(location.hash.slice(1) || store.get("stage", "home"));
 export const D = {};            // unsaved drafts per stage
 
 export const HOME = "home";                                  // the introduction page above the stages (not a stage itself)
@@ -19,4 +20,4 @@ export const SC = { stage: store.get("sc_stage", "ta"), filter: "todo", id: null
 export function setS(value) { return (S = value); }
 export function setH(value) { return (H = value); }
 export function setReview(value) { return (REVIEW = value); }
-export function setCur(value) { return (CUR = value); }
+export function setCur(value) { return (CUR = MOVED[value] ?? value); }

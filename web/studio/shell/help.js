@@ -3,7 +3,7 @@
  * @module web/studio/shell/help
  */
 import { $, h, singleKeys } from "../core/dom.js";
-import { H, S } from "../core/state.js";
+import { H, S, SC } from "../core/state.js";
 import { go, stage, stageName, stepOf } from "./navigation.js";
 import { btn, copy, hlQuery, iconBtn, openNote, pill } from "../ui/components.js";
 import { modal, restoreFocus } from "../ui/dialogs.js";
@@ -88,12 +88,12 @@ export function openClaudeGuide() {
   const sec = (title, ...body) => h("section", { style: "margin:0 0 18px" }, h("h3", { style: "margin:0 0 6px" }, title), ...body);
   const ol = items => h("ol", { style: "margin:4px 0 0;padding-left:20px;line-height:1.6" }, items.map(i => h("li", {}, i)));
   const ul = items => h("ul", { style: "margin:4px 0 0;padding-left:20px;line-height:1.6" }, items.map(i => h("li", {}, i)));
-  const goStage = key => { document.querySelector(".scrim")?.remove(); go(key); };
+  const goStage = key => { document.querySelector(".scrim")?.remove(); if (key === "fulltext") { SC.stage = "ft"; SC.id = null; } else if (key === "screening") SC.stage = "ta"; go(key === "fulltext" ? "screening" : key); };
   const steps = Object.entries(S.ai.steps).map(([key, step]) => {
     const mode = S.ai.modes[key] || "off";
     return h("div", { class: "card", style: "padding:12px 16px;margin:0 0 10px" },
       h("div", { class: "row", style: "margin-bottom:6px" },
-        h("b", {}, stepOf(key).tabs.length > 1 ? `${stepOf(key).title} · ${stageName(key)}` : stepOf(key).title), pill(mode === "off" ? "off for this review" : "on: " + step.modes.find(m => m.key === mode).label, mode === "off" ? "" : "ok"),
+        h("b", {}, key === "fulltext" ? `${stepOf("screening").title} · Full texts` : key === "screening" ? `${stepOf(key).title} · Titles & abstracts` : stepOf(key).tabs.length > 1 ? `${stepOf(key).title} · ${stageName(key)}` : stepOf(key).title), pill(mode === "off" ? "off for this review" : "on: " + step.modes.find(m => m.key === mode).label, mode === "off" ? "" : "ok"),
         h("span", { style: "flex:1" }), btn("Open", () => goStage(key), "sm ghost"),
         mode === "off" ? null : btn("📋 Copy prompt", () => copy(step.prompt), "sm")),
       h("div", { class: "small" }, ul(step.modes.filter(m => m.key !== "off").map(m => [h("b", {}, m.label + ": "), m.desc]))),

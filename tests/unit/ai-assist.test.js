@@ -61,7 +61,7 @@ test("screening: context lists pending records; suggestions never become decisio
 
 test("full text: only records with an attached PDF, and only from the PDF", async () => {
   const s = await review();
-  s.st.ai = { screening: "suggest-ft", retrieval: "assist" };
+  s.st.ai = { screening: "suggest-ft", retrieval: "assist" };   // saved before the split: still full-text suggestions
   await s.decide("R0001", "ta", "include");
   await s.decide("R0003", "ta", "unsure");
   await aiAttach(s.repo, s.st, "R0001", new TextEncoder().encode("%PDF-1.7 test"), { model });

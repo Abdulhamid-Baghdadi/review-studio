@@ -69,7 +69,7 @@ PAGES.searches = () => {
   const dbs = S.state.queries.databases;
   const prog = D.importProgress ??= {};                      // per database: copied, opened, file (this visit)
   const runs = db => S.searches.filter(s => s.kind === "database" && s.database === db);
-  const toStep2 = () => goTab(stepOf("queries").tabs.find(t => t.stage === "queries"));
+  const toStep2 = () => goTab(stepOf("concepts").tabs.find(t => t.stage === "concepts"));
   const dbCard = db => {
     const q = S.queries[db] || "", done = runs(db), p = prog[db] ??= {}, last = done.at(-1);
     let path = null;
@@ -96,7 +96,7 @@ PAGES.searches = () => {
         h("div", { class: "code", style: "margin-top:4px", html: hlQuery(q || "(no string yet)") }),
         h("div", { class: "row", style: "margin-top:6px" },
           btn("⧉ Copy", () => { copy(q); p.copied = true; drawTracker(); }, "sm primary"),
-          btn("✎ Change it in step 2", toStep2, "sm ghost", "Search strategy → Search strings: the string is planned there")))),
+          btn("✎ Change it in step 2", toStep2, "sm ghost", "Search strategy: the string is planned there")))),
       h("div", { class: "imp-row" }, h("span", { class: "imp-n" }, "2"), h("div", { class: "grow" },
         h("div", { class: "small muted" }, "Paste it into the database's advanced search, run it, and export ", h("b", {}, "all"), " results."),
         h("div", { class: "row", style: "margin-top:6px" },
@@ -117,7 +117,7 @@ PAGES.searches = () => {
   const imported = dbs.filter(db => runs(db).length).length;
   return h("div", {},
     card("How it works", `Every record comes from a search you planned in step 2. Do this once for each database (${imported} of ${dbs.length} done).`, importStrip()),
-    dbs.length ? dbs.map(dbCard) : h("div", { class: "callout warn" }, "No databases planned yet. Choose them in step 2, Search strategy → Search strings."),
+    dbs.length ? dbs.map(dbCard) : h("div", { class: "callout warn" }, "No databases planned yet. Choose them in step 2, Search strategy."),
     card("Searches", `${S.searches.length} run(s) logged — this is the table reported under ${S.review_type.refs.sources}.`,
       S.searches.length ? h("div", { class: "scroll" }, h("table", { class: "tbl" },
         h("tr", {}, ["ID", "Source", "Date", "08 - Records", "New", "Dupl.", "Query"].map(t => h("th", {}, t))),

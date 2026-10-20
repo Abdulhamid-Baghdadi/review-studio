@@ -103,7 +103,7 @@ export async function snapshot(session, { review, reviews, vault }) {
     ai: {
       modes: Object.fromEntries(Object.keys(AI_STEPS).map(k => [k, aiMode(st, k)])),
       steps: Object.fromEntries(Object.entries(AI_STEPS).map(([k, v]) => [k, {
-        skills: [v.skill, ...Object.entries(v.skills ?? {}).filter(([m]) => m === aiMode(st, k)).map(([, n]) => n)],
+        skills: [v.skill],
         checks: v.checks, modes: v.modes.map(([key, label, desc]) => ({ key, label, desc })), prompt: aiPrompt(repo.name, st, k),
       }])),
     },

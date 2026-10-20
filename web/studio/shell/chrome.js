@@ -70,7 +70,7 @@ function sectionOf(t, i, tabs) {
   if (t.part) PART[t.stage] = saved;
   const last = !tabs.slice(i + 1).some(x => x.stage === t.stage);
   const what = `\u201c${t.label}\u201d`;
-  const locked = S.state.protocol.locked && ["questions", "concepts", "queries", "protocol", "methods", "charting"].includes(t.stage);
+  const locked = S.state.protocol.locked && ["questions", "concepts", "protocol", "methods", "charting"].includes(t.stage);
   return h("section", { class: "stepsection", id: sectionId(t), "aria-labelledby": sectionId(t) + "-h" },
     h("div", { class: "titlerow" },
       h("h2", { id: sectionId(t) + "-h" }, t.label),
@@ -122,7 +122,8 @@ function renderTop() {
     return;
   }
   const what = st.tabs.length > 1 ? `“${tab.label}”` : "this step";
-  const aiStep = S.ai?.steps[CUR], aiMode = aiStep && (S.ai.modes[CUR] || "off"), aiOpen = store.get("ai_open", "") === "1";
+  const aiKey = CUR === "screening" && SC.stage === "ft" ? "fulltext" : CUR;   // full texts have their own AI choice
+  const aiStep = S.ai?.steps[aiKey], aiMode = aiStep && (S.ai.modes[aiKey] || "off"), aiOpen = store.get("ai_open", "") === "1";
   $("#topbar").replaceChildren(
     h("div", { class: "titlerow" },
       h("h1", {}, byMap ? tab.label : st.long ?? st.title),
@@ -130,7 +131,7 @@ function renderTop() {
       st.tabs.length > 1 && !byMap ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
       byMap && s.optional ? pill("optional", "info") : null,
       S.dev_mode ? pill("🛠 developer mode", "bad")
-        : locked && ["questions", "concepts", "queries", "protocol", "methods", "charting"].includes(CUR) ? h("span", { class: "pill warn", title: "The protocol is locked: changes here are amendments, with a reason" }, "🔒 locked") : null,
+        : locked && ["questions", "concepts", "protocol", "methods", "charting"].includes(CUR) ? h("span", { class: "pill warn", title: "The protocol is locked: changes here are amendments, with a reason" }, "🔒 locked") : null,
       h("span", { class: "spacer" }),
       btn("? Help", () => openHelp(CUR), "ghost"),
       s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", skipStage, "ghost", `Skip ${what} (it is optional)`) : null,
@@ -142,7 +143,7 @@ function renderTop() {
       aiStep ? h("button", { class: "btn sm ai-chip" + (aiMode === "off" ? "" : " on"), "aria-expanded": String(aiOpen), title: "AI assistance for this step: who does what, and the prompt for Claude",
         onclick: () => { store.set("ai_open", aiOpen ? "" : "1"); render(); } }, `🤖 AI: ${aiStep.modes.find(m => m.key === aiMode).label} ${aiOpen ? "▴" : "▾"}`) : null,
       savedIn(CUR) || null),
-    aiOpen ? aiCard(CUR) || "" : "");
+    aiOpen ? aiCard(aiKey) || "" : "");
 }
 
 /** Back and Next at the foot of every page: walks the steps (and the parts of Screen papers) in order. */
@@ -173,7 +174,7 @@ function aiCard(key) {
     open ? h("div", { class: "aibody" },
       h("div", { class: "small muted" }, cur.desc),
       mode === "off" ? null : (() => {                // who does what, as pictures (full texts only when the AI reads them)
-        const which = key === "screening" ? (SC.stage === "ft" ? (mode === "suggest-ft" ? "ft" : null) : "ta") : key;
+        const which = { screening: "ta", fulltext: "ft" }[key] ?? key;
         const strip = which && aiStrip(which);
         return strip ? h("div", {}, h("div", { class: "small", style: "font-weight:700;margin:8px 0 2px" }, "How it works with Claude"), strip) : null;
       })(),
@@ -186,8 +187,7 @@ function aiCard(key) {
 // Where each stage writes its data (paths relative to the review folder; @library = the library folder chosen in Settings, e.g. 00 - Library)
 const STORAGE = {
   questions: [["review_state.json", "data, with every version"], ["03 - Search strategy.md", "readable"]],
-  concepts: [["review_state.json", "data"], ["03 - Search strategy.md", "readable: concept table"]],
-  queries: [["review_state.json", "data, incl. hand edits"], ["03 - Search strategy.md", "readable: strings"]],
+  concepts: [["review_state.json", "data, incl. hand edits"], ["03 - Search strategy.md", "readable: keyword blocks and strings"]],
   protocol: [["08 - Screening guide.md", "inclusion criteria and exclusion reasons"], ["review_state.json", "rationale"]],
   methods: [["review_state.json", "method sections, data items"], ["05 - Protocol.md", "generated note"]],
   registration: [["review_state.json", "lock, amendments"], ["00 - Review timeline.md", "readable: amendments"]],

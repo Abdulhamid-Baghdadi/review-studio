@@ -1,41 +1,47 @@
 /**
- * Page: Search strings and databases.
+ * The search strings and databases of the Search strategy page (shown beside the keyword blocks, see concepts.js).
  * @module web/studio/pages/queries
  */
 import { api } from "../core/api.js";
 import { autoSave, runSave } from "../core/autosave.js";
 import { h } from "../core/dom.js";
 import { D, S } from "../core/state.js";
-import { PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
-import { autosize, btn, card, chipsInput, copy, decDot, field, hlQuery, pill } from "../ui/components.js";
+import { autosize, btn, card, chipsInput, copy, hlQuery, pill } from "../ui/components.js";
 
-PAGES.queries = () => {
+/**
+ * The search string per database, ready to copy, with a hand edit; and the list of databases.
+ * @param {() => Record<string, string>} generated the strings made from the keyword blocks on screen (updated as you type)
+ * @returns {{el: HTMLElement, update: () => void}}
+ */
+export function searchStringCards(generated) {
   const dbs = [...S.state.queries.databases];
-  let db = D.qdb && dbs.includes(D.qdb) ? D.qdb : dbs[0];
   const box = h("div", {});
-  const drawBox = () => {
-    const q = S.queries[db] || "", manual = S.manual.includes(db);
-    const editing = D.qedit === db;
+  const update = () => {
+    const db = D.qdb && dbs.includes(D.qdb) ? D.qdb : dbs[0];
+    if (!db) { box.replaceChildren(h("div", { class: "small muted" }, "Add a database below.")); return; }
+    const manual = S.manual.includes(db), editing = D.qedit === db;
+    const q = (manual ? S.queries[db] : generated()[db] ?? S.queries[db]) || "";
     const ta = autosize(h("textarea", { class: "code", rows: 5, value: q, "aria-label": `Search string for ${db}` }));
-    const saver = autoSave("query:" + db, () => api("save_manual_query", { db, text: ta.value }, { render: false, silent: true }), "queries");
+    const saver = autoSave("query:" + db, () => api("save_manual_query", { db, text: ta.value }, { render: false, silent: true }), "concepts");
     if (editing) saver.watch(ta);
     box.replaceChildren(
-      h("div", { class: "tabs", role: "group", "aria-label": "Database" }, dbs.map(x => h("button", { class: x === db ? "on" : "", "aria-pressed": String(x === db), onclick: () => { db = D.qdb = x; D.qedit = null; drawBox(); } }, x, S.manual.includes(x) ? " ✎" : ""))),
-      h("div", { class: "row", style: "margin-bottom:8px" }, pill(manual ? "edited by hand" : "generated from the concept table", manual ? "warn" : "accent"),
+      h("div", { class: "tabs", role: "group", "aria-label": "Database" }, dbs.map(x => h("button", { class: x === db ? "on" : "", "aria-pressed": String(x === db), onclick: () => { D.qdb = x; D.qedit = null; update(); } }, x, S.manual.includes(x) ? " ✎" : ""))),
+      h("div", { class: "row", style: "margin-bottom:8px" }, pill(manual ? "edited by hand" : "made from your keyword blocks, updates as you type", manual ? "warn" : "accent"),
         db === "OpenAlex" ? pill("OpenAlex: no wildcards — stems completed to full words", "info") : null),
-      editing ? ta : h("div", { class: "code", html: hlQuery(q || "(no concepts yet)") }),
+      editing ? ta : h("div", { class: "code", html: hlQuery(q || "(add a keyword block with terms)") }),
       h("div", { class: "row end", style: "margin-top:10px" },
         editing ? [h("span", { class: "small muted" }, "Saved as you type."), btn("✓ Done", async () => { await runSave("query:" + db, () => api("save_manual_query", { db, text: ta.value }, { silent: true })); D.qedit = null; render(); }, "primary")]
-          : [manual ? btn("Use generated", () => api("save_manual_query", { db, text: null }), "ghost") : null, btn("✎ Edit by hand", () => { D.qedit = db; drawBox(); }), dbLink(db), btn("⧉ Copy", () => copy(q), "primary")]));
+          : [manual ? btn("Use generated", () => api("save_manual_query", { db, text: null }), "ghost") : null, btn("✎ Edit by hand", () => { D.qedit = db; update(); }), dbLink(db), btn("⧉ Copy", () => copy(q), "primary")]));
   };
-  drawBox();
-  const dbSaver = autoSave("databases", () => api("save_databases", { databases: dbs }, { render: false, silent: true }));
-  const chips = chipsInput(dbs, () => dbSaver.schedule(), "add a database, press Enter", "Add a database");
-  return h("div", {},
-    card("Search strings", "Copy each string into the database's advanced search. Syntax differs per database; the tool translates it.", box),
+  update();
+  const dbSaver = autoSave("databases", () => api("save_databases", { databases: dbs }));
+  const chips = chipsInput(dbs, () => { update(); dbSaver.schedule(); }, "add a database, press Enter", "Add a database");
+  const el = h("div", {},
+    card("Search strings", "The result of this page: copy each string into the database's advanced search. Syntax differs per database; the tool translates it.", box),
     card("Databases", "Which sources this review searches. At least two bibliographic databases is the usual minimum (see Help). Saved as you add or remove one.", chips));
-};
+  return { el, update };
+}
 
 // Advanced-search pages of the databases (opened from the search-string and import pages)
 export const DB_LINKS = {

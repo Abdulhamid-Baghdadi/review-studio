@@ -282,16 +282,19 @@
    ]
   },
   "concepts": {
-   "what": "Split the question into concepts; list every synonym per concept.",
+   "what": "Split the question into keyword blocks, one per idea, with every synonym; beside them, the search string they make for each database.",
    "how": [
     "2–4 concepts.",
     "Add spellings and neighbouring terms; * for word endings.",
-    "Avoid NOT."
+    "Avoid NOT.",
+    "Copy each string into the advanced search.",
+    "Edit by hand only if needed."
    ],
    "terms": [
     "Concept block",
     "Boolean operators",
-    "Truncation / wildcard"
+    "Truncation / wildcard",
+    "Field tags"
    ],
    "rules": [
     [
@@ -320,20 +323,7 @@
      "How many concepts, how broad.",
      "convention",
      []
-    ]
-   ]
-  },
-  "queries": {
-   "what": "The concept table translated into each database's syntax.",
-   "how": [
-    "Copy each string into the advanced search.",
-    "Edit by hand only if needed."
-   ],
-   "terms": [
-    "Field tags",
-    "Truncation / wildcard"
-   ],
-   "rules": [
+    ],
     [
      "Report the full search for ≥ 1 database (PRISMA-ScR 8); PRISMA-S: all.",
      "report",
@@ -394,7 +384,7 @@
    "how": [
     "Plan the data items: the charting form you fill in for every included paper.",
     "Write the method sections and generate the Protocol note.",
-    "Let your supervisor review it, then lock it in the Lock & register section below."
+    "Let your supervisor review it, then lock it in the next step, Lock & register."
    ],
    "terms": [
     "Protocol"
@@ -666,11 +656,8 @@
      "assess* · scor* · indicator* · index · metric*"
     ]
    ],
-   "lesson": "'disassembl*' catches ease-of-disassembly methods that never say 'repair'."
-  },
-  "queries": {
-   "code": "TITLE-ABS-KEY((repairab* OR reparab* OR \"ease of repair\" OR disassembl*) AND (smartphone* OR \"mobile phone*\" OR laptop* OR tablet* OR \"consumer electronic*\") AND (assess* OR scor* OR indicator* OR index OR metric*))",
-   "lesson": "OpenAlex has no wildcards: repairab* becomes 'repairability' there."
+   "lesson": "'disassembl*' catches ease-of-disassembly methods that never say 'repair'. OpenAlex has no wildcards: repairab* becomes 'repairability' there.",
+   "code": "TITLE-ABS-KEY((repairab* OR reparab* OR \"ease of repair\" OR disassembl*) AND (smartphone* OR \"mobile phone*\" OR laptop* OR tablet* OR \"consumer electronic*\") AND (assess* OR scor* OR indicator* OR index OR metric*))"
   },
   "protocol": {
    "items": [

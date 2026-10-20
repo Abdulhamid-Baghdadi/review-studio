@@ -18,7 +18,7 @@ import { modal } from "../ui/dialogs.js";
 function flowHere() {
   if (CUR === HOME) return null;
   if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
-  return { questions: "question", concepts: "search", queries: "search", protocol: "rules", methods: "methods", registration: "methods",
+  return { questions: "question", concepts: "search", protocol: "rules", methods: "methods", registration: "lock",
     searches: "identified", retrieval: "sought",
     charting: "extract", report: "report" }[CUR] ?? null;
 }
@@ -29,7 +29,7 @@ function flowGroups() {
   const stepNode = (id, key, label) => step(key) && { id, step: step(key), label, go: () => goStep(step(key)) };
   const screen = st => () => { SC.stage = st; store.set("sc_stage", st); SC.id = null; go("screening"); };
   return [
-    { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Inclusion & exclusion rules"), stepNode("methods", "methods", "Methods")] },
+    { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Inclusion & exclusion rules"), stepNode("methods", "methods", "Methods"), stepNode("lock", "lock", "Lock & register")] },
     { phase: "Find", prisma: true, nodes: [
       { id: "identified", step: step("import"), label: "Records found", n: f.n_db + f.n_other, minus: f.duplicates > 0 ? `${f.duplicates} duplicates` : "", go: () => go("searches"),
         tip: `Search & import: records from the databases (${f.n_db}) and other sources (${f.n_other}); duplicates are removed before screening.` },] },
@@ -80,7 +80,7 @@ export function flowMap() {
     return h("button", { class: `fm-node ${isHere ? "here" : ""} ${n.n === undefined ? "stepnode" : ""} ${n.small ? "small" : ""} ${n.good ? "good" : ""} ${status ?? ""}`,
       onclick: n.go, title: tipOf(n, isHere), "aria-current": isHere ? "step" : null },
       h("span", { class: "fm-label" }, num ? h("span", { class: "fm-num" }, status === "done" ? "✓" : status === "skipped" ? "–" : String(num)) : null, n.label,
-        n.step && stepOptional(n.step) ? h("span", { class: "fm-opt" }, "optional") : null, n.step && !n.small ? aiMark(stepStages(n.step).map(s => s.key)) : null),
+        n.step && stepOptional(n.step) ? h("span", { class: "fm-opt" }, "optional") : null, n.step && !n.small ? aiMark([...stepStages(n.step).map(s => s.key), ...(n.step.key === "screen" ? ["fulltext"] : [])]) : null),
       n.n === undefined ? null : h("span", { class: "fm-n" }, Number(n.n).toLocaleString(), n.open ? h("span", { class: "fm-open" }, ` · ${n.open} to do`) : null),
       n.minus ? h("span", { class: "fm-minus" }, "− " + n.minus) : null,
       isHere ? h("span", { class: "fm-here" }, "You are here") : null);

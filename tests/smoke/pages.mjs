@@ -81,15 +81,15 @@ try {
     if ((await where()) !== hash) throw new Error(`could not reach ${hash}`);
   };
   const actions = {};
-  await goTo("#methods");                                   // a step of several parts: one page of sections
-  actions.sections = await page.evaluate(() => document.querySelectorAll("#page .stepsection").length === 2 && !document.querySelector(".steptabs"));
-  await goTo("#screening");
+  await goTo("#questions"); await goTo("#screening");      // from the start, so the first #screening is titles and abstracts
   await page.evaluate(() => document.querySelector("#page .queue .qitem")?.click()); await page.waitForTimeout(200);
   // the engine's own count of title/abstract decisions, before and after one decision by keyboard
   const decided = () => page.evaluate(async () => (await window.backend.get("/api/state")).records.map(r => r.ta_decision).join(","));
   const before = await decided();
   await page.keyboard.press("e"); await page.keyboard.press("1"); await page.waitForTimeout(500);   // exclude with the first reason
   actions.screening = before !== await decided();
+  await goTo("#report");                                    // a step of several parts: one page of sections
+  actions.sections = await page.evaluate(() => document.querySelectorAll("#page .stepsection").length === 3 && !document.querySelector(".steptabs"));
   for (const id of ["btnTimeline", "btnKeys", "btnGlossary", "btnScr", "btnTheme", "btnTheme", "btnHome"]) {
     await page.evaluate(i => document.getElementById(i)?.click(), id); await page.waitForTimeout(150);
     await page.keyboard.press("Escape"); await page.waitForTimeout(60);

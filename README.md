@@ -63,20 +63,21 @@ You need **[Node.js](https://nodejs.org) 20 or newer** (free; install it once) a
 
 The launcher starts the app on your computer and opens it at **http://localhost:8770/web/**. Keep its window open while you work; close it (or press Ctrl+C) to stop. Your reviews are not inside the app's folder: they are wherever you saved them, so you can replace the app with a newer download at any time.
 
-## The 8 steps
+## The 9 steps
 
-A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of every page shows the eight steps in plain words, and it is the only navigation: each step is one page, and a step with several parts shows them as sections, one under another, so you just scroll down. There are no tabs.
+A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of every page shows the nine steps in plain words, and it is the only navigation: each step is one page, and a step with several parts shows them as sections, one under another, so you just scroll down. There are no tabs.
 
 | # | Step | Sections | What you do |
 |---:|---|---|---|
 | 1 | **Research question** | | Say exactly what you want to find out, as Population–Concept–Context, with the main question and sub-questions. Every version is kept. |
-| 2 | **Search strategy** | Keywords · Search strings | One block of synonyms per idea in your question; ready-to-paste strings per database (Scopus, Web of Science, IEEE Xplore, OpenAlex, …). |
+| 2 | **Search strategy** | | One block of synonyms per idea in your question and, beside it, the ready-to-paste string per database it makes, updated as you type (Scopus, Web of Science, IEEE Xplore, OpenAlex, …). |
 | 3 | **Inclusion & exclusion rules** | | What a paper must be (include) and the coded reasons to drop it (E1, E2 …, used while screening), with the rationale. |
-| 4 | **Methods** | Methods · Lock & register | The data items of the charting form and the other method sections, then freeze the plan before searching. |
-| 5 | **Search & import** | | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
-| 6 | **Screen papers** | Titles & abstracts · Get full texts · Full texts *(each a box on the map)* | In the order of the work: titles and abstracts with keyboard shortcuts, then find and attach the PDFs, then read the full texts. |
-| 7 | **Chart the data** | | Fill in the charting form (planned in the protocol) for every included source, with page numbers. |
-| 8 | **Report** | Flow diagram & checklist · Exports & review package · Obsidian library | The PRISMA flow diagram and the PRISMA-ScR checklist for your paper; BibTeX, RIS and CSV exports and the review package; the included papers into your Obsidian library. |
+| 4 | **Methods** | | The data items of the charting form and the other method sections. |
+| 5 | **Lock & register** | | Freeze the plan before searching (optionally registered on OSF). |
+| 6 | **Search & import** | | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
+| 7 | **Screen papers** | Titles & abstracts · Get full texts · Full texts *(each a box on the map)* | In the order of the work: titles and abstracts with keyboard shortcuts, then find and attach the PDFs, then read the full texts. |
+| 8 | **Chart the data** | | Fill in the charting form (planned in the protocol) for every included source, with page numbers. |
+| 9 | **Report** | Flow diagram & checklist · Exports & review package · Obsidian library | The PRISMA flow diagram and the PRISMA-ScR checklist for your paper; BibTeX, RIS and CSV exports and the review package; the included papers into your Obsidian library. |
 
 **Where the app stops.** It covers the review up to the charted evidence: the charting table, the flow diagram, the checklist and the exports (CSV, RIS, BibTeX, your Obsidian library). How you summarise and analyse the charted data depends on your field, so that is done in the tools you already use; the protocol's *Synthesis of results* section records how.
 
@@ -86,7 +87,7 @@ A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of ev
 
 **Reviews made as systematic reviews** (before 18 Oct 2026, when the app supported both types) still open: they are shown as scoping reviews, and everything they saved, including their PRISMA 2020 ticks and synthesis notes, stays in `review_state.json`.
 
-Links to a part of the app keep working: `…/web/#questions` opens the research question, `#protocol` the inclusion & exclusion rules, `#methods` the methods, `#registration` their Lock & register section, `#screening` screening.
+Links to a part of the app keep working: `…/web/#questions` opens the research question, `#protocol` the inclusion & exclusion rules, `#methods` the methods, `#registration` Lock & register, `#screening` screening.
 
 Keyboard shortcuts while screening: **I** include · **U** unsure · **E** exclude · **1–9** reason · **← / →** previous / next.
 

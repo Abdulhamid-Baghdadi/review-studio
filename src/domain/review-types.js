@@ -15,16 +15,15 @@ const item = ([n, item, desc, optional = false]) => Object.freeze({ n: String(n)
 
 const SCOPING_STAGES = [
   ["questions", "1 · Research questions", false, "Say exactly what you want to find out: who or what (Population), which topic (Concept), in which setting (Context). Every version is kept."],
-  ["concepts", "2 · Concepts and terms", false, "One block per idea in your question, with all its synonyms and spellings. A paper must match every block."],
-  ["queries", "3 · Search strings", false, "Your keywords turned into a ready-to-paste search for each database. Edit one by hand if needed."],
-  ["protocol", "4 · Inclusion & exclusion rules", false, "Decide which papers belong in your review and which do not. The short exclusion reasons (E1, E2 …) are the only ones you can pick while screening."],
-  ["methods", "5 · Methods", false, "The rest of your plan: the form you will fill in for every paper, then how you will find, select, chart and summarise. Your question, search strings and rules are added to the Protocol note for you."],
-  ["registration", "6 · Registration", true, "Freeze your plan before the real searches, so later changes are visible (optionally registered on OSF)."],
-  ["searches", "7 · Database searches", false, "Run each search in its database, export the results and drop the file here. Duplicates are merged."],
-  ["screening", "8 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
-  ["retrieval", "9 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
-  ["charting", "10 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
-  ["report", "11 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
+  ["concepts", "2 · Search strategy", false, "One keyword block per idea in your question, with all its synonyms and spellings (a paper must match every block). Beside them, the ready-to-paste search string for each database; edit one by hand if needed."],
+  ["protocol", "3 · Inclusion & exclusion rules", false, "Decide which papers belong in your review and which do not. The short exclusion reasons (E1, E2 …) are the only ones you can pick while screening."],
+  ["methods", "4 · Methods", false, "The rest of your plan: the form you will fill in for every paper, then how you will find, select, chart and summarise. Your question, search strings and rules are added to the Protocol note for you."],
+  ["registration", "5 · Registration", true, "Freeze your plan before the real searches, so later changes are visible (optionally registered on OSF)."],
+  ["searches", "6 · Database searches", false, "Run each search in its database, export the results and drop the file here. Duplicates are merged."],
+  ["screening", "7 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
+  ["retrieval", "8 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
+  ["charting", "9 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
+  ["report", "10 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
 ];
 
 /**
@@ -35,9 +34,10 @@ const SCOPING_STAGES = [
  */
 const SCOPING_STEPS = [
   ["question", "Research question", "What you want to find out", "Plan", [["questions", "Question"]]],
-  ["search", "Search strategy", "Keywords and database search strings", "Plan", [["concepts", "Keywords"], ["queries", "Search strings"]]],
+  ["search", "Search strategy", "Keywords and database search strings", "Plan", [["concepts", "Search strategy"]]],
   ["rules", "Inclusion & exclusion rules", "Which papers are in, which are out", "Plan", [["protocol", "Inclusion & exclusion rules"]]],
-  ["methods", "Methods", "Data items and method sections, then lock the plan", "Plan", [["methods", "Data items & method sections"], ["registration", "Lock & register"]]],
+  ["methods", "Methods", "Data items and method sections", "Plan", [["methods", "Methods"]]],
+  ["lock", "Lock & register", "Freeze the plan before the searches", "Plan", [["registration", "Lock & register"]]],
   ["import", "Search & import", "Run the searches, load the results", "Find", [["searches", "Search & import"]]],
   ["screen", "Screen papers", "Include or exclude each paper", "Select", [["screening", "Titles & abstracts", "ta"], ["retrieval", "Get full texts"], ["screening", "Full texts", "ft"]]],
   ["extract", "Chart the data", "Fill in a form for each paper", "Chart", [["charting", "Chart the data"]]],
@@ -50,7 +50,8 @@ const LONG = {
   question: "Research question: population, concept, context",
   search: "Search strategy: keywords and database search strings",
   rules: "Inclusion & exclusion rules: which papers are in, which are out",
-  methods: "Methods: data items, sources, selection, charting and synthesis, then lock",
+  methods: "Methods: data items, sources, selection, charting and synthesis",
+  lock: "Lock & register: freeze the plan before the searches",
   import: "Run the searches and import the results",
   screen: "Screen titles, abstracts and full texts",
   extract: "Chart the data of every included paper",
@@ -122,7 +123,7 @@ const SCOPING = freeze({
 export const REVIEW_TYPES = freeze({ scoping: SCOPING });
 /** Steps the app had before (they still name old events in a review's timeline). */
 export const FORMER_STAGES = freeze({ idea: "Idea notes", pilot: "Test the search", reviewer: "Second reviewer", appraisal: "Quality check",
-  snowballing: "Citation search", synthesis: "Synthesis" });
+  snowballing: "Citation search", synthesis: "Synthesis", queries: "Search strings" });
 /** The type of a saved review that has none: reviews made before review types were scoping reviews. */
 export const DEFAULT_REVIEW_TYPE = "scoping";
 /** The type a new review starts as. */

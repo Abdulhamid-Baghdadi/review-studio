@@ -44,8 +44,10 @@ test("questions and AI modes", () => {
   assert.equal(saveQuestions(st, { population: "P", concept: "C", context: "X", main: "Q?", sub: ["a"], why: "same" }, { now: NOW }), false);
   assert.deepEqual(st.questions.history[0], { when: NOW, why: "first", population: "", concept: "", context: "", main: "", sub: [] });
   assert.equal(aiMode(st, "screening"), "off");
-  setAiMode(st, "screening", "suggest-ft", { now: NOW });
-  assert.equal(aiPrompt("R", st, "screening"), 'Use the skills review-screen-abstracts and review-screen-fulltexts for the review "R" (mode: suggest-ft).');
+  setAiMode(st, "fulltext", "suggest", { now: NOW });
+  assert.equal(aiPrompt("R", st, "fulltext"), 'Use the skill review-screen-fulltexts for the review "R" (mode: suggest).');
+  st.ai = { screening: "suggest-ft" };                                   // saved before the full-text split
+  assert.deepEqual([aiMode(st, "screening"), aiMode(st, "fulltext")], ["suggest", "suggest"]);
   assert.throws(() => setAiMode(st, "screening", "nope", { now: NOW }));
 });
 

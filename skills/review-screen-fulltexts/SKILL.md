@@ -15,7 +15,7 @@ All reading and writing goes through `bin/ai-assist.js` (Scoping Review Workbenc
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context fulltext --limit 5
    ```
-   - If it says full-text suggestions are **off**, stop. Tell the user that the reviewer can choose "AI suggests (+ full text)" in Scoping Review Workbench (step Screen papers, AI assistance card).
+   - If it says full-text suggestions are **off**, stop. Tell the user that the reviewer can choose "AI suggests" in Scoping Review Workbench (Screen papers → Full texts, AI assistance card).
    - The output has the review questions (PCC), the eligibility text, the full-text exclusion reasons (`ft_reasons`), `remaining`, `without_pdf` and up to 5 records with their `pdf` path.
    - Records without a PDF are not listed; retrieval comes first (skill `review-fetch-fulltexts`).
 

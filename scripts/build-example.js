@@ -192,7 +192,7 @@ for (const [w, d] of Object.entries(INCLUDED)) {
   await s.setRecord(rid(w), { ...chart, chart_basis: "full text", chart_checked_by: "reviewer" });
 }
 
-for (const [stage, status, reason] of [["questions", "done"], ["concepts", "done"], ["queries", "done"],
+for (const [stage, status, reason] of [["questions", "done"], ["concepts", "done"],
   ["protocol", "done"], ["methods", "done"], ["registration", "skipped", "example review, not registered"], ["searches", "done"], ["screening", "done"], ["retrieval", "done"],
   ["charting", "done"]])
   await s.setStageStatus(stage, status, reason ?? "");

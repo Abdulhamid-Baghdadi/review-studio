@@ -154,8 +154,8 @@ export class ReviewSession {
   async saveDatabases(databases, amendment = "") {
     const next = { ...this.st.queries, databases: databases.map(strip).filter(Boolean) };
     if (this.#guarded("queries", next, amendment, "list of databases")) {
-      touch(this.st, "queries", this.now);
-      event(this.st, "queries", "databases: " + next.databases.join(", "), this.now);
+      touch(this.st, "concepts", this.now);
+      event(this.st, "concepts", "databases: " + next.databases.join(", "), this.now);
     }
     await this.save();
   }
@@ -166,8 +166,8 @@ export class ReviewSession {
     if (text === null || text === undefined) delete manual[database];
     else manual[database] = text;
     if (this.#guarded("queries", { ...this.st.queries, manual }, amendment, `${database} search string`)) {
-      touch(this.st, "queries", this.now);
-      event(this.st, "queries", `${database} string ` + (text !== null && text !== undefined ? "edited by hand" : "reset to generated"), this.now);
+      touch(this.st, "concepts", this.now);
+      event(this.st, "concepts", `${database} string ` + (text !== null && text !== undefined ? "edited by hand" : "reset to generated"), this.now);
     }
     await this.save();
   }

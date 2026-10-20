@@ -27,11 +27,8 @@ const codes = reasons => new Set(reasons.map(r => r.split(" ")[0]));
 
 /** The mode of a step, or AiNotAllowed when the review switched the AI off for it. */
 export function requireMode(st, step) {
-  if (step === "fulltext") {
-    if (aiMode(st, "screening") !== "suggest-ft") {
-      throw new AiNotAllowed("AI full-text suggestions are off for this review. The reviewer can choose 'AI suggests (+ full text)' in Scoping Review Workbench (8 · Screening, AI assistance card).");
-    }
-    return "suggest-ft";
+  if (step === "fulltext" && aiMode(st, step) === "off") {
+    throw new AiNotAllowed("AI full-text suggestions are off for this review. The reviewer can choose 'AI suggests' in Scoping Review Workbench (Screen papers → Full texts, AI assistance card).");
   }
   const mode = aiMode(st, step);
   if (mode === "off") throw new AiNotAllowed(`AI assistance for '${step}' is off for this review. Switch it on in Scoping Review Workbench (stage page, AI assistance card) if the reviewer wants it.`);
