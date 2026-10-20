@@ -266,11 +266,10 @@ function renderDevButton() {
     : "Developer mode: lift the protocol locks while you develop the review. Edits are still noted in the timeline.";
 }
 
-export function renderChrome() { renderPicker(); renderTop(); renderMetrics(); renderDevButton(); }
+export function renderChrome() { renderPicker(); renderTop(); renderMetrics(); renderDevButton(); renderDraftBar(); }   // the draft bar too: it shows once a draft has content
 
 export function render() {
   renderChrome();
-  renderDraftBar();
   for (const id of ["btnTimeline", "btnScr"]) $("#" + id).hidden = CUR === HOME;   // the Homepage is only an introduction
   $("#btnHome").classList.toggle("on", CUR === HOME);
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
