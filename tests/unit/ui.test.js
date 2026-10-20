@@ -107,3 +107,31 @@ test("actions sent at once run one after another: seven fields of one note saved
   const chart = (await backend.get("/api/state")).records.find(r => r.record_id === "R0001").chart;
   for (const f of fields) assert.equal(chart[f], `value of ${f}`, f);
 });
+
+test("an import that added no paper of its own can be undone; one that added papers cannot", async () => {
+  const backend = await backendWithReview();
+  const up = () => backend.upload({ name: "s.ris", arrayBuffer: async () => new TextEncoder().encode(ris).buffer });
+  await backend.action("import", { path: up(), database: "Scopus", query: "q", force: true });
+  const before = (await backend.get("/api/state")).flow;
+  await backend.action("import", { path: up(), database: "Web of Science", query: "q", force: true });   // the same file: all duplicates
+  assert.equal((await backend.get("/api/state")).flow.duplicates, before.duplicates + 2);
+  const undone = await backend.action("remove_search", { id: "S02" });
+  assert.equal(undone.status, 200);
+  const after = await backend.get("/api/state");
+  assert.deepEqual([after.flow.n_db, after.flow.duplicates, after.flow.unique], [before.n_db, before.duplicates, before.unique]);
+  assert.ok(after.records.every(r => !(r.sources ?? []).includes("S02")));
+  assert.equal(after.searches.length, 1);
+  const refused = await backend.action("remove_search", { id: "S01" });
+  assert.equal(refused.status, 400);
+  assert.match(refused.body.error, /added 2 papers of its own/);
+});
+
+test("a search id is never given twice, also after an import was undone", async () => {
+  const backend = await backendWithReview();
+  const up = () => backend.upload({ name: "s.ris", arrayBuffer: async () => new TextEncoder().encode(ris).buffer });
+  for (const db of ["Scopus", "Web of Science", "IEEE Xplore"]) await backend.action("import", { path: up(), database: db, query: "q", force: true });
+  await backend.action("remove_search", { id: "S02" });
+  await backend.action("import", { path: up(), database: "OpenAlex", query: "q", force: true });
+  const ids = (await backend.get("/api/state")).searches.map(s => s.id);
+  assert.deepEqual(ids, ["S01", "S03", "S04"]);       // not S04 twice, and S02 (undone, its file kept) not given again
+});

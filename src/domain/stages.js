@@ -141,10 +141,15 @@ export const isLocked = st => Boolean(st.protocol.locked);
 export const needsAmendment = (st, devMode) => isLocked(st) && !devMode;
 
 /** Records an amendment (a change to a protected part after locking) with its reason. */
+/** What an amendment changed, in the reviewer's words (the key stays in review_state.json; reports show the words). */
+export const AMENDMENT_NAMES = Object.freeze({ questions: "research questions", concepts: "keyword blocks", queries: "search strings and databases",
+  criteria: "inclusion and exclusion rules", protocol_text: "method sections", charting: "charting form", ai: "AI assistance" });
+export const amendmentName = what => AMENDMENT_NAMES[what] ?? what;
+
 export function amend(st, what, reason, now) {
   if (!strip(reason ?? "")) throw new Error("The protocol is locked: give the reason for this amendment.");
   st.amendments.push({ when: now, what, reason: strip(reason) });
-  event(st, "protocol", `amendment (${what}): ${strip(reason)}`, now);
+  event(st, "protocol", `amendment (${amendmentName(what)}): ${strip(reason)}`, now);
 }
 
 /** Changes made in developer mode after locking are still written to the timeline. */

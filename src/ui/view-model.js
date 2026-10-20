@@ -91,6 +91,7 @@ export async function snapshot(session, { review, reviews, vault }) {
     state: { ...keep(["idea", "questions", "concepts", "queries", "pilots", "protocol_text", "protocol_meta", "supervisor_review",
       "concepts_history", "protocol", "amendments", "charting"]), checklist: stages.checklistOf(st) },
     events: st.events.slice(-200).reverse().map(e => ({ ...e, title: stages.stageOf(st, e.stage)?.title ?? e.stage })),
+    amendment_names: stages.AMENDMENT_NAMES,                 // what an amendment changed, in words
     queries: Object.fromEntries(st.queries.databases.map(db => [db, buildQuery(st, db)])),
     openalex_changes: openalexChanges(st.concepts),           // stems the OpenAlex string completes (no wildcards there)
     manual: Object.keys(st.queries.manual),

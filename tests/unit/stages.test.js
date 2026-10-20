@@ -176,3 +176,13 @@ test("the charting table names its columns as the form does; a field named like 
   const header = chartingCsv(st, []).replace(/^﻿/, "").split(/\r?\n/)[0];
   assert.equal(header, "record_id,authors,year,title,journal,doi,study_design,charted_year,appraisal,appraisal_note");
 });
+
+test("Web of Science plain text: tagged records with indented continuation lines; lines that are no paper are not records", async () => {
+  const { parseExport } = await import("../../src/domain/importers.js");
+  const wos = "FN Clarivate Analytics Web of Science\nVR 1.0\nPT J\nAU Smith, J\n   Doe, A\nTI Design for remanufacturing of\n   electric motors\nSO JOURNAL OF CLEANER PRODUCTION\nPY 2021\nDI 10.1016/j.x.2021.1\nAB Motors are hard to take apart.\nER\n\nPT J\nAU Lee, K\nTI Second paper\nPY 2020\nER\n\nEF\n";
+  const e = parseExport("savedrecs.txt", wos);
+  assert.equal(e.length, 2);
+  assert.deepEqual([e[0].title, e[0].authors, e[0].year, e[0].doi], ["Design for remanufacturing of electric motors", "Smith, J; Doe, A", 2021, "10.1016/j.x.2021.1"]);
+  // a file that is not an export: no line becomes a record (before, each line counted as one and entered the flow)
+  assert.equal(parseExport("notes.txt", "just some\nlines of text\nthat are not an export\n").length, 0);
+});

@@ -9,7 +9,7 @@ import { fullName } from "./record-properties.js";
 import * as frontmatter from "./frontmatter.js";
 import { buildQuery } from "./queries.js";
 import { chars, strip } from "./text-rules.js";
-import { checklistOf, FULLTEXT_DIR, isLocked, reviewType, stageOf, STATUS_ICON } from "./stages.js";
+import { amendmentName, checklistOf, FULLTEXT_DIR, isLocked, reviewType, stageOf, STATUS_ICON } from "./stages.js";
 
 export const STAGE_FILES = Object.freeze({
   timeline: "00 - Review timeline.md",
@@ -34,9 +34,9 @@ export function timelineNote({ reviewName, reviewLink, st, today }) {
   }
   const p = st.protocol;
   lines.push("", "## Protocol\n", `- Locked: ${p.locked || "no"}` + (p.file ? ` — [[${withoutMd(p.file)}]]` : ""),
-    `- Registration: ${p.registration || "—"}`, `- Git commit: ${p.commit || "—"}`, "",
+    `- Registration: ${p.registration || "—"}`, ...(p.commit ? [`- Git commit: ${p.commit}`] : []), "",
     "## Amendments after locking\n", "| When | What | Reason |", "|---|---|---|",
-    ...(st.amendments.length ? st.amendments.map(a => `| ${a.when} | ${a.what} | ${a.reason} |`) : ["| — | | |"]));
+    ...(st.amendments.length ? st.amendments.map(a => `| ${a.when} | ${amendmentName(a.what)} | ${a.reason} |`) : ["| — | | |"]));
   if (st.idea.length) lines.push("", "## Idea log\n", ...st.idea.map(i => `- **${i.when}** — ${i.text}`));
   lines.push("", "## Events\n", "| When | Stage | What |", "|---|---|---|",
     ...[...st.events].reverse().map(e => `| ${e.when} | ${stageOf(st, e.stage)?.title ?? e.stage} | ${String(e.text).replaceAll("|", "/")} |`));

@@ -191,6 +191,9 @@ export class Backend {
 
   /** The draft review: needs no folder and no permission, so the app can open on it straight away. */
   async draftEntry() {
+    // the draft lives in the browser's own storage, which a browser may clear when it needs space ("best effort");
+    // asking for persistent storage keeps it until the user clears it (granted silently, or not, by the browser)
+    await navigator.storage?.persist?.().catch(() => false);
     const handle = await (await navigator.storage.getDirectory()).getDirectoryHandle(DRAFT_DIR, { create: true });
     return { id: "draft", name: Backend.DRAFT, handle, draft: true, settings: { ...(await fixedSettings("draft")), name: "Draft review", recordsPath: `${DRAFT_DIR}/08 - Records` } };
   }
@@ -360,6 +363,7 @@ export class Backend {
       case "supervisor_review": return s.supervisorReview(a.by ?? "", a.when ?? "");
       case "save_reasons": return s.saveReasons(a.ta, a.ft, amendment, a.include);
       case "lock_protocol": return s.lockProtocol(a.registration ?? "");
+      case "remove_search": return s.removeSearch(a.id);
       case "import": {
         const f = await this.#uploaded(a.path);
         return s.importSearch({ fileName: f.name, bytes: f.bytes, database: a.database, query: a.query, date: a.date || undefined, filters: a.filters ?? "", other: Boolean(a.other) }, { force: Boolean(a.force) });

@@ -31,6 +31,6 @@ PAGES.registration = () => {
             busy(e.target, () => api("lock_protocol", { registration: reg.value }));
         }, "primary"))),
     card("Amendments", "Changes made after locking, with their reasons. They are reported in the manuscript.",
-      S.state.amendments.length ? h("div", { class: "tl" }, S.state.amendments.map(a => h("div", { class: "ev" }, h("div", { class: "when" }, `${a.when} · ${a.what}`), a.reason)))
+      S.state.amendments.length ? h("div", { class: "tl" }, S.state.amendments.map(a => h("div", { class: "ev" }, h("div", { class: "when" }, `${a.when} · ${S.amendment_names?.[a.what] ?? a.what}`), a.reason)))
         : h("div", { class: "empty" }, "No amendments.")));
 };

@@ -65,6 +65,16 @@ function importStrip() {
         h("figcaption", {}, h("b", {}, `${i + 1} · ${t}`), h("span", {}, sub)))]));
 }
 
+// Undo an import that added no paper of its own (a wrong file, all duplicates); one that did is explained instead
+function undoImport(s) {
+  const added = Number(s.new) || 0;
+  if (added) return Object.assign(btn("Undo", null, "sm ghost", `${s.id} added ${added} paper${added === 1 ? "" : "s"} of its own: it cannot be undone. Exclude them in screening if they do not belong.`), { disabled: true });
+  return btn("Undo", async e => {
+    if (await confirmBox(`Undo import ${s.id}?`, `${s.id} (${s.database}, ${s.records} records, none new) leaves the searches table and the PRISMA flow. Its export file stays in 07 - Exports. This is noted in the timeline.`, `Undo import ${s.id}`))
+      busy(e.target, () => api("remove_search", { id: s.id }));
+  }, "sm ghost", `Undo import ${s.id}`);
+}
+
 PAGES.searches = () => {
   const dbs = S.state.queries.databases;
   const prog = D.importProgress ??= {};                      // per database: copied, opened, file (this visit)
@@ -120,8 +130,8 @@ PAGES.searches = () => {
     dbs.length ? dbs.map(dbCard) : h("div", { class: "callout warn" }, "No databases planned yet. Choose them in step 2, Search strategy."),
     card("Searches", `${S.searches.length} run(s) logged — this is the table reported under ${S.review_type.refs.sources}.`,
       S.searches.length ? h("div", { class: "scroll" }, h("table", { class: "tbl" },
-        h("tr", {}, ["ID", "Source", "Date", "08 - Records", "New", "Dupl.", "Query"].map(t => h("th", {}, t))),
+        h("tr", {}, ["ID", "Source", "Date", "Records", "New", "Dupl.", "Query", ""].map(t => h("th", {}, t))),
         S.searches.map(s => h("tr", {}, h("td", {}, s.id), h("td", {}, s.database, " ", pill(s.kind, s.kind === "database" ? "accent" : "")), h("td", { class: "small" }, s.date),
-          h("td", { class: "num" }, s.records), h("td", { class: "num" }, s.new), h("td", { class: "num" }, s.duplicates), h("td", { class: "small", style: "font-family:var(--mono);max-width:360px;word-break:break-word" }, s.query)))))
+          h("td", { class: "num" }, s.records), h("td", { class: "num" }, s.new), h("td", { class: "num" }, s.duplicates), h("td", { class: "small", style: "font-family:var(--mono);max-width:360px;word-break:break-word" }, s.query), h("td", {}, undoImport(s))))))
         : h("div", { class: "empty" }, h("div", { class: "big" }, "🔎"), "No searches imported yet.")));
 };

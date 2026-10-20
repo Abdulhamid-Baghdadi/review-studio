@@ -9,7 +9,7 @@ import { PROTOCOL_FILE } from "../domain/protocol.js";
 import { buildQuery } from "../domain/queries.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
 import { amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setStatus, touch } from "../domain/stages.js";
-import { checkScreening, importSearch, addPaper, writeReport, ReviewError } from "./review-commands.js";
+import { checkScreening, importSearch, addPaper, removeSearch, writeReport, ReviewError } from "./review-commands.js";
 import { fetchLibraryWorks, planLibraryCitations, writeLibraryCitations } from "./library-citations.js";
 import { addKeptToLibrary, applyLibrarySync, emptyLibrary, planLibrarySync } from "./library.js";
 import { loadState, saveState } from "./review-state.js";
@@ -22,7 +22,7 @@ import { recordsWithoutFullText, scanForPdfs } from "./local-pdfs.js";
 
 /** A protected part of a locked protocol was changed without giving the reason for the amendment. */
 export class AmendmentRequired extends Error {
-  /** @param {string} what e.g. "concept table" */
+  /** @param {string} what e.g. "keyword blocks" */
   constructor(what) { super(`The protocol is locked: changing the ${what} is an amendment. Give the reason.`); this.what = what; }
 }
 
@@ -132,7 +132,7 @@ export class ReviewSession {
   async saveConcepts(concepts, why = "", amendment = "") {
     const next = concepts.filter(c => strip(c.name)).map(c => ({ name: strip(c.name), role: c.role ?? "AND", terms: c.terms.map(strip).filter(Boolean) }));
     const old = this.st.concepts;
-    if (this.#guarded("concepts", next, amendment, "concept table")) {
+    if (this.#guarded("concepts", next, amendment, "keyword blocks")) {
       // saved while typing: a new version only when an editing session starts (or for an amendment)
       if (strip(amendment ?? "") || !sameSession(this.st.concepts_edited, this.now)) {
         if (old.length) (this.st.concepts_history ??= []).push({ when: this.now, why: strip(why || amendment || ""), concepts: old });
@@ -252,6 +252,14 @@ export class ReviewSession {
   }
 
   addPaper(paper) { return addPaper(this.repo, paper, this.library); }
+
+  /** Undoes an import that added no paper of its own (see review-commands removeSearch); noted in the timeline. */
+  async removeSearch(id) {
+    const msg = await removeSearch(this.repo, id, this.library);
+    event(this.st, "searches", `import ${id} undone`, this.now);
+    await this.save();
+    return msg;
+  }
 
   /**
    * One screening decision (with the reason when excluding, and optionally the notes). With `undo`, it puts back the

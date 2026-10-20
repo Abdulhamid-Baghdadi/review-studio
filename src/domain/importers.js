@@ -128,7 +128,36 @@ export function parseCsv(text) {
 export function parseExport(fileName, text) {
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
   const ext = (/\.[^.]+$/.exec(fileName)?.[0] ?? "").toLowerCase();
-  if (ext === ".ris" || ext === ".nbib" || /^TY  -/m.test(text)) return parseRis(text);
-  if (ext === ".bib" || text.trimStart().startsWith("@")) return parseBibtex(text);
-  return parseCsv(text);
+  const all = ext === ".ris" || ext === ".nbib" || /^TY  -/m.test(text) ? parseRis(text)
+    : ext === ".bib" || text.trimStart().startsWith("@") ? parseBibtex(text)
+    : isWosText(text) ? parseWosText(text)
+    : parseCsv(text);
+  // a line that is not a paper (a format the reader did not recognise, a blank or summary row) has no title
+  // (a paper cannot be added without one): it is not counted as a record found (it would enter the PRISMA flow)
+  return all.filter(e => e.title);
+}
+
+/** Web of Science "Plain text file" export: FN/VR header, two-letter tags, continuation lines indented, ER ends a record. */
+export const isWosText = text => /^(FN |PT [A-Z]\b)/m.test(text.slice(0, 400)) && /^ER\s*$/m.test(text);
+
+/** @returns {Entry[]} */
+export function parseWosText(text) {
+  const records = [];
+  let current = {}, lastTag = null;
+  for (const line of splitLines(text)) {
+    const m = /^([A-Z][A-Z0-9]) ?(.*)$/.exec(line);
+    if (/^ {2,}\S/.test(line) && lastTag) { current[lastTag].push(strip(line)); continue; }   // continuation: one more value of the tag
+    if (!m) continue;
+    const [, tag, value] = m;
+    if (tag === "ER") { records.push(current); current = {}; lastTag = null; continue; }
+    if (tag === "FN" || tag === "VR" || tag === "EF") continue;
+    (current[tag] ??= []).push(strip(value));
+    lastTag = tag;
+  }
+  // one value per line: authors are a list; titles and abstracts that run on are joined
+  const joined = (r, t) => (r[t] ?? []).join(" ");
+  return records.map(r => makeEntry({
+    title: joined(r, "TI"), authors: (r.AU ?? r.AF ?? []).join("; "), year: joined(r, "PY"), journal: joined(r, "SO"),
+    doi: joined(r, "DI"), abstract: joined(r, "AB"), language: joined(r, "LA"), keywords: (r.DE ?? []).join(" "),
+  }));
 }

@@ -23,7 +23,12 @@ export class ReviewError extends Error {}
 /** A seed from 0 to 999 999 from the system's secure random source . */
 const secureSeed = () => globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
 
-const sourceId = rows => `S${String(rows.length + 1).padStart(2, "0")}`;
+// the next search id: one above every id used so far, in the table or by an export kept in 07 - Exports (an undone
+// import keeps its file), so no id is ever given twice
+async function sourceId(repo, rows) {
+  const used = [...rows.map(r => r.id), ...(await repo.folder.list(FILES.exports))].map(x => Number(/^S(\d+)\b/.exec(String(x))?.[1] ?? 0));
+  return `S${String(Math.max(0, ...used) + 1).padStart(2, "0")}`;
+}
 
 /** Text of an uploaded export as it is read: UTF-8 with or without BOM, bad bytes replaced. */
 export const decodeExport = bytes => normalizeNewlines(new TextDecoder("utf-8").decode(bytes)).replace(/^﻿/, "");
@@ -67,9 +72,9 @@ export async function addEntries(repo, entries, source, library = emptyLibrary()
  */
 export async function importSearch(repo, { fileName, bytes, database, query, date, filters = "", other = false }, library) {
   const entries = parseExport(fileName, decodeExport(bytes));
-  if (!entries.length) throw new ReviewError("No records found in the export (check the format).");
+  if (!entries.length) throw new ReviewError(`No papers found in "${fileName}". Check that it is the export file from the database (CSV, RIS, BibTeX or Web of Science plain text), then try again. Nothing was imported.`);
   const rows = await repo.searches();
-  const id = sourceId(rows);
+  const id = await sourceId(repo, rows);
   const kept = `${id} - ${fileName}`;
   await repo.folder.writeBytes(`${FILES.exports}/${kept}`, bytes);
   const { added, duplicates } = await addEntries(repo, entries, id, library);
@@ -82,11 +87,35 @@ export async function importSearch(repo, { fileName, bytes, database, query, dat
 }
 
 /** Adds one paper found another way (a reference list, a colleague…) under an "other" source named `via`. */
+/**
+ * Undoes an import that added no paper of its own (a wrong file, all duplicates): its row leaves 07 - Searches.csv
+ * and the PRISMA flow, and the papers it matched lose its source id. Its export stays in 07 - Exports. An import
+ * that added papers cannot be undone here: their notes may already hold decisions, and the app deletes no files.
+ */
+export async function removeSearch(repo, id, library) {
+  const rows = await repo.searches();
+  const row = rows.find(r => r.id === id);
+  if (!row) throw new ReviewError(`There is no search ${id}.`);
+  const added = Number(row.new) || 0;
+  if (added) throw new ReviewError(`${id} added ${added} paper${added === 1 ? "" : "s"} of its own, so it cannot be undone here. Exclude them in screening if they do not belong, and say so in the report.`);
+  let untagged = 0;
+  for (const r of repo.records.values()) {
+    if (!(r.props.sources ?? []).includes(id)) continue;
+    repo.put({ ...r, props: { ...r.props, sources: r.props.sources.filter(s => s !== id) } });
+    untagged++;
+  }
+  await repo.save();
+  await repo.writeSearches(rows.filter(r => r.id !== id));
+  await repo.log("import", `${id} ${row.database} undone (${row.records} records, none new; export kept as ${row.export})`);
+  const report = await writeReport(repo, library);
+  return `${id} ${row.database} undone: it no longer counts in the searches or the flow (${untagged} paper${untagged === 1 ? "" : "s"} it matched keep their other sources; the export file stays in 07 - Exports).\n${report}`;
+}
+
 export async function addPaper(repo, { title, authors = "", year = "", journal = "", doi = "", via, database = "Other source" }, library) {
   const rows = await repo.searches();
   let row = rows.find(r => r.kind === "other" && r.query === via);
   if (!row) {
-    row = { id: sourceId(rows), kind: "other", database, date: repo.clock.today(), query: via, filters: "", export: "", records: 0, new: 0, duplicates: 0 };
+    row = { id: await sourceId(repo, rows), kind: "other", database, date: repo.clock.today(), query: via, filters: "", export: "", records: 0, new: 0, duplicates: 0 };
     rows.push(row);
   }
   const { added, duplicates } = await addEntries(repo, [makeEntry({ title, authors, year, journal, doi })], row.id, library);
