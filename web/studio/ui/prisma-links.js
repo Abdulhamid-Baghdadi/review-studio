@@ -12,7 +12,7 @@ const PAGES = {
   "PRISMA": "https://www.prisma-statement.org/scoping",     // plain "PRISMA" here (e.g. "PRISMA flow diagram") means PRISMA-ScR
 };
 const MENTION = /\bPRISMA(?:-ScR|-S\b| 2020)?(?![-\w])/g;
-const SKIP = "a, button, input, textarea, select, option, code, pre, svg, script, style, [contenteditable], .code";
+const SKIP = "a, button, input, textarea, select, option, code, pre, svg, script, style, [contenteditable], .code, .pill";   // a badge is a label, not a link
 
 function linkText(node) {
   const text = node.nodeValue;

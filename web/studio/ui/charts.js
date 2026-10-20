@@ -21,7 +21,7 @@ export function flowDiagram(f, here) {
   box(x1, y, bw, hTop, [`Identified — databases (n = ${f.n_db})`, ...dbl], mark("identified", false));
   box(x2, y, bw, hTop, [`Identified — other sources (n = ${f.n_other})`, ...otl], mark("identified", false));
   y += hTop + 26; arrow(x1 + bw / 2, y - 26, x1 + bw / 2, y - 2); arrow(x2 + bw / 2, y - 26, x1 + bw / 2 + 40, y - 2);
-  box(x1, y, bw, 50, [`Screened — title/abstract (n = ${f.unique})`, `${f.duplicates} duplicates removed · ${f.ta_pending} still open`], mark("screened", true));
+  box(x1, y, bw, 50, [`Screened — title/abstract (n = ${f.unique})`, `${f.duplicates} duplicate${f.duplicates === 1 ? "" : "s"} removed · ${f.ta_pending} still open`], mark("screened", true));
   box(x2, y, bw, 50, [`Excluded (n = ${f.ta_excluded})`, Object.entries(f.ta_reasons).map(([k, v]) => `${k}: ${v}`).join(" · ").slice(0, 52)]);
   arrow(x1 + bw, y + 25, x2 - 2, y + 25);
   y += 76; arrow(x1 + bw / 2, y - 26, x1 + bw / 2, y - 2);

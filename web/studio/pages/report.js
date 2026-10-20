@@ -72,7 +72,7 @@ PAGES.report = () => {
     syncCard(),
     kept.length || S.library?.length ? null : h("div", { class: "card empty" }, "Nothing to do here yet: include papers first, and choose your library folder in ⚙ Settings → Review settings."));
   if (part === "exports") return h("div", {},
-    card("Traceability", "Every change of a screening decision is in 08 - Decision log.csv (when, who, how), chained with SHA-256 so that an edited row shows. The review package collects the protocol, searches, decisions, log, second-reviewer sheets, charting, flow, checklist and AI use, with a checksum per file, ready to deposit on OSF or Zenodo.",
+    card("Traceability", "Every change of a screening decision is in 08 - Decision log.csv (when, who, how), chained with SHA-256 so that an edited row shows. The review package collects the protocol, searches, decisions, log, charting, flow, checklist and AI use, with a checksum per file, ready to deposit on OSF or Zenodo.",
       h("div", { class: "row" },
         btn("Check the decision log", async e => {
           const v = await busy(e.currentTarget, () => api("verify_log", {}, { silent: true }));

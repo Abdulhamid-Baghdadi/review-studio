@@ -79,11 +79,13 @@ export function strategyNote({ reviewName, reviewLink, st, today, exists }) {
 export function checklistEvidence({ st, searches, records, guideExists, flowExists }) {
   const s = st.stages, type = reviewType(st), words = type.words;
   const databases = searches.filter(r => r.kind === "database").length;
+  const unsearched = (st.queries?.databases ?? []).filter(db => !searches.some(r => r.database === db));
   const facts = {
     questions: st.questions.main ? "questions written" : "",
     registration: isLocked(st) ? `registered ${st.protocol.locked}` : s.registration.status === "skipped" ? "registration skipped: " + s.registration.reason : "",
-    criteria: guideExists ? "exclusion reasons defined" : "",
-    sources: searches.length ? `${databases} database search${databases === 1 ? "" : "es"} logged` : "",
+    criteria: guideExists ? "inclusion and exclusion rules defined" : "",
+    // the planned databases not searched are a deviation the report must state (PRISMA-ScR 7)
+    sources: searches.length ? `${databases} database search${databases === 1 ? "" : "es"} logged` + (unsearched.length ? `; planned but not searched: ${unsearched.join(", ")}` : "") : "",
     strings: databases ? "full strings in Search strategy" : "",
     screening: records.some(r => r.ta_decision !== "pending") ? "screening decisions recorded" : "",
     dataItems: `${st.charting.fields.length} data items defined`,
