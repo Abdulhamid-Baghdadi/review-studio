@@ -623,8 +623,8 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .fmc-step.here { border: 2px solid var(--accent); background: var(--accent-2); color: var(--text); }
 .fmc-step.here .fmc-name { color: var(--text); }
 .fmc-group.single .fmc-phase { display: none; }            /* a one-step group: its step's name says it */
-@media (max-width: 1400px) { .fmc-name { display: none; } .fmc-step { padding: 1px 3px; } }
-@media (min-width: 1251px) and (max-width: 1400px) { .fmc-group.single .fmc-phase { display: inline; } }
+@media (max-width: 1700px) { .fmc-name { display: none; } .fmc-step { padding: 1px 3px; } }
+@media (min-width: 1251px) and (max-width: 1700px) { .fmc-group.single .fmc-phase { display: inline; } }
 .fmc-count { display: inline-flex; align-items: baseline; gap: 5px; border: 1.5px solid var(--border); background: var(--surface); color: var(--muted); border-radius: 7px; padding: 1px 8px; font: inherit; font-size: 12px; cursor: pointer; }
 .fmc-count b { color: var(--text); font-size: 13px; }
 .fmc-count:hover { border-color: var(--accent); }

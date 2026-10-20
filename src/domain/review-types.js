@@ -17,26 +17,27 @@ const SCOPING_STAGES = [
   ["questions", "1 · Research questions", false, "Say exactly what you want to find out: who or what (Population), which topic (Concept), in which setting (Context). Every version is kept."],
   ["concepts", "2 · Concepts and terms", false, "One block per idea in your question, with all its synonyms and spellings. A paper must match every block."],
   ["queries", "3 · Search strings", false, "Your keywords turned into a ready-to-paste search for each database. Edit one by hand if needed."],
-  ["protocol", "4 · Protocol", false, "Your written plan: which papers count, and how you will search, select and summarise."],
-  ["registration", "5 · Registration", true, "Freeze your plan before the real searches, so later changes are visible (optionally registered on OSF)."],
-  ["searches", "6 · Database searches", false, "Run each search in its database, export the results and drop the file here. Duplicates are merged."],
-  ["screening", "7 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
-  ["retrieval", "8 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
-  ["charting", "9 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
-  ["report", "10 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
+  ["protocol", "4 · Inclusion & exclusion rules", false, "Decide which papers belong in your review and which do not. The short exclusion reasons (E1, E2 …) are the only ones you can pick while screening."],
+  ["methods", "5 · Methods", false, "The rest of your plan: the data items, background, sources, and how you will select, chart and summarise. With your question, search and rules it becomes the Protocol note."],
+  ["registration", "6 · Registration", true, "Freeze your plan before the real searches, so later changes are visible (optionally registered on OSF)."],
+  ["searches", "7 · Database searches", false, "Run each search in its database, export the results and drop the file here. Duplicates are merged."],
+  ["screening", "8 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
+  ["retrieval", "9 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
+  ["charting", "10 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
+  ["report", "11 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
 ];
 
 /**
  * The steps the page shows: plain-language groups of stages. A step with more than one tab shows its stages as
- * tabs; a tab with a `part` shows one part of its stage's page (the protocol page: rules and methods; screening:
- * titles and abstracts or full texts; the report: the paper, exports, the library). Steps only change how the review is shown: statuses and files stay per stage.
+ * sections of one page; a tab with a `part` shows one part of its stage's page (screening: titles and abstracts or
+ * full texts; the report: the paper, exports, the library). Steps only change how the review is shown: statuses and files stay per stage.
  * [key, title, hint, phase, tabs: [stage, tab label, part?][]]
  */
 const SCOPING_STEPS = [
   ["question", "Research question", "What you want to find out", "Plan", [["questions", "Question"]]],
   ["search", "Search strategy", "Keywords and database search strings", "Plan", [["concepts", "Keywords"], ["queries", "Search strings"]]],
-  ["rules", "Protocol", "Inclusion rules, methods, lock before searching", "Plan",
-    [["protocol", "Inclusion rules", "rules"], ["protocol", "Methods", "methods"], ["registration", "Lock & register"]]],
+  ["rules", "Inclusion & exclusion rules", "Which papers are in, which are out", "Plan", [["protocol", "Inclusion & exclusion rules"]]],
+  ["methods", "Methods", "Data items and method sections, then lock the plan", "Plan", [["methods", "Methods"], ["registration", "Lock & register"]]],
   ["import", "Search & import", "Run the searches, load the results", "Find", [["searches", "Search & import"]]],
   ["screen", "Screen papers", "Include or exclude each paper", "Select", [["screening", "Titles & abstracts", "ta"], ["retrieval", "Get full texts"], ["screening", "Full texts", "ft"]]],
   ["extract", "Chart the data", "Fill in a form for each paper", "Chart", [["charting", "Chart the data"]]],

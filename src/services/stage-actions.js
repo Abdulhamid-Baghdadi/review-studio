@@ -38,8 +38,8 @@ async function sha256(bytes) {
 export async function writeProtocol(repo, st) {
   const reasons = await repo.reasons();
   await repo.folder.writeText(PROTOCOL_FILE, protocolMarkdown({ reviewName: repo.name, reviewLink: repo.link, st, ftReasons: reasons.ft, include: reasons.include, generatedBy: generatorOf(repo).stagesBy }));
-  touch(st, "protocol", repo.clock.now());
-  event(st, "protocol", "protocol draft regenerated", repo.clock.now());
+  touch(st, "methods", repo.clock.now());
+  event(st, "methods", "protocol draft regenerated", repo.clock.now());
 }
 
 /** Writes the inclusion criteria and exclusion reasons into the screening guide (created when missing; an older guide is upgraded first). */

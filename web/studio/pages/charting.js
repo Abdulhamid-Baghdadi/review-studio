@@ -67,9 +67,9 @@ PAGES.charting = () => {
         h("div", { class: "queue", style: "max-height:640px;margin-top:10px" }, list.map(r => h("div", { class: "qitem" + (r.record_id === sel ? " cur" : ""), onclick: () => { D.chartSel = r.record_id; render(); } },
           kind(r) === "me" ? decDot("include", "checked by you") : decDot(r.pdf_status === "found" ? "unsure" : "pending", `prefilled by AI from the ${r.pdf_status === "found" ? "full text" : "abstract"}, not checked yet`), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
       card(null, null, form)),
-    card("Charting form", `The data items (${S.review_type.refs.dataItems}) are planned in Protocol → Methods; after locking, a change is an amendment.`,
+    card("Charting form", `The data items (${S.review_type.refs.dataItems}) are planned in Methods; after locking, a change is an amendment.`,
       h("div", { class: "small" }, S.state.charting.fields.filter(f => f.name !== "checked_by").map(f => h("div", {}, h("b", {}, fieldLabel(f.name)), " — ", f.description))),
       h("div", { class: "row end", style: "margin-top:10px" },
-        btn("Edit in Protocol → Methods", () => goTab(stepOf("protocol").tabs.find(t => t.part === "methods")), "ghost"),
+        btn("Edit in Methods", () => goTab(stepOf("methods").tabs[0]), "ghost"),
         btn("Add columns to included records", e => busy(e.currentTarget, () => api("prepare_charting", {})), "primary"))));
 };

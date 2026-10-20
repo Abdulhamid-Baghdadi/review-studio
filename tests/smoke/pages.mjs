@@ -81,8 +81,8 @@ try {
     if ((await where()) !== hash) throw new Error(`could not reach ${hash}`);
   };
   const actions = {};
-  await goTo("#protocol");                                  // a step of several parts: one page of sections
-  actions.sections = await page.evaluate(() => document.querySelectorAll("#page .stepsection").length === 3 && !document.querySelector(".steptabs"));
+  await goTo("#methods");                                   // a step of several parts: one page of sections
+  actions.sections = await page.evaluate(() => document.querySelectorAll("#page .stepsection").length === 2 && !document.querySelector(".steptabs"));
   await goTo("#screening");
   await page.evaluate(() => document.querySelector("#page .queue .qitem")?.click()); await page.waitForTimeout(200);
   // the engine's own count of title/abstract decisions, before and after one decision by keyboard

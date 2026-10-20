@@ -1,6 +1,6 @@
 /**
  * The charting form: the data items every included paper is charted on (PRISMA-ScR 11). It is part of the plan, so
- * it is edited in Protocol → Methods (after locking, a change is an amendment); Chart the data shows it read-only.
+ * it is edited in Methods (after locking, a change is an amendment); Chart the data shows it read-only.
  * @module web/studio/pages/charting-form
  */
 import { api } from "../core/api.js";

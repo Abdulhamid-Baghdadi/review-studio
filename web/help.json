@@ -365,10 +365,35 @@
    ]
   },
   "protocol": {
-   "what": "The plan of the review, written before searching: which papers are in and which are out, and how you will work.",
+   "what": "Which papers belong in your review and which do not: what a paper must be (include), the coded reasons to drop it (exclude), and why.",
    "how": [
-    "Inclusion rules: list what a paper must be (include) and the coded reasons to drop it (E1, E2 …, used in screening), then say why.",
-    "Methods: plan the data items (the charting form), write the remaining sections and generate the Protocol note.",
+    "List what a paper must be or contain, one rule per line.",
+    "List the coded exclusion reasons (E1, E2 …) used in screening; full-text screening can reuse them.",
+    "Say why, in a few sentences: this and both lists become the protocol's eligibility section."
+   ],
+   "terms": [
+    "Protocol"
+   ],
+   "rules": [
+    [
+     "Report criteria with rationale (PRISMA-ScR 6).",
+     "report",
+     [
+      "tricco2018"
+     ]
+    ],
+    [
+     "Coded exclusion reasons (E1, E2 …).",
+     "convention",
+     []
+    ]
+   ]
+  },
+  "methods": {
+   "what": "The rest of your plan, written before searching: the data items you will chart, the information sources, how you will select, chart and summarise, and the timeline. Then lock it.",
+   "how": [
+    "Plan the data items: the charting form you fill in for every included paper.",
+    "Write the method sections and generate the Protocol note.",
     "Let your supervisor review it, then lock it in the Lock & register section below."
    ],
    "terms": [
@@ -383,24 +408,12 @@
      ]
     ],
     [
-     "Report criteria with rationale (PRISMA-ScR 6).",
-     "report",
-     [
-      "tricco2018"
-     ]
-    ],
-    [
      "Write the protocol before searching.",
      "guidance",
      [
       "peters2020",
       "kitchenham2007"
      ]
-    ],
-    [
-     "Coded exclusion reasons (E1, E2 …).",
-     "convention",
-     []
     ]
    ]
   },
@@ -749,6 +762,18 @@
     [
      "Checklist",
      "items 5, 7, 8 ticked with their manuscript location"
+    ]
+   ]
+  },
+  "methods": {
+   "items": [
+    [
+     "Eligibility",
+     "Include: methods that assess repairability of consumer electronics. Exclude: repair-behaviour studies without a method; non-electronic products."
+    ],
+    [
+     "Exclusion reasons",
+     "E1 wrong concept · E2 wrong context · E3 publication type · E6 no usable content"
     ]
    ]
   }

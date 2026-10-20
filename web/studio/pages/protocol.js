@@ -5,7 +5,7 @@
 import { api, busy } from "../core/api.js";
 import { autoSave, flushSaves } from "../core/autosave.js";
 import { h } from "../core/dom.js";
-import { D, PART, S } from "../core/state.js";
+import { D, S } from "../core/state.js";
 import { chartingFormCard } from "./charting-form.js";
 import { PAGES } from "../shell/registry.js";
 import { exampleFor, withScr } from "../shell/help.js";
@@ -25,13 +25,12 @@ const plainTitle = t => String(t).replace(/\s*\((PRISMA-ScR|PRISMA 2020)[^)]*\)\
 /** The reporting items a section answers, as chips that open the checklist (inside the section: a fold's header holds no buttons). */
 const itemChips = t => { const chips = withScr(t).filter(x => x instanceof Node); return chips.length ? h("div", { class: "small muted", style: "margin-top:6px" }, "Reported as ", chips) : null; };
 
-// One stage, two sections of the Protocol page: the inclusion and exclusion rules (eligibility criteria and the exclusion reasons used in
-// screening), and the other method sections of the protocol. Both are saved in the same protocol.
-PAGES.protocol = () => {
+// Two steps share this page code: Inclusion & exclusion rules (the eligibility criteria and the exclusion reasons used in screening)
+// and Methods (the data items and the other method sections). Both are saved in the same protocol.
+const protocolPage = rules => {
   const d = D.protocol ??= { ...S.state.protocol_text };
   const r = D.reasons ??= { ta: [...S.reasons.ta], ft: [...S.reasons.ft], include: [...(S.reasons.include ?? [])],
     same: S.reasons.ta.join("|") === S.reasons.ft.join("|") };            // full text usually reuses the title/abstract reasons
-  const rules = (PART.protocol ?? "rules") === "rules";
   const textSaver = autoSave("protocol_text", () => api("save_protocol_text", { text: d }, { render: false, silent: true }), "protocol_text");
   const reasonSaver = autoSave("reasons", () => api("save_reasons", { ta: r.ta, ft: r.same ? r.ta : r.ft, include: r.include }, { render: false, silent: true }), "criteria");
   // one editable list per kind of rule: what a paper must be (include) or the coded reasons to drop it (exclude)
@@ -82,6 +81,8 @@ PAGES.protocol = () => {
     textSaver.watch(card("Method sections", null, S.protocol_sections.filter(sct => sct.key !== "eligibility").map(sct => section(sct, !d[sct.key])),
       saveRow(btn("Open Protocol in Obsidian", () => openNote("05 - Protocol.md"), "ghost")))));
 };
+PAGES.protocol = () => protocolPage(true);
+PAGES.methods = () => protocolPage(false);
 
 export function lockReadiness() {
   const checks = S.lock_checks, open = checks.filter(c => c.required && !c.ok).length;

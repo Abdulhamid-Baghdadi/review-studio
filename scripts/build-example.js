@@ -193,7 +193,7 @@ for (const [w, d] of Object.entries(INCLUDED)) {
 }
 
 for (const [stage, status, reason] of [["questions", "done"], ["concepts", "done"], ["queries", "done"],
-  ["protocol", "done"], ["registration", "skipped", "example review, not registered"], ["searches", "done"], ["screening", "done"], ["retrieval", "done"],
+  ["protocol", "done"], ["methods", "done"], ["registration", "skipped", "example review, not registered"], ["searches", "done"], ["screening", "done"], ["retrieval", "done"],
   ["charting", "done"]])
   await s.setStageStatus(stage, status, reason ?? "");
 

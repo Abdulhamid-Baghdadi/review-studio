@@ -53,8 +53,6 @@ async function forgetFromList(r) {
 
 // What a part of a split stage page is for (the stage's own description covers the rest)
 const PART_DESC = {
-  "protocol:rules": "Decide which papers belong in your review and which do not. The short exclusion reasons (E1, E2 …) are the only ones you can pick while screening.",
-  "protocol:methods": "The rest of your plan: background, sources, and how you will select, chart and summarise. Together with your question and search it becomes the Protocol note.",
   "report:paper": "The PRISMA flow diagram and the PRISMA-ScR checklist for your paper.",
   "report:exports": "Files for your reference manager and manuscript, and the review package to deposit on OSF or Zenodo.",
   "report:library": "Your included papers as notes in your Obsidian library, with the citations between them.",
@@ -71,7 +69,7 @@ function sectionOf(t, i, tabs) {
   if (t.part) PART[t.stage] = saved;
   const last = !tabs.slice(i + 1).some(x => x.stage === t.stage);
   const what = `\u201c${t.label}\u201d`;
-  const locked = S.state.protocol.locked && ["questions", "concepts", "queries", "protocol", "charting"].includes(t.stage);
+  const locked = S.state.protocol.locked && ["questions", "concepts", "queries", "protocol", "methods", "charting"].includes(t.stage);
   return h("section", { class: "stepsection", id: sectionId(t), "aria-labelledby": sectionId(t) + "-h" },
     h("div", { class: "titlerow" },
       h("h2", { id: sectionId(t) + "-h" }, t.label),
@@ -127,7 +125,7 @@ function renderTop() {
       st.tabs.length > 1 && !byMap ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
       byMap && s.optional ? pill("optional", "info") : null,
       S.dev_mode ? pill("🛠 developer mode", "bad")
-        : locked && ["questions", "concepts", "queries", "protocol", "charting"].includes(CUR) ? h("span", { class: "pill warn", title: "The protocol is locked: changes here are amendments, with a reason" }, "🔒 locked") : null,
+        : locked && ["questions", "concepts", "queries", "protocol", "methods", "charting"].includes(CUR) ? h("span", { class: "pill warn", title: "The protocol is locked: changes here are amendments, with a reason" }, "🔒 locked") : null,
       h("span", { class: "spacer" }),
       btn("? Help", () => openHelp(CUR), "ghost"),
       s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", skipStage, "ghost", `Skip ${what} (it is optional)`) : null,
@@ -180,7 +178,8 @@ const STORAGE = {
   questions: [["review_state.json", "data, with every version"], ["03 - Search strategy.md", "readable"]],
   concepts: [["review_state.json", "data"], ["03 - Search strategy.md", "readable: concept table"]],
   queries: [["review_state.json", "data, incl. hand edits"], ["03 - Search strategy.md", "readable: strings"]],
-  protocol: [["review_state.json", "method sections"], ["08 - Screening guide.md", "exclusion reasons"], ["05 - Protocol.md", "generated note"]],
+  protocol: [["08 - Screening guide.md", "inclusion criteria and exclusion reasons"], ["review_state.json", "rationale"]],
+  methods: [["review_state.json", "method sections, data items"], ["05 - Protocol.md", "generated note"]],
   registration: [["review_state.json", "lock, amendments"], ["00 - Review timeline.md", "readable: amendments"]],
   searches: [["07 - Searches.csv", "one row per search"], ["07 - Exports", "copies of the export files"], ["08 - Records", "one note per paper"]],
   screening: [["08 - Records", "title_abstract_ / full_text_decision in each paper's note"], ["08 - Screening.base", "the same as an Obsidian table"], ["08 - Decision log.csv", "every change, with who and how"]],

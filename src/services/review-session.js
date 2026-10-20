@@ -180,8 +180,9 @@ export class ReviewSession {
     const meta = (this.st.protocol_meta ??= {});
     for (const [k, v] of Object.entries(text)) if ((v || "") !== (before[k] || "")) meta[k] = { by: author, when: this.now };
     if (this.#guarded("protocol_text", text, amendment, "protocol text")) {
-      touch(this.st, "protocol", this.now);
-      event(this.st, "protocol", "protocol sections saved", this.now);
+      const where = Object.keys(text).some(k => k !== "eligibility" && (text[k] || "") !== (before[k] || "")) ? "methods" : "protocol";   // the rationale is on Inclusion rules
+      touch(this.st, where, this.now);
+      event(this.st, where, "protocol sections saved", this.now);
     }
     let msg = "";
     if (generate) { await actions.writeProtocol(this.repo, this.st); msg = "Protocol.md generated."; }

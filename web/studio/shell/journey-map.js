@@ -18,7 +18,7 @@ import { modal } from "../ui/dialogs.js";
 function flowHere() {
   if (CUR === HOME) return null;
   if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
-  return { questions: "question", concepts: "search", queries: "search", protocol: "rules", registration: "rules",
+  return { questions: "question", concepts: "search", queries: "search", protocol: "rules", methods: "methods", registration: "methods",
     searches: "identified", retrieval: "sought",
     charting: "extract", report: "report" }[CUR] ?? null;
 }
@@ -29,7 +29,7 @@ function flowGroups() {
   const stepNode = (id, key, label) => step(key) && { id, step: step(key), label, go: () => goStep(step(key)) };
   const screen = st => () => { SC.stage = st; store.set("sc_stage", st); SC.id = null; go("screening"); };
   return [
-    { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Protocol")] },
+    { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Inclusion & exclusion rules"), stepNode("methods", "methods", "Methods")] },
     { phase: "Find", prisma: true, nodes: [
       { id: "identified", step: step("import"), label: "Records found", n: f.n_db + f.n_other, minus: f.duplicates > 0 ? `${f.duplicates} duplicates` : "", go: () => go("searches"),
         tip: `Search & import: records from the databases (${f.n_db}) and other sources (${f.n_other}); duplicates are removed before screening.` },] },
