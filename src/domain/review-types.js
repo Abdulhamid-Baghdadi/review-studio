@@ -45,7 +45,19 @@ const SCOPING_STEPS = [
     [["report", "Flow diagram & checklist", "paper"], ["report", "Exports & review package", "exports"], ["report", "Obsidian library", "library"]]],
 ];
 
-const step = ([key, title, hint, phase, tabs]) => Object.freeze({ key, title, hint, phase,
+/** The explanatory name of each step, the title of its page (the map shows the short `title`). */
+const LONG = {
+  question: "Research question: population, concept, context",
+  search: "Search strategy: keywords and database search strings",
+  rules: "Inclusion & exclusion rules: which papers are in, which are out",
+  methods: "Methods: data items, sources, selection, charting and synthesis, then lock",
+  import: "Run the searches and import the results",
+  screen: "Screen titles, abstracts and full texts",
+  extract: "Chart the data of every included paper",
+  report: "Report: PRISMA flow diagram, checklist and exports",
+};
+
+const step = ([key, title, hint, phase, tabs]) => Object.freeze({ key, title, long: LONG[key] ?? title, hint, phase,
   tabs: Object.freeze(tabs.map(([stage, label, part = null]) => Object.freeze({ stage, label, part }))) });
 
 /** PRISMA-ScR (Tricco et al. 2018): 20 essential items and 2 optional ones (12 and 16). */

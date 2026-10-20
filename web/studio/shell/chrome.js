@@ -112,7 +112,7 @@ function renderTop() {
   if (sectioned(st)) {
     const status = stepStatus(st);
     $("#topbar").replaceChildren(
-      h("div", { class: "titlerow" }, h("h1", {}, st.title), pill(status.replace("-", " "), statusKind(status)),
+      h("div", { class: "titlerow" }, h("h1", {}, st.long ?? st.title), pill(status.replace("-", " "), statusKind(status)),
         S.dev_mode ? pill("🛠 developer mode", "bad") : null),
       h("div", { class: "infoline" }, h("span", { class: "desc" }, `${st.hint}. Scroll down for each part.`)));
     return;
@@ -121,7 +121,8 @@ function renderTop() {
   const aiStep = S.ai?.steps[CUR], aiMode = aiStep && (S.ai.modes[CUR] || "off"), aiOpen = store.get("ai_open", "") === "1";
   $("#topbar").replaceChildren(
     h("div", { class: "titlerow" },
-      h("h1", {}, byMap ? tab.label : st.title),
+      h("h1", {}, byMap ? tab.label : st.long ?? st.title),
+      byMap ? h("span", { class: "muted" }, st.long ?? st.title) : null,
       st.tabs.length > 1 && !byMap ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
       byMap && s.optional ? pill("optional", "info") : null,
       S.dev_mode ? pill("🛠 developer mode", "bad")
