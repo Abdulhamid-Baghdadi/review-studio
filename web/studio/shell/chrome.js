@@ -114,7 +114,10 @@ function renderTop() {
     $("#topbar").replaceChildren(
       h("div", { class: "titlerow" }, h("h1", {}, st.long ?? st.title), pill(status.replace("-", " "), statusKind(status)),
         S.dev_mode ? pill("🛠 developer mode", "bad") : null),
-      h("div", { class: "infoline" }, h("span", { class: "desc" }, `${st.hint}. Scroll down for each part.`)));
+      // the parts as links instead of repeating the title: each jumps to its section
+      h("nav", { class: "infoline", "aria-label": "Parts of this page" }, h("span", { class: "desc" }, `${st.tabs.length} parts:`),
+        st.tabs.map((t, i) => [i ? h("span", { class: "muted", "aria-hidden": "true" }, "·") : null,
+          btn(t.label, () => document.getElementById(sectionId(t))?.scrollIntoView({ block: "start" }), "ghost sm", `Go to ${t.label}`)])));
     return;
   }
   const what = st.tabs.length > 1 ? `“${tab.label}”` : "this step";

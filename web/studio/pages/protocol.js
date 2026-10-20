@@ -76,7 +76,6 @@ const protocolPage = rules => {
         elig ? section({ ...elig, title: "Rationale (PRISMA-ScR 6)" }, true) : null, saveRow())));
   }
   return h("div", {},
-    h("div", { class: "callout", style: "margin-bottom:16px" }, "Your question, search strings, test results, inclusion rules and data items are added to the protocol automatically. Plan the data items, write the remaining sections below, then generate the Protocol note."),
     chartingFormCard(),
     textSaver.watch(card("Method sections", null, S.protocol_sections.filter(sct => sct.key !== "eligibility").map(sct => section(sct, !d[sct.key])),
       saveRow(btn("Open Protocol in Obsidian", () => openNote("05 - Protocol.md"), "ghost")))));
