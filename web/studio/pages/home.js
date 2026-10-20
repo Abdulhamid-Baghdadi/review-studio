@@ -115,7 +115,7 @@ PAGES.home = () => {
     h("div", { class: "home-choices" },
       started ? choice("▶", `Continue: ${stepOf(last).title}`, "Pick up where you left off.", () => go(last), "primary")
         : choice("▶", "Start your review", "Step 1: write down your research question.", () => go("questions"), "primary"),
-      choice("📘", "See a finished example", "A real search of 61 records, screened down to 10 included studies.", openFinishedExample),
+      choice("📘", "See a finished example", "A real search of 110 records, screened down to 4 included papers.", openFinishedExample),
       choice("🎓", "Take the 1-minute tour", "What each part of the screen is for.", () => { go("questions"); setTimeout(() => startTour(), 250); })),
     card("How a review goes", "Five phases, one minute. Click a part of the circle to jump to it.", homeDemo()),
     h("p", { class: "home-foot small muted" }, "📝 Plain Markdown notes and CSV tables · 🟣 opens in Obsidian · 🔒 nothing is uploaded, no account · ",

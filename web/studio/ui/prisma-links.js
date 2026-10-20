@@ -1,5 +1,5 @@
 /**
- * Every mention of a PRISMA reporting guideline (PRISMA-ScR, PRISMA-S, PRISMA 2020) in the page links to the
+ * Every mention of a PRISMA reporting guideline (PRISMA-ScR, PRISMA-S, PRISMA 2020, and plain PRISMA) in the page links to the
  * guideline's own page, so its checklist is one click away. Text is linked as it appears, wherever it appears
  * (pages, Help, dialogs), except inside links, buttons, form fields, code and pictures.
  * @module web/studio/ui/prisma-links
@@ -9,8 +9,9 @@ const PAGES = {
   "PRISMA-ScR": "https://www.prisma-statement.org/scoping",
   "PRISMA-S": "https://www.prisma-statement.org/prisma-search",
   "PRISMA 2020": "https://www.prisma-statement.org/prisma-2020",
+  "PRISMA": "https://www.prisma-statement.org/scoping",     // plain "PRISMA" here (e.g. "PRISMA flow diagram") means PRISMA-ScR
 };
-const MENTION = /PRISMA-ScR|PRISMA-S\b|PRISMA 2020/g;
+const MENTION = /\bPRISMA(?:-ScR|-S\b| 2020)?(?![-\w])/g;
 const SKIP = "a, button, input, textarea, select, option, code, pre, svg, script, style, [contenteditable], .code";
 
 function linkText(node) {
