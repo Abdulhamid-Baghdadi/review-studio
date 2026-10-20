@@ -17,6 +17,8 @@ const SKIP = "a, button, input, textarea, select, option, code, pre, svg, script
 function linkText(node) {
   const text = node.nodeValue;
   if (!text.match(MENTION) || !node.parentElement || node.parentElement.closest(SKIP)) return;   // match(), not test(): no lastIndex left behind
+  // a reference that already links to its source (a DOI) keeps that one link: no links inside a cited title
+  if ([...node.parentElement.querySelectorAll(":scope > a")].some(a => !a.classList.contains("prisma-link"))) return;
   const frag = document.createDocumentFragment();
   let last = 0;
   for (const m of text.matchAll(MENTION)) {

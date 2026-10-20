@@ -54,6 +54,8 @@ async function forgetFromList(r) {
 
 // What a part of a split stage page is for (the stage's own description covers the rest)
 const PART_DESC = {
+  "screening:ta": "Read each title and abstract and decide: include, unsure or exclude with a reason.",
+  "screening:ft": "Read the full text of every paper that passed the title and abstract check, and decide: include, or exclude with a reason.",
   "report:paper": "The PRISMA flow diagram and the PRISMA-ScR checklist for your paper.",
   "report:exports": "Files for your reference manager and manuscript, and the review package to deposit on OSF or Zenodo.",
   "report:library": "Your included papers as notes in your Obsidian library, with the citations between them.",

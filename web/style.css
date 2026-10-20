@@ -121,8 +121,8 @@ label.field > span { display: block; font-size: 12.5px; font-weight: 600; color:
 /* ---------- concept cards ---------- */
 .concept { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--surface); position: relative; }
 .concept + .concept { margin-top: 10px; }
-.concept .head { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-.concept .head input { font-weight: 650; max-width: 280px; }
+.concept .head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.concept .head input { font-weight: 650; max-width: 280px; flex: 1 1 140px; min-width: 0; }
 .concept.not { border-left: 4px solid var(--bad); }
 .concept.and { border-left: 4px solid var(--accent); }
 .concept .block-delete { margin-left: 14px; }   /* apart from ↑ ↓ */
@@ -701,3 +701,4 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
   .flowmap.compact .fmc-group { padding: 2px 4px; gap: 3px; }
   .flowmap.compact .fm-arrow { margin: 0 1px; }
 }
+.prisma-link { padding-block: 4px; }   /* inline links to the PRISMA guidelines: 24 px tall (WCAG 2.5.8) */
