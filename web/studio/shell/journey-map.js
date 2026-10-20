@@ -19,7 +19,7 @@ function flowHere() {
   if (CUR === HOME) return null;
   if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
   return { idea: "question", questions: "question", concepts: "search", queries: "search", pilot: "search", protocol: "rules", registration: "rules",
-    searches: "identified", reviewer: "screened", retrieval: "sought",
+    searches: "identified", reviewer: "reviewer", retrieval: "sought",
     charting: "extract", report: "report" }[CUR] ?? null;
 }
 
@@ -40,7 +40,9 @@ function flowGroups() {
         tip: "Screen papers → Get full texts: the papers that passed the title and abstract check." },
       { id: "assessed", label: "Full texts read", n: f.assessed, minus: f.ft_excluded ? `${f.ft_excluded} excluded` : "", open: f.ft_pending,
         go: screen("ft"), tip: `Screen papers: full texts (${f.ft_pending} still to do).` },
-      { id: "included", label: "Included", n: f.included, good: true, go: screen("ft"), tip: "The papers your review is based on." }] },
+      { id: "included", label: "Included", n: f.included, good: true, go: screen("ft"), tip: "The papers your review is based on." },
+      { id: "reviewer", label: "Second reviewer", small: true, go: () => go("reviewer"),
+        tip: "Screen papers → Second reviewer (optional): a second person screens a sample blind; the app measures agreement." }] },
     { phase: "Chart", nodes: [stepNode("extract", "extract", "Chart the data")] },
     { phase: "Report", nodes: [stepNode("report", "report", "Report")] },
   ].map(g => ({ ...g, nodes: g.nodes.filter(Boolean) }));
@@ -55,9 +57,14 @@ export function flowMap() {
   const arrow = () => h("span", { class: "fm-arrow", "aria-hidden": "true" }, "→");
   const tipOf = (n, isHere) => (n.tip || (n.step ? `${n.step.title}: ${n.step.hint}` : n.label)) + (isHere ? " — you are here" : "");
   if (!open) {                                                     // folded: one line
-    const SHORT = { identified: "Found", screened: "Screened", sought: "Full texts", assessed: "Read", included: "Included" };
+    const SHORT = { identified: "Found", screened: "Titles & abstracts", sought: "Get full texts", assessed: "Full texts", included: "Included" };
     const item = n => {
       const isHere = n.id === here, num = n.step ? S.steps.indexOf(n.step) + 1 : null;
+      if (n.id === "reviewer") {                                 // an optional side task, not a box of the flow
+        const st = S.stages.find(s => s.key === "reviewer")?.status ?? "not-started";
+        return h("button", { class: `fmc-count side ${isHere ? "here" : ""}`, onclick: n.go, title: tipOf(n, isHere), "aria-current": isHere ? "step" : null },
+          h("span", {}, st === "done" ? "✓ " : st === "skipped" ? "– " : "", "2nd reviewer"));
+      }
       if (n.n === undefined) {
         const status = stepStatus(n.step);
         return h("button", { class: `fmc-dot ${status} ${isHere ? "here" : ""}`, onclick: n.go, title: tipOf(n, isHere), "aria-label": n.step.title, "aria-current": isHere ? "step" : null },
@@ -68,7 +75,7 @@ export function flowMap() {
     };
     return h("nav", { class: "flowmap compact", "aria-label": "Steps of the review, with the PRISMA flow" },
       groups.flatMap((g, i) => [i ? arrow() : null, h("span", { class: `fmc-group ${g.prisma ? "prisma" : "steps"}`, title: g.phase },
-        h("span", { class: "fmc-phase" }, g.phase), g.nodes.flatMap((n, j) => [j && g.prisma && g.phase !== "Find" ? h("span", { class: "fmc-sep" }, "›") : null, item(n)]))]),
+        h("span", { class: "fmc-phase" }, g.phase), g.nodes.flatMap((n, j) => [j && g.prisma && g.phase !== "Find" ? h("span", { class: "fmc-sep", "aria-hidden": "true" }, n.id === "reviewer" ? "·" : "›") : null, item(n)]))]),
       h("span", { class: "spacer" }),
       iconBtn("⤢", "Show the full PRISMA flow diagram", full),
       h("button", { class: "btn sm ghost fm-toggle", onclick: toggle, "aria-expanded": "false", title: "Unfold the map: every step with its name, and the PRISMA counts" }, "Map ▾"));
@@ -86,7 +93,7 @@ export function flowMap() {
   // the planning and analysis steps as short lists
   const nodesOf = g => !g.prisma || g.phase === "Find"
     ? h("div", { class: "fm-nodes stack" }, g.nodes.map(node))
-    : h("div", { class: "fm-nodes" }, g.nodes.flatMap((n, j) => [j ? arrow() : null, node(n)]));
+    : h("div", { class: "fm-nodes" }, g.nodes.flatMap((n, j) => [j && n.id !== "reviewer" ? arrow() : null, node(n)]));
   return h("nav", { class: "flowmap", "aria-label": "Steps of the review, with the PRISMA flow" },
     h("div", { class: "fm-track" }, groups.flatMap((g, i) => [i ? arrow() : null,
       h("div", { class: `fm-group ${g.prisma ? "prisma" : "steps"}` }, h("div", { class: "fm-phase" }, g.phase), nodesOf(g))])),

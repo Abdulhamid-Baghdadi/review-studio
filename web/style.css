@@ -601,6 +601,7 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .fmc-group { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 8px; }
 .fmc-group.prisma { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 .fmc-group.steps { background: var(--surface-2); }
+.fmc-count.side { font-size: .92em; color: var(--muted); border-style: dashed; }
 .fmc-phase { font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin-right: 2px; }
 .fmc-sep { color: var(--faint); font-size: 12px; }
 .fmc-dot { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); color: var(--faint); font: inherit; font-size: 11px; font-weight: 700; display: grid; place-items: center; cursor: pointer; padding: 0; }
@@ -681,3 +682,7 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 /* a long note name must not widen the screening card past the window */
 .rec { min-width: 0; }
 .rec .file { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
+@media (max-width: 1100px) {
+  .flowmap.compact .fmc-group { padding: 2px 4px; gap: 3px; }
+  .flowmap.compact .fm-arrow { margin: 0 1px; }
+}

@@ -76,7 +76,9 @@ function renderTop() {
   mapbar.replaceChildren(flowMap());
   const s = stage(CUR), st = stepOf(CUR), tab = curTab();
   const locked = S.state.protocol.locked;
-  const tabs = st.tabs.length > 1 ? h("div", { class: "steptabs", role: "tablist" }, st.tabs.map(t => {
+  // Screen papers is reached through its boxes on the map (titles and abstracts, full texts …): no second row of tabs
+  const byMap = st.key === "screen";
+  const tabs = st.tabs.length > 1 && !byMap ? h("div", { class: "steptabs", role: "tablist" }, st.tabs.map(t => {
     const ts = stage(t.stage), on = t === tab;
     return h("button", { class: `steptab ${ts.status} ${on ? "on" : ""}`, role: "tab", "aria-selected": String(on),
       title: ts.desc + (ts.optional ? " (optional)" : ""), onclick: () => goTab(t) },
@@ -87,8 +89,9 @@ function renderTop() {
   const aiStep = S.ai?.steps[CUR], aiMode = aiStep && (S.ai.modes[CUR] || "off"), aiOpen = store.get("ai_open", "") === "1";
   $("#topbar").replaceChildren(
     h("div", { class: "titlerow" },
-      h("h1", {}, st.title),
-      st.tabs.length > 1 ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
+      h("h1", {}, byMap ? tab.label : st.title),
+      st.tabs.length > 1 && !byMap ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
+      byMap && s.optional ? pill("optional", "info") : null,
       tabs,
       S.dev_mode ? pill("🛠 developer mode", "bad")
         : locked && ["questions", "concepts", "queries", "protocol", "charting"].includes(CUR) ? h("span", { class: "pill warn", title: "The protocol is locked: changes here are amendments, with a reason" }, "🔒 locked") : null,
