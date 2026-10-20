@@ -179,9 +179,7 @@ function aiCard(key) {
         return strip ? h("div", {}, h("div", { class: "small", style: "font-weight:700;margin:8px 0 2px" }, "How it works with Claude"), strip) : null;
       })(),
       mode === "off" ? null : h("div", { class: "small muted" }, step.skills.length > 1 ? "AI skills: " : "AI skill: ",
-        step.skills.map((n, i) => [i ? ", " : "", h("code", {}, `skills/${n}/SKILL.md`)])),
-      mode === "off" ? null : h("div", { class: "small" }, h("b", {}, "You check: "),
-        h("ul", {}, step.checks.map(c => h("li", {}, c))))) : null);
+        step.skills.map((n, i) => [i ? ", " : "", h("code", {}, `skills/${n}/SKILL.md`)]))) : null);
 }
 
 // Where each stage writes its data (paths relative to the review folder; @library = the library folder chosen in Settings, e.g. 00 - Library)
