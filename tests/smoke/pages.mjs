@@ -88,6 +88,22 @@ try {
   const before = await decided();
   await page.keyboard.press("e"); await page.keyboard.press("1"); await page.waitForTimeout(500);   // exclude with the first reason
   actions.screening = before !== await decided();
+  // three keys typed with no pause: three decisions on three records, none landing on (and overwriting) the same one
+  const pendingIds = () => page.evaluate(async () => (await window.backend.get("/api/state")).records.filter(r => r.ta_decision === "pending").map(r => r.record_id));
+  await page.evaluate(async () => {           // the finished example has no open records: reopen three, then show the To do queue
+    const ids = (await window.backend.get("/api/state")).records.filter(r => r.ta_decision === "exclude").slice(0, 3).map(r => r.record_id);
+    for (const id of ids) await window.backend.action("decide", { record_id: id, stage: "ta", decision: "pending", reason: "" });
+  });
+  await goTo("#questions"); await goTo("#screening");
+  await page.evaluate(() => [...document.querySelectorAll("#page button")].find(b => b.textContent.trim() === "Check decisions")?.click());   // an action of the page: it reads the state again
+  await page.waitForTimeout(800); await page.keyboard.press("Escape");
+  await page.evaluate(() => [...document.querySelectorAll("#page button")].find(b => b.textContent.trim() === "To do")?.click());
+  await page.waitForTimeout(300);
+  const open = await pendingIds();
+  await page.keyboard.press("u"); await page.keyboard.press("u"); await page.keyboard.press("u");
+  await page.waitForTimeout(1500);
+  const left = await pendingIds();
+  actions["fast keys"] = open.length >= 3 && open.length - left.length === 3;
   await goTo("#report");                                    // a step of several parts: one page of sections
   actions.sections = await page.evaluate(() => document.querySelectorAll("#page .stepsection").length === 3 && !document.querySelector(".steptabs"));
   for (const id of ["btnTimeline", "btnKeys", "btnGlossary", "btnScr", "btnTheme", "btnTheme", "btnHome"]) {

@@ -12,22 +12,34 @@ import { announce, confirmBox } from "../ui/dialogs.js";
 
 // The screening keys: I include, U unsure (title/abstract), E then 1–9 exclude with a reason, Z undo, ← → move;
 // in the Suggested queue, Enter accepts Claude's suggestion (not while a button or link has focus: Enter is theirs).
+// Keys run one after another: a decision moves to the next record only once it is saved, so a key typed while it is
+// saving waits for that record instead of landing on (and overwriting) the one still on screen. No key is dropped.
+let keyChain = Promise.resolve(), queued = 0;
+const SCREEN_KEYS = /^(arrowright|arrowleft|enter|[iuez1-9])$/;
+
 PAGE_KEYS.screening = (e, typing) => {
   if (typing || e.ctrlKey || e.metaKey || e.altKey) return false;
-  const k = e.key.toLowerCase();
-  if (e.key === "Enter" && SC.id && SC.filter === "suggest" && !e.target.closest?.("button, a, summary, [role=button]")) { acceptSuggestion(); return true; }
-  if (!singleKeys.on()) return e.key === "ArrowRight" ? (move(1), true) : e.key === "ArrowLeft" ? (move(-1), true) : false;   // letters and digits switched off
-  if (k === "z" && lastDecision()) { undo(); return true; }   // also when the last record of a queue was just decided
-  if (!SC.id) return false;
-  if (k === "i") decide("include");
-  else if (k === "u" && SC.stage === "ta") decide("unsure");
-  else if (k === "e") { SC.excl = true; render(); }
-  else if (/^[1-9]$/.test(k) && SC.excl) { const r = S.reasons[SC.stage][+k - 1]; if (r) decide("exclude", r.split(" ")[0]); }
-  else if (e.key === "ArrowRight") move(1);
-  else if (e.key === "ArrowLeft") move(-1);
-  else return false;
+  const k = e.key.toLowerCase(), onControl = Boolean(e.target.closest?.("button, a, summary, [role=button]"));
+  if (!SCREEN_KEYS.test(k) || (k === "enter" && (SC.filter !== "suggest" || onControl))) return false;
+  if (!singleKeys.on() && !k.startsWith("arrow")) return false;   // letters and digits switched off
+  if (!SC.id && !queued && !(k === "z" && lastDecision())) return false;
+  queued++;
+  keyChain = keyChain.then(() => screenKey(k)).catch(() => {}).finally(() => { queued--; });
   return true;
 };
+
+/** One screening key, on the record on screen once the keys before it are done. */
+async function screenKey(k) {
+  if (k === "enter") { if (SC.id && SC.filter === "suggest") await acceptSuggestion(); return; }
+  if (k === "z") { if (lastDecision()) await undo(); return; }   // also when the last record of a queue was just decided
+  if (k === "arrowright") return move(1);
+  if (k === "arrowleft") return move(-1);
+  if (!SC.id) return;
+  if (k === "i") await decide("include");
+  else if (k === "u" && SC.stage === "ta") await decide("unsure");
+  else if (k === "e") { SC.excl = true; render(); }
+  else if (/^[1-9]$/.test(k) && SC.excl) { const r = S.reasons[SC.stage][+k - 1]; if (r) await decide("exclude", r.split(" ")[0]); }
+}
 
 // AI suggestions per screening stage: ai_decision / ai_reason / ai_why (title/abstract), ai_ft_* (full text)
 const aiKey = (k, stage = SC.stage) => (stage === "ta" ? "ai_" : "ai_ft_") + k;
@@ -68,7 +80,7 @@ async function decide(decision, reason = "") {
 /** Enter in the Suggested queue: Claude's suggestion becomes the reviewer's decision (still a reviewed suggestion). */
 function acceptSuggestion() {
   const rec = S.records.find(r => r.record_id === SC.id), d = rec?.[aiKey("decision")];
-  if (d) decide(d, d === "exclude" ? rec[aiKey("reason")] || "" : "");
+  if (d) return decide(d, d === "exclude" ? rec[aiKey("reason")] || "" : "");
 }
 
 /** The reviewer's last decision in this review, while its record is still there. */
