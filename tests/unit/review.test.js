@@ -1,9 +1,7 @@
 // Rules and use cases of the records module, on an in-memory review folder.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cohensKappa } from "../../src/domain/agreement.js";
 import { flowCounts } from "../../src/domain/flow.js";
-import { sample } from "../../src/domain/seeded-random.js";
 import { formatFixed, formatPercent } from "../../src/domain/text-rules.js";
 import { createRecord, mergeDuplicate, nextRecordId, recordText } from "../../src/domain/records.js";
 import { checkRecord, isValidReason } from "../../src/domain/screening.js";
@@ -15,14 +13,6 @@ import * as commands from "../../src/services/review-commands.js";
 const clock = { today: () => "2026-01-15", now: () => "2026-01-15 10:00" };
 const settings = { name: "Test review", recordsPath: "Test review records/08 - Records" };
 const entry = (title, more = {}) => makeEntry({ title, authors: "Liu, Z.", year: "2024", ...more });
-
-test("random sample is reproducible for a seed (Mersenne Twister)", () => {
-  // reference values of the standard Mersenne Twister sample for seeds 42 and 7
-  assert.deepEqual(sample(42, [...Array(39).keys()], 8), [7, 1, 17, 15, 14, 8, 6, 5]);
-  assert.deepEqual(sample(7, [...Array(30).keys()], 6), [10, 4, 12, 20, 1, 2]);
-  assert.equal(new Set(sample(1, [...Array(5683).keys()], 285)).size, 285);
-  assert.throws(() => sample(1, [1, 2], 3), RangeError);
-});
 
 test("number formatting rounds half to even", () => {
   assert.equal(formatFixed(0.125, 2), "0.12");
@@ -69,12 +59,7 @@ test("screening check: normalises, fills the full-text stage and the date, repor
   assert.equal(checkRecord({ ta_decision: "pending", ft_decision: "" }, reasons, "d").changed, false);
 });
 
-test("Cohen's kappa and flow counts", () => {
-  assert.deepEqual(cohensKappa([]), [null, null]);
-  assert.deepEqual(cohensKappa([["include", "include"], ["exclude", "exclude"]]), [1, 1]);
-  const [po, k] = cohensKappa([["include", "include"], ["include", "exclude"], ["exclude", "exclude"], ["exclude", "exclude"]]);
-  assert.equal(po, 0.75);
-  assert.equal(formatFixed(k, 2), "0.50");
+test("flow counts", () => {
   const counts = flowCounts(
     [{ ta_decision: "include", ft_decision: "include" }, { ta_decision: "exclude", ta_reason: "E1" }, { ta_decision: "unsure", ft_decision: "pending", pdf_status: "not-retrieved" }],
     [{ kind: "database", records: "4" }, { kind: "other", records: "1" }]);
@@ -82,7 +67,7 @@ test("Cohen's kappa and flow counts", () => {
   assert.deepEqual(counts.taReasons, [["E1", 1]]);
 });
 
-test("use cases on an in-memory review: import, check, sample, second reviewer, report", async () => {
+test("use cases on an in-memory review: import, check, report", async () => {
   const folder = memoryFolder();
   const open = () => ReviewRepository.open(folder, clock, settings);
   const ris = ["A method for module identification in printed circuit boards", "Product architecture and modularity in consumer electronics", "Design structure matrices for electronic products"]
@@ -98,19 +83,8 @@ test("use cases on an in-memory review: import, check, sample, second reviewer, 
   const repo = await open();
   assert.deepEqual([...repo.records.values()].map(r => r.props.sources), [["S01", "S02"], ["S01", "S02"], ["S01", "S02"]]);
 
-  const drawn = await commands.drawSample(await open(), { stage: "ta", fraction: 0.5, seed: 1 });
-  assert.equal(drawn.drawn, 2);
-  await assert.rejects(commands.drawSample(await open(), { stage: "ta", seed: 2 }), commands.ReviewError);
-  const sheet = await folder.readText(drawn.sheet);
-  assert.ok(sheet.startsWith("﻿record_id,title"));
-  assert.ok(!/ta_decision|pending/.test(sheet), "the blind sheet has no first-reviewer decisions");
-
-  const filled = sheet.split("\r\n").map((l, i) => (i && l ? l.replace(/,,$/, ",include,") : l)).join("\r\n");
-  const r2 = await commands.importSecondReviewer(await open(), { fileName: "f.csv", text: filled, stage: "ta" });
-  assert.match(r2, /^2 decisions imported/);
   const flow = await folder.readText("14 - PRISMA flow.md");
   assert.match(flow, /\| Records identified — databases \| 6 \|/);
   assert.match(flow, /\| Duplicates removed \| 3 \|/);
-  assert.match(flow, /\| Title\/abstract \| 2 \| 0 \|/, "no pairs while the reviewer has not decided");
-  assert.match(await folder.readText("00 - Review log.md"), /\| 2026-01-15 \| import-r2 \| ta: 2 second-reviewer decisions from f.csv \|/);
+  assert.doesNotMatch(flow, /second reviewer|test set/i, "no second-reviewer or test-set sections any more");
 });

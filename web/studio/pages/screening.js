@@ -143,7 +143,7 @@ PAGES.screening = () => {
         rec.language && !/^english$/i.test(rec.language) ? pill("language: " + rec.language, "bad") : null,
         rec.publication ? pill("in your library", "accent") : null,
         cur && cur !== "pending" ? pill("decided: " + cur + (rec[rkey] ? " · " + rec[rkey] : ""), decKind(cur)) : null,
-        rec.sample_ta && SC.stage === "ta" ? pill("in 2nd-reviewer sample", "info") : null),
+        null),
       h("h2", {}, rec.title),
       h("button", { class: "file", style: "margin:-2px 0 6px", title: `${S.record_files[rec.record_id] || ""}: your decision is saved in this note`, onclick: () => openNote(S.record_files[rec.record_id]) },
         "📝 Open this paper's note"),

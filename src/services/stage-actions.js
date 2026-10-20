@@ -1,5 +1,5 @@
 /**
- * Use cases of the stages around the records: protocol (write, lock, checks), pilots,
+ * Use cases of the stages around the records: protocol (write, lock, checks),
  * full-text retrieval, charting, checklist and exports. Each changes the state object it is
  * given; the caller saves it with review-state.saveState().
  * @module services/stage-actions
@@ -16,7 +16,7 @@ import { bibtex, zoteroRis, chartingBase, chartingCsv, checklistEvidence, checkl
 import * as frontmatter from "../domain/frontmatter.js";
 import { APP_GENERATOR, FILES, GUIDE_INCLUDE, GUIDE_REASONS, screeningGuide, upgradeGuide } from "../domain/notes.js";
 import { decodeExport, ReviewError } from "./review-commands.js";
-import { emptyLibrary, testSet } from "./library.js";
+import { emptyLibrary } from "./library.js";
 import { allWorks } from "./openalex-client.js";
 import { STATE_FILE } from "./review-state.js";
 
@@ -31,7 +31,6 @@ async function sha256(bytes) {
 }
 
 /** The test set as {note name: properties}. */
-const testSetNotes = (repo, library) => new Map(testSet(library, repo.link).map(stem => [stem, library.notes.get(stem)]));
 
 // ---------------------------------------------------------------- protocol
 
@@ -73,55 +72,6 @@ export async function protocolIntegrity(repo, st) {
   const file = st.protocol.file;
   const hash = isLocked(st) && file && (await repo.folder.exists(file)) ? await sha256(await repo.folder.readBytes(file)) : null;
   return integrityProblems(st, await repo.reasons(), hash);
-}
-
-// ---------------------------------------------------------------- pilots
-
-/** Hit count of the concept query in OpenAlex titles/abstracts, and test-set recall (by DOI). */
-export async function pilotOpenalex(repo, st, openalex, library = emptyLibrary(), { query, note = "" } = {}) {
-  const q = query || openalexQuery(st);
-  if (!q) throw new ReviewError("The concept table is empty.");
-  const filter = `title_and_abstract.search:${q}`;
-  if (q.includes(",")) throw new ReviewError("OpenAlex filters cannot contain commas; remove them from the terms.");
-  const hits = (await openalex.get("works", { filter, "per-page": 1, select: "id" })).meta.count;
-  const withDoi = new Map([...testSetNotes(repo, library)].filter(([, p]) => p.doi).map(([stem, p]) => [normalizeDoi(p.doi), stem]));
-  const found = new Set(), dois = [...withDoi.keys()];
-  for (let i = 0; i < dois.length; i += 50) {
-    for (const w of await allWorks(openalex, { filter: `${filter},doi:${dois.slice(i, i + 50).join("|")}`, select: "doi" })) if (w.doi) found.add(normalizeDoi(w.doi));
-  }
-  const missed = [...withDoi].filter(([d]) => !found.has(d)).map(([, stem]) => stem).sort(compareCodePoints);
-  const now = repo.clock.now();
-  const row = { when: now, database: "OpenAlex (title/abstract)", query: q, hits, test_set: withDoi.size, retrieved: found.size, missed, note };
-  st.pilots.push(row);
-  touch(st, "pilot", now);
-  event(st, "pilot", `OpenAlex pilot: ${hits} hits, test set ${found.size}/${withDoi.size}`, now);
-  return row;
-}
-
-/** Pilot from a database export: hit count = records in the file, recall against the test set. */
-export async function pilotFile(repo, st, library = emptyLibrary(), { fileName, bytes, database, query, note = "" }) {
-  const entries = parseExport(fileName, decodeExport(bytes));
-  const index = new DuplicateIndex();
-  entries.forEach((e, i) => index.add(i, e.doi, e.title, e.year));
-  const tests = testSetNotes(repo, library);
-  const missed = [...tests].filter(([, p]) => index.find(p.doi, p.title, yearOf(p.year)) === null).map(([s]) => s).sort(compareCodePoints);
-  const now = repo.clock.now();
-  const row = { when: now, database, query, hits: entries.length, test_set: tests.size, retrieved: tests.size - missed.length, missed, note };
-  st.pilots.push(row);
-  touch(st, "pilot", now);
-  event(st, "pilot", `${database} pilot from export: ${entries.length} records, test set ${row.retrieved}/${tests.size}`, now);
-  return row;
-}
-
-/** A pilot run by hand in a database, optionally with the test-set check done there too. */
-export function pilotManual(st, { database, query, hits, note = "", retrieved = null, available = null }, now) {
-  const checked = ![null, undefined, ""].includes(retrieved) && ![null, undefined, ""].includes(available);
-  const row = { when: now, database, query, hits: parseInt(hits, 10), test_set: checked ? parseInt(available, 10) : "",
-    retrieved: checked ? parseInt(retrieved, 10) : "", missed: [], note };
-  st.pilots.push(row);
-  touch(st, "pilot", now);
-  event(st, "pilot", `${database} pilot: ${hits} hits` + (checked ? `, test set ${retrieved}/${available}` : "") + " (entered by hand)", now);
-  return row;
 }
 
 // ---------------------------------------------------------------- retrieval

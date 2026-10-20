@@ -601,6 +601,11 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 .fmc-group { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 8px; }
 .fmc-group.prisma { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 .fmc-group.steps { background: var(--surface-2); }
+/* a part of a step, shown as a section of the step's page */
+.stepsection { margin-bottom: 28px; scroll-margin-top: 12px; }
+.stepsection + .stepsection { border-top: 1px solid var(--border); padding-top: 22px; }
+.stepsection > .titlerow h2 { margin: 0; font-size: 19px; }
+.stepsection > .infoline { margin: 4px 0 14px; }
 .fmc-count.side { font-size: .92em; color: var(--muted); border-style: dashed; }
 .fmc-phase { font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin-right: 2px; }
 .fmc-sep { color: var(--faint); font-size: 12px; }

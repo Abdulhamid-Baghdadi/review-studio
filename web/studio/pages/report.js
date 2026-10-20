@@ -51,7 +51,7 @@ const syncCard = () => card("Sync with the library", `Marks included papers in $
               if (j) { await modal({ title: "Sync preview", body: h("pre", { class: "code" }, j.message || "Nothing to change.") }); D.syncPreviewed = true; render(); } }, D.syncPreviewed ? "" : "primary"),
             btn("Apply", async e => { if (await confirmBox("Apply sync?", "This writes included_in / candidate_in to the publication notes.", "Apply")) busy(e.target, () => api("sync", { apply: true })); }, D.syncPreviewed ? "primary" : "")));
 
-// One step, three tabs: the paper (flow diagram and checklist), the files to share, and the Obsidian library.
+// One step, three sections: the paper (flow diagram and checklist), the files to share, and the Obsidian library.
 PAGES.report = () => {
   const auto = S.checklist_auto;
   const kept = S.records.filter(r => r.ft_decision === "include");

@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { applySuggestions, clearPresort, confirmPresorted, decide } from "../../src/services/screening.js";
-import { markTestSet, openLibrary } from "../../src/services/library.js";
+import { openLibrary } from "../../src/services/library.js";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
 
 /** A repository stand-in: the records map and put(), which is all these use cases touch. */
@@ -48,12 +48,3 @@ test("clearing pre-sorts returns records to the queue", () => {
   assert.deepEqual([repo.records.get("R1").props.presort, repo.records.get("R1").props.presort_reason], ["", ""]);
 });
 
-test("the test set: exactly these notes carry the review in test_in, also when it was typed as one link", async () => {
-  const note = testIn => `---\ntype: publication\n${testIn}\n---\n\n# T\n`;
-  const lib = memoryFolder({ "001 A.md": note('test_in: "[[Other review]]"'), "002 B.md": note('test_in:\n  - "[[R]]"'), "003 C.md": note("") });
-  const library = await openLibrary(lib);
-  assert.equal(await markTestSet(library, "[[R]]", ["001 A", "003 C"]), 2);
-  assert.match(await lib.readText("001 A.md"), /^test_in:\n {2}- "\[\[Other review\]\]"\n {2}- "\[\[R\]\]"$/m, "a link typed as text stays one link");
-  assert.match(await lib.readText("002 B.md"), /^test_in: \[\]$/m, "no longer in the test set");
-  assert.match(await lib.readText("003 C.md"), /^test_in:\n {2}- "\[\[R\]\]"$/m);
-});

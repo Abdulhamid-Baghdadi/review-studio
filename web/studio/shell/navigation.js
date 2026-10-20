@@ -39,21 +39,37 @@ export const stageName = key => {
 };
 export const stepOptional = st => stepStages(st).every(s => s.optional);
 
-/** Opens a tab (a stage, and the part of a split page). */
+/** The pages in order, as Back / Next and Alt+↑/↓ walk them: one per step, and one per part of Screen papers. */
+export const pageSequence = () => tabSequence().filter(x => !sectioned(x.step) || x.tab === x.step.tabs[0]);
+/** Where the page on screen is in pageSequence(). */
+export const pageIndex = seq => { const st = stepOf(CUR), tab = curTab(); return seq.findIndex(x => (sectioned(st) ? x.step === st : x.tab === tab)); };
+
+/**
+ * A step shown as one page of sections (its parts one under another) rather than one part at a time. Screen papers
+ * is not: its parts are boxes of the map.
+ */
+export const sectioned = st => Boolean(st) && st.tabs.length > 1 && st.key !== "screen";
+/** The id of a part's section on its step's page. */
+export const sectionId = t => `sec-${t.stage}${t.part ? "-" + t.part : ""}`;
+
+/** Opens a tab (a stage, and the part of a split page); on a page of sections, scrolls to that section. */
 export function goTab(t) {
   if (t.stage === "screening" && t.part) { SC.stage = t.part; store.set("sc_stage", t.part); SC.id = null; }
   else if (t.part) { PART[t.stage] = t.part; store.set("part_" + t.stage, t.part); }
   go(t.stage);
+  const st = stepOf(t.stage);
+  if (sectioned(st) && t !== st.tabs[0]) document.getElementById(sectionId(t))?.scrollIntoView({ block: "start" });
 }
-/** Opens a step on the tab last used there, or its first tab. */
+/** Opens a step: a page of sections at its top; otherwise on the part last used there, or its first part. */
 export function goStep(st) {
+  if (sectioned(st)) return goTab(st.tabs[0]);
   const last = store.get("tab_" + st.key, "");
   goTab(st.tabs.find(t => `${t.stage}:${t.part ?? ""}` === last) ?? st.tabs[0]);
 }
 
 export function go(key) { flushSaves(); setCur(key); store.set("stage", key); if (key !== HOME) store.set("last_stage", key); if (key !== HOME) { const st = stepOf(key), t = curTab(); if (st && t) store.set("tab_" + st.key, `${t.stage}:${t.part ?? ""}`); } history.replaceState(null, "", "#" + key); render(); $("#main").scrollTo({ top: 0 }); const dr = $("#drawer"); if (dr.classList.contains("open") && key !== HOME) (dr.querySelector("h2").textContent.startsWith("Example") ? openExample : openHelp)(key); }
 
-export async function skipStage() {
+export async function skipStage(key = CUR) {
   const r = await promptText("Skip this part", "Skipping is fine for optional parts, but the reason is reported in the timeline and the reporting checklist.", "e.g. not planned in the protocol", true, "", "Skip this part");
-  if (r) api("stage_status", { stage: CUR, status: "skipped", reason: r });
+  if (r) api("stage_status", { stage: key, status: "skipped", reason: r });
 }

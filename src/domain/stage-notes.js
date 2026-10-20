@@ -63,9 +63,9 @@ export function strategyNote({ reviewName, reviewLink, st, today, exists }) {
   for (const db of st.queries.databases) {
     lines.push(`**${db}**${st.queries.manual[db] ? " (edited by hand)" : ""}`, "", "```", buildQuery(st, db) || "(no concepts yet)", "```", "");
   }
-  lines.push("## Pilot runs\n", "| When | Database | Hits | Test set retrieved | Note |", "|---|---|---:|---:|---|",
-    ...(st.pilots.length ? st.pilots.map(p => `| ${p.when} | ${p.database} | ${p.hits} | ${p.retrieved}/${p.test_set} | ${p.note} |`) : ["| — | | | | |"]));
-  const last = [...st.pilots].reverse().find(p => p.missed?.length);
+  if (st.pilots?.length) lines.push("## Pilot runs\n", "| When | Database | Hits | Test set retrieved | Note |", "|---|---|---:|---:|---|",   // reviews piloted before 2026-10-20
+    ...st.pilots.map(p => `| ${p.when} | ${p.database} | ${p.hits} | ${p.retrieved}/${p.test_set} | ${p.note} |`));
+  const last = [...(st.pilots ?? [])].reverse().find(p => p.missed?.length);
   if (last) lines.push("", `<details><summary>Test-set papers missed by the last pilot (${last.when})</summary>\n`, ...last.missed.map(m => `- ${m}`), "\n</details>");
   return lines.join("\n") + "\n";
 }

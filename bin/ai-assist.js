@@ -21,7 +21,7 @@ import { nodeFolder } from "../src/adapters/node-folder.js";
 import { emptyLibrary, openLibrary } from "../src/services/library.js";
 import { ReviewRepository } from "../src/services/review-repository.js";
 import { loadState } from "../src/services/review-state.js";
-import { aiAttach, aiChart, aiContext, aiSecondReviewer, aiSuggest } from "../src/services/ai-assist.js";
+import { aiAttach, aiChart, aiContext, aiSuggest } from "../src/services/ai-assist.js";
 import { ReviewError } from "../src/services/review-commands.js";
 import { findLibraryFolder } from "./library-folder.js";
 
@@ -93,7 +93,7 @@ async function main() {
   else if (cmd === "suggest") {
     const { message, skipped } = await aiSuggest(repo, st, readJson(rest[0]), { model: needModel(), stage: opt.stage });
     console.log([message, ...skipped.map(s => "  skipped " + s)].join("\n"));
-  } else if (cmd === "r2") console.log(await aiSecondReviewer(repo, st, readJson(rest[0]), { model: needModel(), library }));
+  }
   else if (cmd === "attach") console.log(await aiAttach(repo, st, rest[0], new Uint8Array(readFileSync(rest[1])), { model: needModel() }));
   else if (cmd === "chart") console.log((await aiChart(repo, st, readJson(rest[0]), { model: needModel() })).join("\n"));
   else fail("command: context | suggest | r2 | attach | chart");

@@ -5,7 +5,7 @@
  * @module domain/stages
  */
 import { strip } from "./text-rules.js";
-import { ALL_PROTOCOL_SECTIONS, ALL_STAGE_KEYS, DEFAULT_REVIEW_TYPE, NEW_REVIEW_TYPE, REVIEW_TYPES, reviewType } from "./review-types.js";
+import { ALL_PROTOCOL_SECTIONS, ALL_STAGE_KEYS, DEFAULT_REVIEW_TYPE, FORMER_STAGES, NEW_REVIEW_TYPE, REVIEW_TYPES, reviewType } from "./review-types.js";
 
 export { NEW_REVIEW_TYPE, REVIEW_TYPES, reviewType };
 
@@ -18,7 +18,8 @@ export const STAGES = REVIEW_TYPES.scoping.stages;
 export const stagesOf = st => reviewType(st).stages;
 
 /** One stage of a review, by key. */
-export const stageOf = (st, key) => reviewType(st).stages.find(s => s.key === key) ?? STAGE[key];
+export const stageOf = (st, key) => reviewType(st).stages.find(s => s.key === key) ?? STAGE[key]
+  ?? (FORMER_STAGES[key] ? { key, title: FORMER_STAGES[key], optional: true, description: "" } : undefined);
 
 /** @type {Readonly<Record<string, Stage>>} */
 export const STAGE = Object.freeze(Object.fromEntries(STAGES.map(s => [s.key, s])));
@@ -159,13 +160,6 @@ export function guardedChange(st, key, value, { reason = "", devMode = false, no
   else devNote(st, key, devMode, now);
   st[key] = copy(value);
   return true;
-}
-
-/** Adds a dated note to the idea log. */
-export function addIdea(st, text, now) {
-  st.idea.push({ when: now, text: strip(text) });
-  touch(st, "idea", now);
-  event(st, "idea", "idea note added", now);
 }
 
 /** Saves a new version of the review questions; the old version is kept with the reason for the change. */

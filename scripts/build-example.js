@@ -138,13 +138,11 @@ const s = await ReviewSession.open(folder, {
 });
 if (s.st.review_type !== "scoping") throw new Error("a new review should be a scoping review");
 
-await s.addIdea("Battery packs are glued and welded together. What has engineering research found about designing them to come apart again?");
 await s.saveQuestions(QUESTIONS, "first version");
 await s.saveConcepts(CONCEPTS, "three blocks: battery pack, disassembly, design");
 await s.saveDatabases(["OpenAlex"]);
 const planned = buildQuery(s.st, "OpenAlex");
 if (planned !== search.query) throw new Error(`planned OpenAlex string differs from the search that was run:\n${planned}\n${search.query}`);
-await s.pilotFile({ fileName: "openalex-pilot.ris", bytes: new TextEncoder().encode(ris), database: "OpenAlex", note: "final string: small enough to screen every record" });
 await s.saveProtocolText(PROTOCOL, { generate: true });
 await s.saveReasons(REASONS_TA, REASONS_FT, "", INCLUDE);
 await s.saveFields(FIELDS);                                   // the charting form is part of the plan
@@ -194,9 +192,9 @@ for (const [w, d] of Object.entries(INCLUDED)) {
   await s.setRecord(rid(w), { ...chart, chart_basis: "full text", chart_checked_by: "reviewer" });
 }
 
-for (const [stage, status, reason] of [["idea", "done"], ["questions", "done"], ["concepts", "done"], ["queries", "done"], ["pilot", "done"],
+for (const [stage, status, reason] of [["questions", "done"], ["concepts", "done"], ["queries", "done"],
   ["protocol", "done"], ["registration", "skipped", "example review, not registered"], ["searches", "done"], ["screening", "done"], ["retrieval", "done"],
-  ["reviewer", "skipped", "one reviewer in this example"], ["charting", "done"]])
+  ["charting", "done"]])
   await s.setStageStatus(stage, status, reason ?? "");
 
 // ------------------------------------------------------------------ write the folder as one file

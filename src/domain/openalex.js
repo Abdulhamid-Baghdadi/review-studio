@@ -1,5 +1,5 @@
 /**
- * OpenAlex works as review entries: the free OpenAlex API provides pilot counts and
+ * OpenAlex works as review entries: the free OpenAlex API provides
  * open-access links. Requests themselves go through services/openalex.js.
  * @module domain/openalex
  */

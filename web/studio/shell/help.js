@@ -102,7 +102,7 @@ export function openClaudeGuide() {
   });
   modal({ title: "Working with Claude", wide: true, body: h("div", {},
     h("p", { class: "callout", style: "margin:0 0 16px" },
-      "Claude can do the slow, repetitive parts of a review: pre-screening, finding PDFs, a blind second screening, filling the charting form. ",
+      "Claude can do the slow, repetitive parts of a review: pre-screening, finding PDFs, filling the charting form. ",
       "It only ever suggests. You confirm every decision in Scoping Review Workbench, every AI action is logged with the model and date, and the protocol reports it."),
     sec("1 · Set up once", ol([
       "Install Claude Code: the Claude desktop app (Code tab) or the claude command in a terminal.",
@@ -113,17 +113,16 @@ export function openClaudeGuide() {
       "Open the step and choose a mode on its 🤖 AI assistance card. The choice is part of your method: after the protocol is locked it is an amendment.",
       "Press 📋 Copy prompt and paste it into Claude Code.",
       ["Claude follows the skill: it reads what it needs and writes its suggestions through ", h("code", {}, "bin/ai-assist.js"), ", which refuses when the mode is off and never sets a final decision. If two folders share the review's name (a review and its test copy), Claude asks you which one."],
-      "Back in Scoping Review Workbench, review the suggestions (Suggested queue, blind-sheet agreement, 'checked by AI' papers) and confirm or change each one.",
+      "Back in Scoping Review Workbench, review the suggestions (Suggested queue, 'checked by AI' papers) and confirm or change each one.",
       "Work through the 'You check' list for that step."])),
     sec("3 · Steps Claude can help with", ...steps),
     sec("4 · Other things to ask Claude", ul([
       "Draft protocol sections from your decisions (marked 'Claude draft' until you approve them).",
-      "Suggest synonyms and spellings for a concept block before you pilot the search.",
+      "Suggest synonyms and spellings for a keyword block.",
       "Summarise or compare included papers, or draft parts of the report from the charting table. Check every claim against the paper."])),
     sec("5 · Rules that keep the review sound", ul([
       "The reviewer decides. AI suggestions are never final decisions, and a confirmed batch is recorded as yours with a note per record.",
       "Report AI use in the methods (PRISMA-ScR item 9, selection of sources of evidence): which steps, which model, how its output was checked. The protocol's 'Use of AI assistance' section is written for you.",
-      "An AI second reviewer is not a second person. Say so; if you can, use a human for the second-reviewer sample.",
       "Never let AI solve CAPTCHAs, use shadow libraries or share logins when fetching PDFs."])),
     sec("6 · Other AI assistants", h("p", { style: "margin:0" },
       ["The AI skills are plain Markdown files in ", h("code", {}, "skills/"), ". Any assistant that can read files and run Node.js commands can follow them; the prompt on each card works the same way."])))
@@ -148,7 +147,7 @@ export function openTimeline() {
   modal({
     title: "Timeline", wide: true, body: h("div", {},
       am.length ? h("div", { class: "callout warn", style: "margin-bottom:12px" }, h("b", {}, `${am.length} amendment(s) after locking`), h("ul", {}, am.map(a => h("li", {}, `${a.when} — ${a.what}: ${a.reason}`)))) : null,
-      S.events.length ? h("div", { class: "tl" }, S.events.map(e => h("div", { class: "ev" }, h("div", { class: "when" }, `${e.when} · ${(stage(e.stage) || { title: e.stage }).title}`), e.text)))
+      S.events.length ? h("div", { class: "tl" }, S.events.map(e => h("div", { class: "ev" }, h("div", { class: "when" }, `${e.when} · ${(stage(e.stage) || { title: e.title ?? e.stage }).title}`), e.text)))
         : h("div", { class: "empty" }, "Nothing recorded yet.")),
     buttons: [{ label: "Open timeline note in Obsidian", value: () => openNote("00 - Review timeline.md") }, { label: "Close", primary: true, value: null }],
   });

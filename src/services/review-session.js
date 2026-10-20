@@ -8,10 +8,10 @@ import { aiMode, setAiMode } from "../domain/ai-steps.js";
 import { PROTOCOL_FILE } from "../domain/protocol.js";
 import { buildQuery } from "../domain/queries.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
-import { addIdea, amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setStatus, touch } from "../domain/stages.js";
-import { checkScreening, drawSample, importSearch, importSecondReviewer, addPaper, writeReport, ReviewError } from "./review-commands.js";
+import { amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setStatus, touch } from "../domain/stages.js";
+import { checkScreening, importSearch, addPaper, writeReport, ReviewError } from "./review-commands.js";
 import { fetchLibraryWorks, planLibraryCitations, writeLibraryCitations } from "./library-citations.js";
-import { addKeptToLibrary, applyLibrarySync, emptyLibrary, markTestSet, planLibrarySync } from "./library.js";
+import { addKeptToLibrary, applyLibrarySync, emptyLibrary, planLibrarySync } from "./library.js";
 import { loadState, saveState } from "./review-state.js";
 import { HOW } from "../domain/decision-log.js";
 import { writePackage } from "./review-package.js";
@@ -116,11 +116,6 @@ export class ReviewSession {
     await this.save();
   }
 
-  async addIdea(text) {
-    addIdea(this.st, text, this.now);
-    await this.save();
-  }
-
   /** @param {{population: string, concept: string, context: string, main: string, sub: string[]}} q */
   async saveQuestions(q, why = "", amendment = "") {
     if (this.#protected() && !amendment && ["population", "concept", "context", "main", "sub"].some(k => !sameValue(this.st.questions[k], q[k]))) {
@@ -175,33 +170,6 @@ export class ReviewSession {
       event(this.st, "queries", `${database} string ` + (text !== null && text !== undefined ? "edited by hand" : "reset to generated"), this.now);
     }
     await this.save();
-  }
-
-  // ------------------------------------------------------------ pilots and test set
-
-  async pilotOpenalex(note = "") {
-    const row = await actions.pilotOpenalex(this.repo, this.st, this.#requireOpenalex(), this.library, { note });
-    await this.save();
-    return `OpenAlex: ${row.hits} hits, test set ${row.retrieved}/${row.test_set}`;
-  }
-
-  async pilotFile({ fileName, bytes, database, note = "" }) {
-    const row = await actions.pilotFile(this.repo, this.st, this.library, { fileName, bytes, database, query: buildQuery(this.st, database), note });
-    await this.save();
-    return `${database}: ${row.hits} records, test set ${row.retrieved}/${row.test_set}`;
-  }
-
-  async pilotManual({ database, hits, note = "", retrieved = null, available = null }) {
-    actions.pilotManual(this.st, { database, query: buildQuery(this.st, database), hits: parseInt(hits, 10), note, retrieved, available }, this.now);
-    await this.save();
-  }
-
-  /** Marks exactly these library notes as this review's test set (`test_in`). */
-  async setTestSet(stems) {
-    const n = await markTestSet(this.library, this.repo.link, stems);
-    event(this.st, "pilot", `test set changed (${n} papers)`, this.now);
-    await this.save();
-    return `Test set saved: ${n} paper(s).`;
   }
 
   // ------------------------------------------------------------ protocol
@@ -339,23 +307,6 @@ export class ReviewSession {
   }
 
   report() { return writeReport(this.repo, this.library); }
-
-  // ------------------------------------------------------------ second reviewer
-
-  async sample({ stage, fraction = 0.2, seed, redo = false }) {
-    const result = await drawSample(this.repo, { stage, fraction, seed, redo });
-    touch(this.st, "reviewer", this.now);
-    event(this.st, "reviewer", `${stage} sample drawn`, this.now);
-    await this.save();
-    return result;
-  }
-
-  async importSecondReviewer({ fileName, text, stage }) {
-    const msg = await importSecondReviewer(this.repo, { fileName, text, stage }, this.library, { by: "second reviewer (sheet)" });
-    event(this.st, "reviewer", `${stage} sheet imported`, this.now);
-    await this.save();
-    return msg;
-  }
 
   // ------------------------------------------------------------ retrieval
 

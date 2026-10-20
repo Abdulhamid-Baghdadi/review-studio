@@ -4,8 +4,8 @@
  * @module ui/view-model
  */
 import {
-  AI_STEPS, aiMode, aiPrompt, buildQuery, chartingProgress, checkScreening, cohensKappa,
-  normalizeDoi, stageActions, stages, testSet,
+  AI_STEPS, aiMode, aiPrompt, buildQuery, chartingProgress, checkScreening,
+  normalizeDoi, stageActions, stages,
 } from "../index.js";
 
 const RECORD_FIELDS = ["record_id", "title", "authors", "year", "journal", "doi", "url", "sources", "language",
@@ -65,20 +65,6 @@ export function flowView(records, searches) {
   };
 }
 
-/** Agreement with the second reviewer at one stage. */
-export function agreementView(records, stage) {
-  const key = stage === "ta" ? "ta_decision" : "ft_decision";
-  const pairs = [], disagreements = [];
-  const decided = records.filter(f => f[`sample_${stage}`] && ["include", "exclude", "unsure"].includes(f[key]) && f[`r2_${stage}_decision`]);
-  for (const f of decided.sort((a, b) => String(a.record_id).localeCompare(String(b.record_id)))) {
-    const mine = f[key], theirs = f[`r2_${stage}_decision`];
-    pairs.push([mine, theirs]);
-    if (mine !== theirs) disagreements.push({ record_id: f.record_id, title: f.title, mine, theirs, reason: f[`r2_${stage}_reason`] ?? "" });
-  }
-  const [agreement, kappa] = cohensKappa(pairs);
-  return { sampled: records.filter(f => f[`sample_${stage}`]).length, decided: pairs.length, agreement, kappa, disagreements };
-}
-
 /**
  * The page's snapshot of an open review.
  * @param {import("../services/review-session.js").ReviewSession} session
@@ -92,7 +78,6 @@ export async function snapshot(session, { review, reviews, vault }) {
   const reasons = await repo.reasons();
   const records = [...repo.records.values()];
   const props = records.map(r => r.props);
-  const tests = testSet(library, repo.link);
   const found = new Set(props.filter(p => p.publication).map(p => String(p.publication).replace(/^[[\]]+|[[\]]+$/g, "")));
   const [chartDone, chartTotal] = chartingProgress(st, props);
   const listing = async dir => ((await folder.exists(dir)) ? (await folder.list(dir)) : []);
@@ -105,16 +90,13 @@ export async function snapshot(session, { review, reviews, vault }) {
     steps: stages.reviewType(st).steps,
     state: { ...keep(["idea", "questions", "concepts", "queries", "pilots", "protocol_text", "protocol_meta", "supervisor_review",
       "concepts_history", "protocol", "amendments", "charting"]), checklist: stages.checklistOf(st) },
-    events: st.events.slice(-200).reverse(),
+    events: st.events.slice(-200).reverse().map(e => ({ ...e, title: stages.stageOf(st, e.stage)?.title ?? e.stage })),
     queries: Object.fromEntries(st.queries.databases.map(db => [db, buildQuery(st, db)])),
     manual: Object.keys(st.queries.manual),
     searches: await repo.searches(),
     flow: flowView(props, await repo.searches()),
-    agreement: { ta: agreementView(props, "ta"), ft: agreementView(props, "ft") },
     problems: [...problems.map(p => ({ record_id: p.record.id, text: p.text })), ...integrity.map(text => ({ record_id: "protocol", text }))],
     reasons: { ta: [...reasons.ta], ft: [...reasons.ft], include: [...reasons.include] },
-    test_set: { size: tests.length, found: tests.filter(s => found.has(s)).length,
-      dois: tests.map(s => normalizeDoi(library.notes.get(s).doi)).filter(Boolean).sort(), papers: [...tests].sort() },
     records: session.records().map(r => recordView(r)),
     charting_progress: [chartDone, chartTotal],
     pdf_folders: st.pdf_folders ?? [],
@@ -126,13 +108,12 @@ export async function snapshot(session, { review, reviews, vault }) {
       }])),
     },
     library: [...library.notes].sort(([a], [b]) => a.localeCompare(b)).map(([stem, p]) => ({
-      stem, doi: normalizeDoi(p.doi), test: (Array.isArray(p.test_in) ? p.test_in : []).includes(repo.link) })),
+      stem, doi: normalizeDoi(p.doi) })),
     lock_checks: await session.lockChecks(),
     checklist_auto: Object.fromEntries(Object.entries(await stageActions.checklistAuto(repo, st)).map(([k, v]) => [String(k), v])),
     checklist_items: stages.reviewType(st).checklist.map(it => ({ ...it })),
     protocol_sections: stages.reviewType(st).protocolSections.map(([key, title]) => ({ key, title })),
     record_files: Object.fromEntries(records.map(r => [r.id, r.file])),
-    sheets: (await listing("09 - Second reviewer")).filter(n => n.endsWith(".csv")),
     "07 - Exports": await listing("07 - Exports"),
   };
 }

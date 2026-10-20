@@ -18,8 +18,8 @@ import { modal } from "../ui/dialogs.js";
 function flowHere() {
   if (CUR === HOME) return null;
   if (CUR === "screening") return SC.stage === "ft" ? "assessed" : "screened";
-  return { idea: "question", questions: "question", concepts: "search", queries: "search", pilot: "search", protocol: "rules", registration: "rules",
-    searches: "identified", reviewer: "reviewer", retrieval: "sought",
+  return { questions: "question", concepts: "search", queries: "search", protocol: "rules", registration: "rules",
+    searches: "identified", retrieval: "sought",
     charting: "extract", report: "report" }[CUR] ?? null;
 }
 
@@ -40,9 +40,7 @@ function flowGroups() {
         tip: "Screen papers → Get full texts: the papers that passed the title and abstract check." },
       { id: "assessed", label: "Full texts read", n: f.assessed, minus: f.ft_excluded ? `${f.ft_excluded} excluded` : "", open: f.ft_pending,
         go: screen("ft"), tip: `Screen papers: full texts (${f.ft_pending} still to do).` },
-      { id: "included", label: "Included", n: f.included, good: true, go: screen("ft"), tip: "The papers your review is based on." },
-      { id: "reviewer", label: "Second reviewer", small: true, go: () => go("reviewer"),
-        tip: "Screen papers → Second reviewer (optional): a second person screens a sample blind; the app measures agreement." }] },
+      { id: "included", label: "Included", n: f.included, good: true, go: screen("ft"), tip: "The papers your review is based on." }] },
     { phase: "Chart", nodes: [stepNode("extract", "extract", "Chart the data")] },
     { phase: "Report", nodes: [stepNode("report", "report", "Report")] },
   ].map(g => ({ ...g, nodes: g.nodes.filter(Boolean) }));
@@ -60,11 +58,6 @@ export function flowMap() {
     const SHORT = { identified: "Found", screened: "Titles & abstracts", sought: "Get full texts", assessed: "Full texts", included: "Included" };
     const item = n => {
       const isHere = n.id === here, num = n.step ? S.steps.indexOf(n.step) + 1 : null;
-      if (n.id === "reviewer") {                                 // an optional side task, not a box of the flow
-        const st = S.stages.find(s => s.key === "reviewer")?.status ?? "not-started";
-        return h("button", { class: `fmc-count side ${isHere ? "here" : ""}`, onclick: n.go, title: tipOf(n, isHere), "aria-current": isHere ? "step" : null },
-          h("span", {}, st === "done" ? "✓ " : st === "skipped" ? "– " : "", "2nd reviewer"));
-      }
       if (n.n === undefined) {
         const status = stepStatus(n.step);
         // a step: its status dot and its name (the name folds away on narrower screens; the dot stays)

@@ -1,10 +1,9 @@
 /**
  * Use cases on a review's records: import a search, add a paper found another way, check the screening,
- * draw the second reviewer's sample, import their sheet, and write the PRISMA flow report.
+ * and write the PRISMA flow report.
  * Each takes a ReviewRepository (and the library where it matters) and returns a short message.
  * @module services/review-commands
  */
-import { cohensKappa, comparison, STAGES } from "../domain/agreement.js";
 import * as csv from "../domain/csv.js";
 import { flowCounts } from "../domain/flow.js";
 import { makeEntry, parseExport } from "../domain/importers.js";
@@ -13,10 +12,8 @@ import { FILES, prismaFlowNote } from "../domain/notes.js";
 import { HOW } from "../domain/decision-log.js";
 import { compareCodePoints, formatPercent, normalizeNewlines, strip } from "../domain/text-rules.js";
 import { createRecord, mergeDuplicate, nextRecordId } from "../domain/records.js";
-import { drawSample as draw, samplePool, SECOND_REVIEWER_DIR, sheetName, sheetText } from "../domain/sampling.js";
 import { checkRecord } from "../domain/screening.js";
-import { SECOND_REVIEWER_DECISIONS } from "../domain/vocabulary.js";
-import { emptyLibrary, testSet } from "./library.js";
+import { emptyLibrary } from "./library.js";
 import { loadState } from "./review-state.js";
 import { reviewType } from "../domain/review-types.js";
 
@@ -122,67 +119,14 @@ export async function checkScreening(repo, { write = true } = {}) {
   return { problems, updated: write ? await repo.save() : 0 };
 }
 
-/**
- * Draws the second reviewer's random sample and writes their blind sheet.
- * @param {object} p @param {"ta"|"ft"} p.stage @param {number} [p.fraction] @param {number} [p.seed] random when omitted
- * @param {boolean} [p.redo] replace an existing sample (logged) @param {() => number} [p.newSeed]
- */
-export async function drawSample(repo, { stage, fraction = 0.2, seed, redo = false, newSeed = secureSeed }) {
-  const key = `sample_${stage}`;
-  const records = [...repo.records.values()];
-  const pool = samplePool(records, stage);
-  if (pool.some(id => repo.records.get(id).props[key]) && !redo) throw new ReviewError(`A ${stage} sample already exists; pass --redo to draw a new one (logged).`);
-  if (!pool.length) throw new ReviewError("No records in this stage yet.");
-  const useSeed = seed ?? newSeed();
-  const chosen = draw(pool, fraction, useSeed);
-  for (const id of pool) {
-    const r = repo.records.get(id);
-    if (r.props[key] !== chosen.has(id)) repo.put({ ...r, props: { ...r.props, [key]: chosen.has(id) } });
-  }
-  await repo.save();
-  const name = sheetName(stage, repo.clock.today(), useSeed);
-  await repo.folder.writeText(`${SECOND_REVIEWER_DIR}/${name}`, sheetText([...chosen].map(id => repo.records.get(id))));
-  await repo.log("sample", `${stage}: ${chosen.size} of ${pool.length} records (${formatPercent(fraction)}), seed ${useSeed}, sheet ${name}`);
-  return { seed: useSeed, sheet: `${SECOND_REVIEWER_DIR}/${name}`, drawn: chosen.size, pool: pool.length };
-}
-
-/** Imports the decisions of a filled-in second-reviewer sheet. */
-export async function importSecondReviewer(repo, { fileName, text, stage }, library, { by = "second reviewer" } = {}) {
-  const rows = csv.readRecords(normalizeNewlines(text).replace(/^﻿/, ""));
-  let imported = 0;
-  const bad = [], changed = new Set();
-  for (const row of rows) {
-    const id = strip(row.record_id ?? ""), decision = strip(row.decision ?? "").toLowerCase();
-    if (!repo.records.has(id)) { bad.push(`${id}: unknown record`); continue; }
-    if (!SECOND_REVIEWER_DECISIONS.includes(decision)) { bad.push(`${id}: decision "${decision}" not include / exclude / unsure`); continue; }
-    const r = repo.records.get(id);
-    repo.put({ ...r, props: { ...r.props, [`r2_${stage}_decision`]: decision, [`r2_${stage}_reason`]: strip(row.reason ?? "") } });
-    if (decision) { imported++; changed.add(id); }
-  }
-  await repo.save();
-  await repo.logDecisions({ ids: changed, by, how: HOW.sheet });
-  await repo.log("import-r2", `${stage}: ${imported} second-reviewer decisions from ${fileName}`);
-  const report = await writeReport(repo, library);
-  return `${imported} decisions imported.${bad.map(b => `\n  ${b}`).join("")}\n${report}`;
-}
-
 /** Checks the screening and writes 14 - PRISMA flow.md. */
 export async function writeReport(repo, library = emptyLibrary()) {
   const { problems } = await checkScreening(repo);
   const props = [...repo.records.values()].map(r => r.props);
   const searches = await repo.searches();
   const counts = flowCounts(props, searches);
-  const sorted = repo.sortedRecords();
-  const agreement = STAGES.map(({ stage, label }) => {
-    const { pairs, disagreements, sampled } = comparison(sorted, stage);
-    const [observed, kappa] = cohensKappa(pairs);
-    return { label, sampled, pairs, disagreements, observed, kappa };
-  });
-  const tests = testSet(library, repo.link).sort(compareCodePoints);
-  const found = new Set(props.filter(p => p.publication).map(p => String(p.publication).replace(/^[[\]]+|[[\]]+$/g, "")));
-  const missed = tests.filter(s => !found.has(s));
   await repo.folder.writeText(FILES.flow, prismaFlowNote({ reviewName: repo.name, reviewLink: repo.link, today: repo.clock.today(),
-    counts, searches, agreement, testSet: tests, missed, problems, generator: repo.settings.generator, type: reviewType(await loadState(repo.folder)) }));
+    counts, searches, problems, generator: repo.settings.generator, type: reviewType(await loadState(repo.folder)) }));
   return `PRISMA flow written: ${counts.unique} records, ${counts.taPending} awaiting title/abstract, ` +
     `${counts.ftPending} awaiting full text, ${counts.included} included, ${problems.length} problem(s).`;
 }

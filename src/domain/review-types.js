@@ -14,19 +14,16 @@ const stage = ([key, title, optional, description]) => Object.freeze({ key, titl
 const item = ([n, item, desc, optional = false]) => Object.freeze({ n: String(n), item, desc, optional });
 
 const SCOPING_STAGES = [
-  ["idea", "0 · Idea", true, "Jot down, with dates, what you want to find out and why, and how the idea changes. Vague is fine here."],
   ["questions", "1 · Research questions", false, "Say exactly what you want to find out: who or what (Population), which topic (Concept), in which setting (Context). Every version is kept."],
   ["concepts", "2 · Concepts and terms", false, "One block per idea in your question, with all its synonyms and spellings. A paper must match every block."],
   ["queries", "3 · Search strings", false, "Your keywords turned into a ready-to-paste search for each database. Edit one by hand if needed."],
-  ["pilot", "4 · Pilot and validation", true, "Try the search before the real run: how many hits it gives, and whether it finds papers you already know are relevant."],
-  ["protocol", "5 · Protocol", false, "Your written plan: which papers count, and how you will search, select and summarise."],
-  ["registration", "6 · Registration", true, "Freeze your plan before the real searches, so later changes are visible (optionally registered on OSF)."],
-  ["searches", "7 · Database searches", false, "Run each search in its database, export the results and drop the file here. Duplicates are merged."],
-  ["screening", "8 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
-  ["reviewer", "9 · Second reviewer", true, "A second person (or Claude) screens a sample of at least 20 % without seeing your decisions; the app measures how well you agree (Cohen's κ)."],
-  ["retrieval", "10 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
-  ["charting", "11 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
-  ["report", "12 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
+  ["protocol", "4 · Protocol", false, "Your written plan: which papers count, and how you will search, select and summarise."],
+  ["registration", "5 · Registration", true, "Freeze your plan before the real searches, so later changes are visible (optionally registered on OSF)."],
+  ["searches", "6 · Database searches", false, "Run each search in its database, export the results and drop the file here. Duplicates are merged."],
+  ["screening", "7 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
+  ["retrieval", "8 · Full-text retrieval", false, "Find and attach the PDF of every paper that passed the title and abstract check, or mark it as not available."],
+  ["charting", "9 · Data charting", false, "Fill in the same form for every included paper (what it studied, how, what it found), with page numbers."],
+  ["report", "10 · Report", false, "The PRISMA flow diagram, the PRISMA-ScR checklist and tables and references to export for your paper."],
 ];
 
 /**
@@ -36,12 +33,12 @@ const SCOPING_STAGES = [
  * [key, title, hint, phase, tabs: [stage, tab label, part?][]]
  */
 const SCOPING_STEPS = [
-  ["question", "Research question", "What you want to find out", "Plan", [["idea", "Idea notes"], ["questions", "Question"]]],
-  ["search", "Search strategy", "Keywords and database search strings", "Plan", [["concepts", "Keywords"], ["queries", "Search strings"], ["pilot", "Test the search"]]],
+  ["question", "Research question", "What you want to find out", "Plan", [["questions", "Question"]]],
+  ["search", "Search strategy", "Keywords and database search strings", "Plan", [["concepts", "Keywords"], ["queries", "Search strings"]]],
   ["rules", "Protocol", "Inclusion rules, methods, lock before searching", "Plan",
     [["protocol", "Inclusion rules", "rules"], ["protocol", "Methods", "methods"], ["registration", "Lock & register"]]],
   ["import", "Search & import", "Run the searches, load the results", "Find", [["searches", "Search & import"]]],
-  ["screen", "Screen papers", "Include or exclude each paper", "Select", [["screening", "Titles & abstracts", "ta"], ["retrieval", "Get full texts"], ["screening", "Full texts", "ft"], ["reviewer", "Second reviewer"]]],
+  ["screen", "Screen papers", "Include or exclude each paper", "Select", [["screening", "Titles & abstracts", "ta"], ["retrieval", "Get full texts"], ["screening", "Full texts", "ft"]]],
   ["extract", "Chart the data", "Fill in a form for each paper", "Chart", [["charting", "Chart the data"]]],
   ["report", "Report", "Flow diagram, checklist, exports", "Report",
     [["report", "Flow diagram & checklist", "paper"], ["report", "Exports & review package", "exports"], ["report", "Obsidian library", "library"]]],
@@ -110,6 +107,9 @@ const SCOPING = freeze({
 });
 
 export const REVIEW_TYPES = freeze({ scoping: SCOPING });
+/** Steps the app had before (they still name old events in a review's timeline). */
+export const FORMER_STAGES = freeze({ idea: "Idea notes", pilot: "Test the search", reviewer: "Second reviewer", appraisal: "Quality check",
+  snowballing: "Citation search", synthesis: "Synthesis" });
 /** The type of a saved review that has none: reviews made before review types were scoping reviews. */
 export const DEFAULT_REVIEW_TYPE = "scoping";
 /** The type a new review starts as. */

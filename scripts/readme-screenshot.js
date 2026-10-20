@@ -15,14 +15,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // made-up papers: nothing here comes from a real review
 const DEMO = async () => {
   const s = backend.session;
-  await s.addIdea("How repairable are small household appliances, and which design methods make them easier to repair?");
   await s.saveQuestions({ population: "Small household electrical appliances", concept: "Design for repair and disassembly methods",
     context: "Engineering design research, any year", main: "Which design methods improve the repairability of small household appliances?",
     sub: ["Which repair steps do the methods address?", "How were the methods evaluated?"] });
   await s.saveConcepts([{ name: "Repair", terms: ["repair*", "disassembl*", "maintainab*"] },
     { name: "Appliances", terms: ["appliance*", "household product*", "consumer electronic*"] },
     { name: "Design", terms: ["design method*", "design guideline*", "design for"] }]);
-  for (const k of ["idea", "questions", "concepts", "queries", "protocol"]) await s.setStageStatus(k, "done");
+  for (const k of ["questions", "concepts", "queries", "protocol"]) await s.setStageStatus(k, "done");
   await s.setAiMode("screening", "suggest");                   // shows the AI label in the sidebar, switched on
   await s.lockProtocol("OSF");
   const papers = [

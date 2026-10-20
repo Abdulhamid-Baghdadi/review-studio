@@ -1,14 +1,14 @@
 /**
- * Everything around the page: top bar, tabs, metrics, AI card, where files are kept; render() draws it all.
+ * Everything around the page: top bar, sections, metrics, AI card, where files are kept; render() draws it all.
  * @module web/studio/shell/chrome
  */
 import { api, backend, busy, getJSON } from "../core/api.js";
 import { $, h, store } from "../core/dom.js";
-import { CUR, HOME, REVIEW, S } from "../core/state.js";
+import { CUR, HOME, PART, REVIEW, S } from "../core/state.js";
 import { PAGES } from "./registry.js";
 import { openHelp } from "./help.js";
 import { flowMap } from "./journey-map.js";
-import { curTab, go, goTab, skipStage, stage, stepOf, tabSequence } from "./navigation.js";
+import { curTab, go, goTab, pageIndex, pageSequence, sectioned, sectionId, skipStage, stage, stepOf, stepStatus } from "./navigation.js";
 import { openReviewFolder, renderDraftBar, saveDraft, switchReview } from "./reviews.js";
 import { btn, copy, iconBtn, libraryName, openNote, pill, segmented, statusKind } from "../ui/components.js";
 import { toast } from "../ui/dialogs.js";
@@ -55,7 +55,39 @@ async function forgetFromList(r) {
 const PART_DESC = {
   "protocol:rules": "Decide which papers belong in your review and which do not. The short exclusion reasons (E1, E2 …) are the only ones you can pick while screening.",
   "protocol:methods": "The rest of your plan: background, sources, and how you will select, chart and summarise. Together with your question and search it becomes the Protocol note.",
+  "report:paper": "The PRISMA flow diagram and the PRISMA-ScR checklist for your paper.",
+  "report:exports": "Files for your reference manager and manuscript, and the review package to deposit on OSF or Zenodo.",
+  "report:library": "Your included papers as notes in your Obsidian library, with the citations between them.",
 };
+
+/**
+ * One part of a step shown as a section of its page: a heading with the part's status, help, files and buttons, then the
+ * part's own page (drawn with its part chosen). A stage split over two sections gets its buttons in the last one.
+ */
+function sectionOf(t, i, tabs) {
+  const s = stage(t.stage), saved = PART[t.stage];
+  if (t.part) PART[t.stage] = t.part;
+  const body = PAGES[t.stage]();
+  if (t.part) PART[t.stage] = saved;
+  const last = !tabs.slice(i + 1).some(x => x.stage === t.stage);
+  const what = `\u201c${t.label}\u201d`;
+  const locked = S.state.protocol.locked && ["questions", "concepts", "queries", "protocol", "charting"].includes(t.stage);
+  return h("section", { class: "stepsection", id: sectionId(t), "aria-labelledby": sectionId(t) + "-h" },
+    h("div", { class: "titlerow" },
+      h("h2", { id: sectionId(t) + "-h" }, t.label),
+      last ? pill(s.status.replace("-", " "), statusKind(s.status)) : null,
+      s.optional ? pill("optional", "info") : null,
+      locked ? h("span", { class: "pill warn", title: "The protocol is locked: changes here are amendments, with a reason" }, "🔒 locked") : null,
+      h("span", { class: "spacer" }),
+      btn("? Help", () => openHelp(t.stage), "ghost", `Help: ${t.label}`),
+      !last ? null : s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", () => skipStage(t.stage), "ghost", `Skip ${what} (it is optional)`) : null,
+      !last ? null : s.status === "done" || s.status === "skipped" ? btn("Reopen", () => api("stage_status", { stage: t.stage, status: "in-progress" }), "", `Reopen ${what}`)
+        : btn("✓ Mark done", () => api("stage_status", { stage: t.stage, status: "done" }), "primary", `Mark ${what} as done`)),
+    h("div", { class: "infoline" },
+      h("span", { class: "desc" }, PART_DESC[`${t.stage}:${t.part}`] ?? s.desc, s.reason ? h("span", { class: "muted" }, ` — skipped: ${s.reason}`) : null),
+      last ? savedIn(t.stage) : null),
+    body);
+}
 
 /** Why a step can't be marked done yet (nothing to work on), or "" when it can. */
 function nothingYet(key) {
@@ -76,15 +108,17 @@ function renderTop() {
   mapbar.replaceChildren(flowMap());
   const s = stage(CUR), st = stepOf(CUR), tab = curTab();
   const locked = S.state.protocol.locked;
-  // Screen papers is reached through its boxes on the map (titles and abstracts, full texts …): no second row of tabs
+  // Screen papers is reached through its boxes on the map (titles and abstracts, full texts …); a step of several
+  // parts is one page of sections (each with its own status and buttons): no row of tabs anywhere
   const byMap = st.key === "screen";
-  const tabs = st.tabs.length > 1 && !byMap ? h("div", { class: "steptabs", role: "tablist" }, st.tabs.map(t => {
-    const ts = stage(t.stage), on = t === tab;
-    return h("button", { class: `steptab ${ts.status} ${on ? "on" : ""}`, role: "tab", "aria-selected": String(on),
-      title: ts.desc + (ts.optional ? " (optional)" : ""), onclick: () => goTab(t) },
-      h("span", { class: "tdot" }, ts.status === "done" ? "✓" : ts.status === "skipped" ? "–" : ""), t.label,
-      ts.optional ? h("span", { class: "topt" }, "optional") : null);
-  })) : null;
+  if (sectioned(st)) {
+    const status = stepStatus(st);
+    $("#topbar").replaceChildren(
+      h("div", { class: "titlerow" }, h("h1", {}, st.title), pill(status.replace("-", " "), statusKind(status)),
+        S.dev_mode ? pill("🛠 developer mode", "bad") : null),
+      h("div", { class: "infoline" }, h("span", { class: "desc" }, `${st.hint}. Scroll down for each part.`)));
+    return;
+  }
   const what = st.tabs.length > 1 ? `“${tab.label}”` : "this step";
   const aiStep = S.ai?.steps[CUR], aiMode = aiStep && (S.ai.modes[CUR] || "off"), aiOpen = store.get("ai_open", "") === "1";
   $("#topbar").replaceChildren(
@@ -92,7 +126,6 @@ function renderTop() {
       h("h1", {}, byMap ? tab.label : st.title),
       st.tabs.length > 1 && !byMap ? null : pill(s.status.replace("-", " "), statusKind(s.status)),
       byMap && s.optional ? pill("optional", "info") : null,
-      tabs,
       S.dev_mode ? pill("🛠 developer mode", "bad")
         : locked && ["questions", "concepts", "queries", "protocol", "charting"].includes(CUR) ? h("span", { class: "pill warn", title: "The protocol is locked: changes here are amendments, with a reason" }, "🔒 locked") : null,
       h("span", { class: "spacer" }),
@@ -109,10 +142,10 @@ function renderTop() {
     aiOpen ? aiCard(CUR) || "" : "");
 }
 
-/** Back and Next at the foot of every page: walks the tabs and steps in order. */
+/** Back and Next at the foot of every page: walks the steps (and the parts of Screen papers) in order. */
 function pageNav() {
-  const seq = tabSequence(), tab = curTab(), i = seq.findIndex(x => x.tab === tab);
-  const name = x => x.step.tabs.length > 1 && x.step.tabs[0] !== x.tab ? `${x.step.title}: ${x.tab.label}` : x.step.title;
+  const seq = pageSequence(), i = pageIndex(seq);
+  const name = x => !sectioned(x.step) && x.step.tabs.length > 1 && x.step.tabs[0] !== x.tab ? `${x.step.title}: ${x.tab.label}` : x.step.title;
   const prev = seq[i - 1], next = seq[i + 1];
   return h("div", { class: "pagenav" },
     prev ? btn(`← ${name(prev)}`, () => goTab(prev.tab), "ghost") : h("span"),
@@ -144,16 +177,13 @@ function aiCard(key) {
 
 // Where each stage writes its data (paths relative to the review folder; @library = the library folder chosen in Settings, e.g. 00 - Library)
 const STORAGE = {
-  idea: [["review_state.json", "data"], ["00 - Review timeline.md", "readable: idea log"]],
   questions: [["review_state.json", "data, with every version"], ["03 - Search strategy.md", "readable"]],
   concepts: [["review_state.json", "data"], ["03 - Search strategy.md", "readable: concept table"]],
   queries: [["review_state.json", "data, incl. hand edits"], ["03 - Search strategy.md", "readable: strings"]],
-  pilot: [["review_state.json", "data"], ["03 - Search strategy.md", "readable: pilot runs"]],
   protocol: [["review_state.json", "method sections"], ["08 - Screening guide.md", "exclusion reasons"], ["05 - Protocol.md", "generated note"]],
   registration: [["review_state.json", "lock, amendments"], ["00 - Review timeline.md", "readable: amendments"]],
   searches: [["07 - Searches.csv", "one row per search"], ["07 - Exports", "copies of the export files"], ["08 - Records", "one note per paper"]],
   screening: [["08 - Records", "title_abstract_ / full_text_decision in each paper's note"], ["08 - Screening.base", "the same as an Obsidian table"], ["08 - Decision log.csv", "every change, with who and how"]],
-  reviewer: [["09 - Second reviewer", "blind CSV sheets"], ["08 - Records", "second_reviewer_ properties"]],
   retrieval: [["08 - Records", "full_text_status, open_access_url"], ["10 - Full texts", "attached PDFs"]],
   charting: [["08 - Records", "extracted_ properties"], ["12 - Charting.base", "the same as an Obsidian table"], ["review_state.json", "the form"]],
   report: [["14 - PRISMA flow.md", "flow diagram"], ["08 - Decision log.csv", "every decision change"], ["@checklist", "checklist"], ["07 - Exports", "BibTeX, CSV"], ["@library", "included_in on publication notes"]],
@@ -169,8 +199,7 @@ function savedIn(key) {
 }
 
 function renderMetrics() {
-  const f = S.flow, k = S.agreement.ta.kappa, t = S.test_set;
-  const last = [...S.state.pilots].reverse().find(p => p.test_set !== "");
+  const f = S.flow;
   const m = (v, l, to, cls = "") => h("div", { class: "metric " + cls, onclick: () => go(to) }, h("div", { class: "v" }, v), h("div", { class: "l" }, l));
   const inc = S.records.filter(r => r.ft_decision === "include");
   const pdfs = inc.filter(r => r.pdf_status === "found").length;
@@ -181,21 +210,19 @@ function renderMetrics() {
     ta: () => m(f.ta_pending, "to screen (title/abstract)", "screening", f.ta_pending ? "" : "good"),
     ft: () => m(f.ft_pending, "to screen (full text)", "screening", f.ft_pending ? "" : "good"),
     included: () => m(f.included, "included", "report", f.included ? "good" : ""),
-    kappa: () => m(k == null ? "–" : k.toFixed(2), "κ title/abstract", "reviewer", k == null ? "" : k >= 0.6 ? "good" : "bad"),
-    test: () => m(last ? `${last.retrieved}/${last.test_set}` : `–/${t.size}`, "test set (last pilot)", "pilot"),
     problems: () => m(S.problems.length, "problems", "screening", S.problems.length ? "bad" : "good"),
     pdfs: () => m(`${pdfs}/${inc.length}`, "included with PDF", "retrieval", inc.length && pdfs === inc.length ? "good" : ""),
     charted: () => m(`${cdone}/${ctotal}`, "charted (AI or you)", "charting"),
     checked: () => m(`${checked}/${ctotal}`, "checked by you", "charting", ctotal && checked === ctotal ? "good" : ""),
   };
   const PER_STAGE = {
-    queries: ["test"], pilot: ["test"], searches: ["unique", "problems"],
-    screening: ["unique", "ta", "ft", "included", "problems"], reviewer: ["kappa"],
+    searches: ["unique", "problems"],
+    screening: ["unique", "ta", "ft", "included", "problems"],
     retrieval: ["included", "pdfs"],
     charting: ["included", "pdfs", "charted", "checked"],
     report: ["unique", "included", "pdfs", "checked", "problems"],
   };
-  const keys = (PER_STAGE[CUR] || []).filter(x => x !== "kappa" || stage("reviewer").status !== "skipped");
+  const keys = PER_STAGE[CUR] || [];
   $("#metrics").replaceChildren(...keys.map(x => tiles[x]()));
   $("#metrics").style.display = keys.length ? "" : "none";
 }
@@ -219,6 +246,6 @@ export function render() {
   for (const id of ["btnTimeline", "btnScr"]) $("#" + id).hidden = CUR === HOME;   // the Homepage is only an introduction
   $("#btnHome").classList.toggle("on", CUR === HOME);
   $("#btnClaude").hidden = !S.ai?.steps[CUR];                      // only on the stages where Claude can help (marked AI)
-  const page = $("#page");
-  page.replaceChildren(PAGES[CUR](), CUR === HOME ? "" : pageNav());
+  const page = $("#page"), st = CUR === HOME ? null : stepOf(CUR);
+  page.replaceChildren(...(sectioned(st) ? st.tabs.map(sectionOf) : [PAGES[CUR]()]), CUR === HOME ? "" : pageNav());
 }

@@ -4,16 +4,13 @@
  */
 import "./core/dom.js";
 import "./pages/home.js";
-import "./pages/idea.js";
 import "./pages/questions.js";
 import "./pages/concepts.js";
 import "./pages/queries.js";
-import "./pages/pilot.js";
 import "./pages/protocol.js";
 import "./pages/registration.js";
 import "./pages/searches.js";
 import "./pages/screening.js";
-import "./pages/reviewer.js";
 import "./pages/retrieval.js";
 import "./pages/charting.js";
 import "./pages/report.js";

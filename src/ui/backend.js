@@ -339,17 +339,12 @@ export class Backend {
       case "dev_mode": return s.setDevMode(a.on);
       case "ai_mode": return s.setAiMode(a.stage, a.mode, amendment);
       case "stage_status": return s.setStageStatus(a.stage, a.status, a.reason ?? "");
-      case "add_idea": return s.addIdea(a.text);
       case "save_questions": return s.saveQuestions(a.q, a.why ?? "", amendment);
       case "save_concepts": return s.saveConcepts(a.concepts, a.why ?? "", amendment);
       case "preview_queries": return { raw: { queries: s.previewQueries(a.concepts) } };
       case "save_databases": return s.saveDatabases(a.databases, amendment);
       case "save_manual_query": return s.saveManualQuery(a.db, a.text ?? null, amendment);
-      case "pilot_openalex": return s.pilotOpenalex(a.note ?? "");
-      case "pilot_file": { const f = await this.#uploaded(a.path); return s.pilotFile({ fileName: f.name, bytes: f.bytes, database: a.database, note: a.note ?? "" }); }
-      case "pilot_manual": return s.pilotManual(a);
       case "save_protocol_text": return s.saveProtocolText(a.text, { author: a.author ?? "user", generate: a.generate, amendment });
-      case "set_test_set": return s.setTestSet(a.stems);
       case "approve_section": return s.approveSection(a.key);
       case "supervisor_review": return s.supervisorReview(a.by ?? "", a.when ?? "");
       case "save_reasons": return s.saveReasons(a.ta, a.ft, amendment, a.include);
@@ -366,12 +361,6 @@ export class Backend {
       case "set_record": return s.setRecord(a.record_id, a.fields);
       case "check": return s.check();
       case "report": return s.report();
-      case "sample": {
-        const seed = String(a.seed ?? "").trim() ? Number(a.seed) : undefined;
-        const r = await s.sample({ stage: a.stage, fraction: Number(a.fraction ?? 0.2), seed, redo: Boolean(a.redo) });
-        return `Drew ${r.drawn} of ${r.pool} records (seed ${r.seed}). Blind sheet for the second reviewer: ${r.sheet}`;
-      }
-      case "import_r2": { const f = await this.#uploaded(a.path); return s.importSecondReviewer({ fileName: f.name, text: new TextDecoder().decode(f.bytes), stage: a.stage }); }
       case "find_oa": return s.findOpenAccess();
       case "scan_pdfs": {
         const handle = (a.folder && this.#pdfFolders.get(a.folder)) || (await window.showDirectoryPicker({ id: "pdfs", mode: "read" }));

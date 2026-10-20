@@ -1,7 +1,7 @@
 // Stage rules, search strings, protocol, notes and OpenAlex conversion, without files or network.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addIdea, amend, defaultState, guardedChange, restoreState, sameValue, saveQuestions, setStatus, touch } from "../../src/domain/stages.js";
+import { amend, defaultState, guardedChange, restoreState, sameValue, saveQuestions, setStatus, touch } from "../../src/domain/stages.js";
 import { aiMode, aiPrompt, setAiMode } from "../../src/domain/ai-steps.js";
 import { buildQuery, cleanTerms, openalexWord } from "../../src/domain/queries.js";
 import { integrityProblems, lockChecks, protocolMarkdown } from "../../src/domain/protocol.js";
@@ -23,9 +23,9 @@ test("state: defaults, restore, status, amendments", () => {
   touch(st, "questions", NOW);
   assert.equal(st.stages.questions.status, "in-progress");
   assert.throws(() => setStatus(st, "questions", "skipped", "no", NOW), /required/);
-  assert.throws(() => setStatus(st, "idea", "skipped", " ", NOW), /reason/);
-  setStatus(st, "pilot", "in-progress", "", NOW);
-  assert.equal(st.stages.pilot.reopened, true);
+  assert.throws(() => setStatus(st, "registration", "skipped", " ", NOW), /reason/);
+  setStatus(st, "concepts", "in-progress", "", NOW);
+  assert.equal(st.stages.concepts.reopened, true);
   st.protocol.locked = "2026-01-01";
   assert.throws(() => guardedChange(st, "concepts", [{ name: "x" }], { now: NOW }), /amendment/);
   assert.equal(guardedChange(st, "concepts", [{ name: "x" }], { reason: "pilot", now: NOW }), true);
@@ -38,10 +38,8 @@ test("state: defaults, restore, status, amendments", () => {
   assert.ok(!sameValue("", false));
 });
 
-test("questions, ideas and AI modes", () => {
+test("questions and AI modes", () => {
   const st = defaultState();
-  addIdea(st, "  idea  ", NOW);
-  assert.equal(st.idea[0].text, "idea");
   assert.equal(saveQuestions(st, { population: "P", concept: "C", context: "X", main: "Q?", sub: ["a", " "], why: "first" }, { now: NOW }), true);
   assert.equal(saveQuestions(st, { population: "P", concept: "C", context: "X", main: "Q?", sub: ["a"], why: "same" }, { now: NOW }), false);
   assert.deepEqual(st.questions.history[0], { when: NOW, why: "first", population: "", concept: "", context: "", main: "", sub: [] });
@@ -95,7 +93,7 @@ test("progress: finished work marks in-progress stages done", () => {
 test("notes: timeline and BibTeX", () => {
   const st = defaultState();
   st.events.push({ when: NOW, stage: "idea", text: "a | b" });
-  assert.match(timelineNote({ reviewName: "R", reviewLink: "[[R]]", st, today: "2026-01-15" }), /\| 2026-01-15 10:00 \| 0 · Idea \| a \/ b \|/);
+  assert.match(timelineNote({ reviewName: "R", reviewLink: "[[R]]", st, today: "2026-01-15" }), /\| 2026-01-15 10:00 \| Idea notes \| a \/ b \|/);
   assert.equal(bibtex([{ record_id: "R0001", authors: "Liu, Z.; Zhong, P.", year: 2024, title: "T", journal: "", doi: "10.1/x" }]),
     "@article{Liu2024R0001,\n  title = {T},\n  author = {Liu, Z. and Zhong, P.},\n  year = {2024},\n  doi = {10.1/x}\n}\n");
   assert.match(bibtex([{ record_id: "R0002", citekey: "liuDeep2024", authors: "Liu, Z.", year: 2024, title: "T", abstract: "A b.", keywords: "x; y" }]),

@@ -19,7 +19,7 @@ Scoping Review Workbench walks you through a scoping review from the first idea 
 - 🧭 **Guided, step by step:** 7 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
 - 🔒 **Your files, your PC:** no account, no upload, no database. A review is a folder of Markdown, CSV and PDFs.
 - 🟣 **Opens in Obsidian:** a review folder is an Obsidian vault as it is, with the screening and charting tables as `.base` files.
-- 🤖 **AI only if you want it:** Claude can pre-screen, fetch PDFs, be the blind second reviewer or prefill charting. It suggests; you confirm.
+- 🤖 **AI only if you want it:** Claude can pre-screen, fetch PDFs or prefill charting. It suggests; you confirm.
 - 📶 **Works offline** once opened, or install it as an app.
 
 ## Contents
@@ -65,15 +65,15 @@ The launcher starts the app on your computer and opens it at **http://localhost:
 
 ## The 7 steps
 
-A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of every page shows the seven steps in plain words; steps with more than one part show them as tabs on their page.
+A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of every page shows the seven steps in plain words, and it is the only navigation: each step is one page, and a step with several parts shows them as sections, one under another, so you just scroll down. There are no tabs.
 
-| # | Step | Tabs | What you do |
+| # | Step | Sections | What you do |
 |---:|---|---|---|
-| 1 | **Research question** | Idea notes *(optional)* · Question | Say exactly what you want to find out, as Population–Concept–Context; jot down early ideas with dates. Every version is kept. |
-| 2 | **Search strategy** | Keywords · Search strings · Test the search *(optional)* | One block of synonyms per idea in your question; ready-to-paste strings per database (Scopus, Web of Science, IEEE Xplore, OpenAlex, …); trial runs against papers you already know. |
+| 1 | **Research question** | | Say exactly what you want to find out, as Population–Concept–Context, with the main question and sub-questions. Every version is kept. |
+| 2 | **Search strategy** | Keywords · Search strings | One block of synonyms per idea in your question; ready-to-paste strings per database (Scopus, Web of Science, IEEE Xplore, OpenAlex, …). |
 | 3 | **Protocol** | Inclusion rules · Methods · Lock & register | What a paper must be (include) and the coded reasons to drop it (E1, E2 …, used while screening), with the rationale; the data items of the charting form and the other method sections; freeze the plan before searching. |
 | 4 | **Search & import** | | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
-| 5 | **Screen papers** | Titles & abstracts · Get full texts · Full texts · Second reviewer *(optional)* | In the order of the work: titles and abstracts with keyboard shortcuts, then find and attach the PDFs, then read the full texts; a blind second reviewer, with Cohen's κ. |
+| 5 | **Screen papers** | Titles & abstracts · Get full texts · Full texts *(each a box on the map)* | In the order of the work: titles and abstracts with keyboard shortcuts, then find and attach the PDFs, then read the full texts. |
 | 6 | **Chart the data** | | Fill in the charting form (planned in the protocol) for every included source, with page numbers. |
 | 7 | **Report** | Flow diagram & checklist · Exports & review package · Obsidian library | The PRISMA flow diagram and the PRISMA-ScR checklist for your paper; BibTeX, RIS and CSV exports and the review package; the included papers into your Obsidian library. |
 
@@ -85,7 +85,7 @@ A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of ev
 
 **Reviews made as systematic reviews** (before 18 Oct 2026, when the app supported both types) still open: they are shown as scoping reviews, and everything they saved, including their PRISMA 2020 ticks and synthesis notes, stays in `review_state.json`.
 
-Links to a part of the app keep working: `…/web/#questions` opens the Question tab, `#protocol` the inclusion rules, `#screening` screening.
+Links to a part of the app keep working: `…/web/#questions` opens the research question, `#protocol` the protocol, `#registration` its Lock & register section, `#screening` screening.
 
 Keyboard shortcuts while screening: **I** include · **U** unsure · **E** exclude · **1–9** reason · **← / →** previous / next.
 
@@ -103,7 +103,6 @@ Project 2 review records/
 ├── 07 - Exports/               the original database exports
 ├── 08 - Records/               one Markdown note per paper (R0001 - 2024 - Liu et al. - ….md)
 ├── 08 - Screening guide.md     eligibility criteria and exclusion reasons
-├── 09 - Second reviewer/       blind sample sheets (CSV)
 ├── 10 - Full texts/            the PDFs, named after their record
 ├── 14 - PRISMA flow.md
 ├── 14 - PRISMA-ScR checklist.md
@@ -114,7 +113,7 @@ Each record note keeps its decisions in its properties, in full words (`title_ab
 
 ## Traceability
 
-- **Decision log.** Every change of a screening decision (title/abstract, full text, second reviewer) is a row in `08 - Decision log.csv`: when, old → new decision, reason, who (your initials, set in *Settings → Review settings*) and how (by hand, a reviewed AI suggestion, a rule, an imported sheet, or an edit outside the app such as in Obsidian). Each row's SHA-256 covers the row before it, so an edited or deleted row shows: *Report → Check the decision log*. Each record shows its own history under the screening buttons.
+- **Decision log.** Every change of a screening decision (title/abstract, full text) is a row in `08 - Decision log.csv`: when, old → new decision, reason, who (your initials, set in *Settings → Review settings*) and how (by hand, a reviewed AI suggestion, a rule, an imported sheet, or an edit outside the app such as in Obsidian). Each row's SHA-256 covers the row before it, so an edited or deleted row shows: *Report → Check the decision log*. Each record shows its own history under the screening buttons.
 - **Export to your Obsidian library.** *Report → Export to Obsidian library* turns the included papers into publication notes in your library folder, from your own publication template (⚙ Settings → Review settings → *Publication template*; otherwise the app's own), with `added_by` (the review) and `added_on` (the date), copies their PDFs (to the folder you chose, else `PDFs` in the library folder), and then updates the citations below. A paper already in the library only gets the review added to `included_in`.
 - **Citations in your library.** *Report → Check citations* looks up the papers of your publication library on OpenAlex (by DOI, about one request per 50 papers) and writes what each paper cites into `cites`: a link for a paper in your library, otherwise its DOI (or its OpenAlex id when it has none) (for Obsidian's graph; the papers citing a paper are its backlinks). Run it again after adding papers and the DOIs of papers now in your library become links. The old `cited_by` property and *Unlinked cited works* section are removed. A paper OpenAlex does not find keeps its `cites` (it is never emptied); only the entries of papers now in your library become links. It shows what would change first; nothing else in the notes is touched. (This used to be Library Studio's Citations page.)
   After adding papers by hand, run `node "<Scoping Review Workbench folder>/bin/check-citations.js"` from your vault: it shows, without going online, which DOIs and OpenAlex ids in `cites` now belong to papers in your library; add `--write` to turn them into links, and `--openalex` for the full *Check citations* (which also fetches the new papers' own reference lists). `--help` lists the options.
@@ -126,7 +125,6 @@ Each step that can use help has an **🤖 AI assistance** card where you choose 
 
 - **pre-screen** titles and abstracts, or full texts, and suggest a decision with a reason;
 - **fetch full texts** (open access first) and attach the PDFs;
-- act as a **blind second reviewer** on the sample;
 - **prefill the charting form** from the PDFs, with page locators;
 
 Claude only ever *suggests*: you confirm or change every suggestion in Scoping Review Workbench, each AI action is logged with the model and date, and the protocol's "Use of AI assistance" section is written for you.

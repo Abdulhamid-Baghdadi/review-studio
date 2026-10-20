@@ -78,10 +78,6 @@
    "text": "Bramer, W. M., Giustini, D., de Jonge, G. B., Holland, L., & Bekhuis, T. (2016). De-duplication of database search results for systematic reviews in EndNote. Journal of the Medical Library Association, 104(3), 240–243.",
    "doi": "10.3163/1536-5050.104.3.014"
   },
-  "sampson2006": {
-   "text": "Sampson, M., Zhang, L., Morrison, A., et al. (2006). An alternative to the hand searching gold standard: validating methodological search filters using relative recall. BMC Medical Research Methodology, 6, 33.",
-   "doi": "10.1186/1471-2288-6-33"
-  },
   "gusenbauer2020": {
    "text": "Gusenbauer, M., & Haddaway, N. R. (2020). Which academic search systems are suitable for systematic reviews or meta-analyses? Evaluating retrieval qualities of Google Scholar, PubMed, and 26 other resources. Research Synthesis Methods, 11(2), 181–217.",
    "doi": "10.1002/jrsm.1378"
@@ -94,28 +90,16 @@
    "text": "Pieper, D., & Rombey, T. (2022). Where to prospectively register a systematic review. Systematic Reviews, 11, 8.",
    "doi": "10.1186/s13643-021-01877-1"
   },
-  "cohen1960": {
-   "text": "Cohen, J. (1960). A coefficient of agreement for nominal scales. Educational and Psychological Measurement, 20(1), 37–46.",
-   "doi": "10.1177/001316446002000104"
-  },
-  "landis1977": {
-   "text": "Landis, J. R., & Koch, G. G. (1977). The measurement of observer agreement for categorical data. Biometrics, 33(1), 159–174.",
-   "doi": "10.2307/2529310"
-  },
-  "mchugh2012": {
-   "text": "McHugh, M. L. (2012). Interrater reliability: the kappa statistic. Biochemia Medica, 22(3), 276–282.",
-   "doi": "10.11613/BM.2012.031"
-  },
   "polanin2019": {
    "text": "Polanin, J. R., Pigott, T. D., Espelage, D. L., & Grotpeter, J. K. (2019). Best practice guidelines for abstract screening large-evidence systematic reviews and meta-analyses. Research Synthesis Methods, 10(3), 330–342.",
    "doi": "10.1002/jrsm.1354"
   },
+  "higgins2023": {
+   "text": "Higgins, J. P. T., Thomas, J., Chandler, J., et al. (Eds.) (2023). Cochrane Handbook for Systematic Reviews of Interventions, version 6.4. Cochrane."
+  },
   "priem2022": {
    "text": "Priem, J., Piwowar, H., & Orr, R. (2022). OpenAlex: A fully-open index of scholarly works, authors, venues, institutions, and concepts. arXiv:2205.01833.",
    "doi": "10.48550/arXiv.2205.01833"
-  },
-  "higgins2023": {
-   "text": "Higgins, J. P. T., Thomas, J., Chandler, J., et al. (Eds.) (2023). Cochrane Handbook for Systematic Reviews of Interventions, version 6.4. Cochrane."
   }
  },
  "terms": {
@@ -191,13 +175,6 @@
     "rethlefsen2021"
    ]
   },
-  "Test set / relative recall": {
-   "definition": "Papers known in advance to be relevant. The share of them that a search retrieves (relative recall) estimates how complete the search is.",
-   "refs": [
-    "sampson2006",
-    "bramer2018"
-   ]
-  },
   "Precision": {
    "definition": "The share of retrieved records that are relevant. In reviews, precision is often low (a few percent) because completeness has priority.",
    "refs": [
@@ -224,13 +201,6 @@
     "tricco2018"
    ]
   },
-  "Cohen's kappa (κ)": {
-   "definition": "Agreement between two raters corrected for agreement expected by chance. 1 = perfect, 0 = chance level.",
-   "refs": [
-    "cohen1960",
-    "mchugh2012"
-   ]
-  },
   "Grey literature": {
    "definition": "Material not published in journals: reports, standards, theses, policy documents.",
    "refs": [
@@ -252,12 +222,6 @@
     "tricco2018"
    ]
   },
-  "OpenAlex": {
-   "definition": "A free, open index of scholarly works used here for pilot counts and open-access links.",
-   "refs": [
-    "priem2022"
-   ]
-  },
   "PRISMA 2020": {
    "definition": "The 27-item reporting guideline for systematic reviews (42 rows with sub-items), with its own flow diagram and an abstract checklist. It tells you what to report, not how to conduct the review; for conduct follow the Cochrane Handbook or the JBI Manual.",
    "refs": [
@@ -270,6 +234,12 @@
     "higgins2023"
    ]
   },
+  "OpenAlex": {
+   "definition": "A free, open index of scholarly works used here for the example search and open-access links.",
+   "refs": [
+    "priem2022"
+   ]
+  },
   "Data extraction": {
    "definition": "Systematic-review term: recording outcomes and other variables from each included study in a piloted extraction form, usually by two reviewers.",
    "refs": [
@@ -278,39 +248,6 @@
   }
  },
  "stages": {
-  "idea": {
-   "what": "Dated notes on what you want to find out and why.",
-   "how": [
-    "Write a note whenever your view changes.",
-    "Vague is fine; the Question tab makes it precise."
-   ],
-   "terms": [
-    "Scoping review",
-    "Systematic review"
-   ],
-   "rules": [
-    [
-     "The question may be refined as you read.",
-     "guidance",
-     [
-      "arksey2005",
-      "levac2010"
-     ]
-    ],
-    [
-     "Scoping review = map a field; systematic review = answer a focused question.",
-     "guidance",
-     [
-      "munn2018"
-     ]
-    ],
-    [
-     "A dated idea log.",
-     "tool",
-     []
-    ]
-   ]
-  },
   "questions": {
    "what": "Turn the idea into review questions using Population – Concept – Context.",
    "how": [
@@ -427,46 +364,12 @@
     ]
    ]
   },
-  "pilot": {
-   "what": "Test the string: manageable hits, and does it find papers you already know?",
-   "how": [
-    "Known relevant papers = test set.",
-    "Look at what was missed and why.",
-    "Tune recall first, hits second."
-   ],
-   "terms": [
-    "Test set / relative recall",
-    "Precision"
-   ],
-   "rules": [
-    [
-     "Check the search against known papers.",
-     "guidance",
-     [
-      "sampson2006",
-      "bramer2018"
-     ]
-    ],
-    [
-     "A minimum recall (e.g. 90 %).",
-     "convention",
-     []
-    ],
-    [
-     "OpenAlex counts are only indicative.",
-     "tool",
-     [
-      "priem2022"
-     ]
-    ]
-   ]
-  },
   "protocol": {
    "what": "The plan of the review, written before searching: which papers are in and which are out, and how you will work.",
    "how": [
     "Inclusion rules: list what a paper must be (include) and the coded reasons to drop it (E1, E2 …, used in screening), then say why.",
     "Methods: plan the data items (the charting form), write the remaining sections and generate the Protocol note.",
-    "Let your supervisor review it, then lock it on the Lock & register tab."
+    "Let your supervisor review it, then lock it in the Lock & register section below."
    ],
    "terms": [
     "Protocol"
@@ -622,52 +525,6 @@
     ]
    ]
   },
-  "reviewer": {
-   "what": "A second person screens a random sample blind; agreement as Cohen's κ.",
-   "how": [
-    "Agree how to use 'unsure' first.",
-    "Send only the sheet.",
-    "An AI may fill the sheet (AI assistance card), but report it as an AI, not a second person."
-   ],
-   "terms": [
-    "Cohen's kappa (κ)"
-   ],
-   "rules": [
-    [
-     "Report how many screened and whether independently (PRISMA-ScR 9).",
-     "report",
-     [
-      "page2021"
-     ]
-    ],
-    [
-     "Two independent screeners, ideally for all records.",
-     "guidance",
-     [
-      "levac2010",
-      "cochrane4"
-     ]
-    ],
-    [
-     "Only a 20 % sample.",
-     "convention",
-     []
-    ],
-    [
-     "κ ≥ 0.6 as 'good enough' — the bands are arbitrary.",
-     "convention",
-     [
-      "landis1977",
-      "mchugh2012"
-     ]
-    ],
-    [
-     "Counting an AI as the second reviewer — no agreed rule yet; say so and name the model.",
-     "convention",
-     []
-    ]
-   ]
-  },
   "retrieval": {
    "what": "Get the full text of everything that passed title/abstract.",
    "how": [
@@ -757,14 +614,6 @@
   }
  },
  "examples": {
-  "idea": {
-   "items": [
-    [
-     "Note",
-     "Repair scores (French index, EN 45554) are spreading. How do researchers measure how repairable a phone or laptop is — and do the methods agree?"
-    ]
-   ]
-  },
   "questions": {
    "items": [
     [
@@ -809,19 +658,6 @@
   "queries": {
    "code": "TITLE-ABS-KEY((repairab* OR reparab* OR \"ease of repair\" OR disassembl*) AND (smartphone* OR \"mobile phone*\" OR laptop* OR tablet* OR \"consumer electronic*\") AND (assess* OR scor* OR indicator* OR index OR metric*))",
    "lesson": "OpenAlex has no wildcards: repairab* becomes 'repairability' there."
-  },
-  "pilot": {
-   "items": [
-    [
-     "Three concepts",
-     "819 hits · test set 1 of 4"
-    ],
-    [
-     "Without 'Assessment'",
-     "3,394 hits · test set 2 of 4"
-    ]
-   ],
-   "lesson": "4× more hits for one extra paper. The missed papers point to a too-narrow product block (add 'electrical and electronic equipment') — and one test-set paper was out of scope."
   },
   "protocol": {
    "items": [
@@ -871,19 +707,6 @@
      "'mobile phone' + 'repair' also finds DNA-repair and pothole studies"
     ]
    ]
-  },
-  "reviewer": {
-   "items": [
-    [
-     "Sample",
-     "8 of 39 records, seed 42"
-    ],
-    [
-     "Result",
-     "75 % agreement · κ = 0.60"
-    ]
-   ],
-   "lesson": "Both disagreements were about 'unsure' — agree on its meaning beforehand."
   },
   "retrieval": {
    "items": [

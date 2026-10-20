@@ -11,7 +11,7 @@ import { DECISION_LOG_FILE, HOW } from "../domain/decision-log.js";
 import { FILES } from "../domain/notes.js";
 import { isIncluded } from "../domain/progress.js";
 import { PROTOCOL_FILE } from "../domain/protocol.js";
-import { SECOND_REVIEWER_DIR } from "../domain/sampling.js";
+const SECOND_REVIEWER_DIR = "09 - Second reviewer";      // sheets of reviews that had a second reviewer (before 2026-10-20)
 import { chartingCsv, STAGE_FILES } from "../domain/stage-notes.js";
 import { reviewType } from "../domain/stages.js";
 import { compareCodePoints } from "../domain/text-rules.js";

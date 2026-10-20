@@ -36,37 +36,9 @@ export async function openLibrary(folder) {
   return library;
 }
 
-/**
- * Papers the searches must find: publications with `test_in: [[review]]`; if none are marked, every
- * publication with `candidate_in: [[review]]`. @returns {string[]} note names
- */
-export function testSet(library, reviewLink) {
-  const mentions = v => (Array.isArray(v) || typeof v === "string") && v.includes(reviewLink);   // a list, or text as typed by hand
-  const has = key => [...library.notes].filter(([, p]) => mentions(p[key])).map(([stem]) => stem);
-  const marked = has("test_in");
-  return marked.length ? marked : has("candidate_in");
-}
-
 const noteName = link => String(link ?? "").replace(/^[[\]]+|[[\]]+$/g, "");
 // a list property, also when it was typed as one link of text ("[[Review]]") rather than as a list
 const asList = v => (Array.isArray(v) ? v : typeof v === "string" && v.trim() ? [v.trim()] : []).filter(Boolean);
-
-/**
- * Marks exactly these library notes as the review's test set (`test_in` lists the review's link); other notes lose
- * the mark. @param {string[]} stems note names @returns {Promise<number>} notes in the test set
- */
-export async function markTestSet(library, reviewLink, stems) {
-  const want = new Set(stems);
-  for (const [stem, props] of library.notes) {
-    const current = asList(props.test_in);
-    if (current.includes(reviewLink) === want.has(stem)) continue;
-    const next = want.has(stem) ? [...current, reviewLink] : current.filter(v => v !== reviewLink);
-    const file = `${stem}.md`;
-    await library.folder.writeText(file, frontmatter.replaceList(await library.folder.readText(file), "test_in", next));
-    props.test_in = next;
-  }
-  return want.size;
-}
 
 /**
  * What the library should say about this review: `included_in` on the publications of included records,

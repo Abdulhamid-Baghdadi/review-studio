@@ -19,16 +19,6 @@ export const AI_STEPS = Object.freeze({
       "Decide yourself (I, U or E) wherever you disagree; Z undoes your last decision.",
       "Report the AI assistance in the methods (PRISMA-ScR item 9, selection of sources of evidence)."],
   },
-  reviewer: {
-    skill: "review-second-reviewer",
-    modes: [
-      ["off", "Human", "A colleague fills the blind sheet."],
-      ["ai", "AI as second reviewer", "The AI fills the blind sheet independently; κ is computed against your decisions. Report it as an AI second reviewer, not as a second person."],
-    ],
-    checks: ["Draw the sample and screen it yourself first; the AI sees only the blind sheet.",
-      "Read every disagreement and settle it yourself.",
-      "State in the report that the second reviewer was an AI, with model and date."],
-  },
   retrieval: {
     skill: "review-fetch-fulltexts",
     modes: [

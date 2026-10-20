@@ -11,8 +11,7 @@ import { aiMode } from "../domain/ai-steps.js";
 import { isIncluded } from "../domain/progress.js";
 import { compareCodePoints, normalizeNewlines, strip } from "../domain/text-rules.js";
 import { event, FULLTEXT_DIR, reviewType, touch } from "../domain/stages.js";
-import { SECOND_REVIEWER_DIR } from "../domain/sampling.js";
-import { importSecondReviewer, ReviewError } from "./review-commands.js";
+import { ReviewError } from "./review-commands.js";
 import { loadState, saveState } from "./review-state.js";
 import { retrievalQueue } from "./stage-actions.js";
 import * as actions from "./stage-actions.js";
@@ -55,18 +54,6 @@ async function criteria(repo, st, rel) {
   };
 }
 
-/** The newest blind sheet (not a filled-in "(AI)" copy). */
-export async function latestSheet(folder) {
-  const names = (await folder.list(SECOND_REVIEWER_DIR)).filter(n => /^(ta|ft)-sample .*\.csv$/.test(n) && !n.endsWith("(AI).csv"));
-  const ordered = [...names.filter(n => n.startsWith("ta")), ...names.filter(n => n.startsWith("ft"))];
-  let best = null, bestTime = -Infinity;
-  for (const n of ordered) {
-    const t = await folder.lastModified(`${SECOND_REVIEWER_DIR}/${n}`);
-    if (t > bestTime) { best = n; bestTime = t; }
-  }
-  return best;
-}
-
 /**
  * What the AI needs for a step: criteria, and the records still to do (at most `limit`).
  * @param {import("./review-repository.js").ReviewRepository} repo @param {object} st
@@ -91,12 +78,6 @@ export async function aiContext(repo, st, step, { limit = 40, rel = p => p } = {
     for (const r of todo) if (await hasPdf(r)) withPdf.push(r);
     out.without_pdf = todo.length - withPdf.length;
     out.records = withPdf.slice(0, limit).map(r => ({ id: r.props.record_id, title: r.props.title, year: get(r.props, "year"), pdf: rel(pdfPath(r)) }));
-  } else if (step === "reviewer") {
-    const sheet = await latestSheet(repo.folder);
-    if (!sheet) throw new ReviewError("no blind sheet yet: draw the sample in Scoping Review Workbench (9 · Second reviewer) first.");
-    const rows = csv.readRecords(normalizeNewlines(await repo.folder.readText(`${SECOND_REVIEWER_DIR}/${sheet}`)).replace(/^﻿/, ""));
-    Object.assign(out, await criteria(repo, st, rel), { sheet: rel(`${SECOND_REVIEWER_DIR}/${sheet}`), stage: sheet.slice(0, 2),
-      records: rows.map(row => Object.fromEntries(["record_id", "title", "year", "journal", "abstract"].map(k => [k, row[k]]))) });
   } else if (step === "retrieval") {
     out.destination = rel(FULLTEXT_DIR);
     out.records = retrievalQueue(repo).filter(r => r.props.pdf_status !== "found").slice(0, limit).map(r => ({
@@ -149,37 +130,6 @@ export async function aiSuggest(repo, st, items, { model, stage = "ta" }) {
   }
   const message = `${written} suggestion(s) written. The reviewer confirms them in Scoping Review Workbench (Screen papers, ${ft ? "Full texts" : "Titles & abstracts"} tab, Suggested queue).`;
   return { written, skipped, message };
-}
-
-/**
- * The AI as blind second reviewer: fills a copy of the newest sheet ("… (AI).csv"), imports it and logs the model.
- * @param {{record_id: string, decision: string, reason?: string}[]} decisions one for every record on the sheet
- */
-export async function aiSecondReviewer(repo, st, decisions, { model, library }) {
-  requireMode(st, "reviewer");
-  const sheet = await latestSheet(repo.folder);
-  if (!sheet) throw new ReviewError("no blind sheet to fill.");
-  const byId = new Map(decisions.map(d => [d.record_id, d]));
-  const [head, ...rows] = csv.readRows(normalizeNewlines(await repo.folder.readText(`${SECOND_REVIEWER_DIR}/${sheet}`)).replace(/^﻿/, ""));
-  const col = name => head.indexOf(name);
-  for (const row of rows) {
-    const d = byId.get(row[col("record_id")]) ?? {};
-    if (!["include", "exclude", "unsure"].includes(d.decision)) throw new ReviewError(`${row[col("record_id")]}: no valid decision (include / exclude / unsure)`);
-    row[col("decision")] = d.decision;
-    row[col("reason")] = (d.reason || "").split(" ")[0];
-  }
-  const name = sheet.replace(/\.csv$/, " (AI).csv");
-  const text = "﻿" + csv.writeRows([head, ...rows]);
-  await repo.folder.writeText(`${SECOND_REVIEWER_DIR}/${name}`, text);
-  const stage = sheet.slice(0, 2);
-  const message = await importSecondReviewer(repo, { fileName: name, text, stage }, library, { by: `AI (${model})` });
-  const fresh = await loadState(repo.folder);
-  (fresh.reviewer_ai ??= {})[stage] = { model, when: repo.clock.now(), sheet: name };
-  touch(fresh, "reviewer", repo.clock.now());
-  event(fresh, "reviewer", `AI (${model}) filled the blind ${stage} sheet as second reviewer (${rows.length} records)`, repo.clock.now());
-  await saveState(repo, fresh);
-  Object.assign(st, fresh);
-  return message;
 }
 
 /** Attaches a PDF the AI fetched; the record's notes say so. */

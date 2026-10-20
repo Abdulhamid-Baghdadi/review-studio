@@ -1,12 +1,12 @@
 /**
  * Keyboard shortcuts: next / previous page, help, worked example, glossary, timeline. A page's own keys (the
- * screening keys, Ctrl+Enter on the idea page) are its PAGE_KEYS handler, asked first.
+ * screening keys) are its PAGE_KEYS handler, asked first.
  * @module web/studio/shell/keyboard
  */
 import { singleKeys } from "../core/dom.js";
 import { CUR, HOME } from "../core/state.js";
 import { closeHelp, openExample, openGlossary, openHelp, openTimeline } from "./help.js";
-import { curTab, goTab, tabSequence } from "./navigation.js";
+import { goTab, pageIndex, pageSequence } from "./navigation.js";
 import { PAGE_KEYS } from "./registry.js";
 
 document.addEventListener("keydown", e => {
@@ -14,7 +14,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") { closeHelp(); return; }
   if (PAGE_KEYS[CUR]?.(e, typing)) return;
   if (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
-    const seq = tabSequence(), i = (CUR === HOME ? -1 : seq.findIndex(x => x.tab === curTab())) + (e.key === "ArrowDown" ? 1 : -1);
+    const seq = pageSequence(), i = (CUR === HOME ? -1 : pageIndex(seq)) + (e.key === "ArrowDown" ? 1 : -1);
     if (seq[i]) { e.preventDefault(); goTab(seq[i].tab); }
     return;
   }

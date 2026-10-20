@@ -39,7 +39,7 @@ try {
   await page.waitForFunction(() => window.backend?.entry?.example && document.querySelector("#page")?.innerText.length > 200);
   await page.keyboard.press("Escape");                     // a first-visit tour, if one is offered
 
-  // A stage split into parts (tabs) keeps one address, so a page is told apart by its address and its text.
+  // A page is told apart by its address and its text (the parts of Screen papers share one address).
   const here = async () => `${await where()} ${(await text()).slice(0, 160)}`;
   const pages = {};
   // The accessibility floor (docs/ui-ux-rules.md, group A) on every page, light and dark, then at 400 px wide.
@@ -81,10 +81,8 @@ try {
     if ((await where()) !== hash) throw new Error(`could not reach ${hash}`);
   };
   const actions = {};
-  await goTo("#idea");
-  await page.fill("#page textarea", "Smoke test idea note");
-  await page.keyboard.press("Control+Enter"); await page.waitForTimeout(400);
-  actions.idea = (await text()).includes("Smoke test idea note");
+  await goTo("#protocol");                                  // a step of several parts: one page of sections
+  actions.sections = await page.evaluate(() => document.querySelectorAll("#page .stepsection").length === 3 && !document.querySelector(".steptabs"));
   await goTo("#screening");
   await page.evaluate(() => document.querySelector("#page .queue .qitem")?.click()); await page.waitForTimeout(200);
   // the engine's own count of title/abstract decisions, before and after one decision by keyboard

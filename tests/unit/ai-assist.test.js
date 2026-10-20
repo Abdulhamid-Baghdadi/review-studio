@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
 import { ReviewSession } from "../../src/services/review-session.js";
-import { aiAttach, aiChart, aiContext, AiNotAllowed, aiSecondReviewer, aiSuggest } from "../../src/services/ai-assist.js";
+import { aiAttach, aiChart, aiContext, AiNotAllowed, aiSuggest } from "../../src/services/ai-assist.js";
 import { ReviewError } from "../../src/services/review-commands.js";
 
 const deps = () => ({ clock: { today: () => "2026-01-15", now: () => "2026-01-15 10:00" }, settings: { name: "T", recordsPath: "T records/08 - Records" } });
@@ -24,7 +24,7 @@ const props = (s, id) => s.repo.records.get(id).props;
 
 test("every command refuses while the AI is off for its step", async () => {
   const s = await review();
-  for (const step of ["screening", "fulltext", "reviewer", "retrieval", "charting"]) {
+  for (const step of ["screening", "fulltext", "retrieval", "charting"]) {
     await assert.rejects(aiContext(s.repo, s.st, step), AiNotAllowed, step);
   }
   await assert.rejects(aiSuggest(s.repo, s.st, [], { model }), AiNotAllowed);
@@ -107,19 +107,3 @@ test("charting: fills only empty fields of included records, never after the rev
   assert.equal(props(s, "R0001").chart_checked_by, "AI");
 });
 
-test("second reviewer: fills a copy of the blind sheet, imports it and names the model", async () => {
-  const s = await review();
-  s.st.ai = { reviewer: "ai" };
-  await assert.rejects(aiContext(s.repo, s.st, "reviewer"), /no blind sheet/);
-  for (const id of ["R0001", "R0002", "R0003", "R0004"]) await s.decide(id, "ta", id === "R0002" ? "exclude" : "include", { reason: "E1" });
-  await s.sample({ stage: "ta", fraction: 0.5, seed: 7 });
-  const ctx = await aiContext(s.repo, s.st, "reviewer");
-  assert.equal(ctx.stage, "ta");
-  assert.equal(ctx.records.length, 2);
-  const ids = ctx.records.map(r => r.record_id);
-  await assert.rejects(aiSecondReviewer(s.repo, s.st, [{ record_id: ids[0], decision: "include" }], { model, library: s.library }), /no valid decision/);
-  await aiSecondReviewer(s.repo, s.st, ids.map(id => ({ record_id: id, decision: "include" })), { model, library: s.library });
-  for (const id of ids) assert.equal(props(s, id).r2_ta_decision, "include");
-  assert.equal(s.st.reviewer_ai.ta.model, model);
-  assert.ok((await s.repo.folder.list("09 - Second reviewer")).some(n => n.endsWith("(AI).csv")));
-});

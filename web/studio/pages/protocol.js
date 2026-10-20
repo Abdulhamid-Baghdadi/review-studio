@@ -6,18 +6,26 @@ import { api, busy } from "../core/api.js";
 import { autoSave, flushSaves } from "../core/autosave.js";
 import { h } from "../core/dom.js";
 import { D, PART, S } from "../core/state.js";
-import { authorPill } from "./pilot.js";
 import { chartingFormCard } from "./charting-form.js";
 import { PAGES } from "../shell/registry.js";
 import { exampleFor, withScr } from "../shell/help.js";
 import { autosize, btn, card, iconBtn, openNote } from "../ui/components.js";
+
+/** Who wrote a protocol section last: you, Claude (a draft to read), or Claude and approved by you. */
+function authorPill(key) {
+  const m = (S.state.protocol_meta || {})[key];
+  if (!m) return null;
+  if (m.by === "approved") return h("span", { class: "pill info", style: "margin-left:8px", title: `Drafted by Claude, approved by you on ${m.when}` }, "Claude draft · approved by you");
+  return m.by === "claude" ? h("span", { class: "pill warn", style: "margin-left:8px", title: `Drafted by Claude on ${m.when}. Read and edit it to make it yours.` }, "Draft by Claude")
+    : h("span", { class: "pill ok", style: "margin-left:8px", title: `Last edited by you on ${m.when}` }, "Edited by you");
+}
 
 /** A section's title without its reporting-item reference ("Background and rationale (PRISMA-ScR 3)" → "Background and rationale"): the name of its text field. */
 const plainTitle = t => String(t).replace(/\s*\((PRISMA-ScR|PRISMA 2020)[^)]*\)\s*/, " ").trim();
 /** The reporting items a section answers, as chips that open the checklist (inside the section: a fold's header holds no buttons). */
 const itemChips = t => { const chips = withScr(t).filter(x => x instanceof Node); return chips.length ? h("div", { class: "small muted", style: "margin-top:6px" }, "Reported as ", chips) : null; };
 
-// One step, two tabs: the inclusion and exclusion rules (eligibility criteria and the exclusion reasons used in
+// One stage, two sections of the Protocol page: the inclusion and exclusion rules (eligibility criteria and the exclusion reasons used in
 // screening), and the other method sections of the protocol. Both are saved in the same protocol.
 PAGES.protocol = () => {
   const d = D.protocol ??= { ...S.state.protocol_text };

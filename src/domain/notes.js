@@ -68,10 +68,6 @@ Set to \`pending\` automatically for every record marked include or unsure.
 
 Optional: \`screened_by\` (your initials), \`notes\` (free text). \`screened_on\` is filled automatically.
 
-## Second reviewer
-
-\`second_reviewer_title_abstract_sample\` / \`second_reviewer_full_text_sample\` are set when the sample is drawn in Scoping Review Workbench (Screen papers → Second reviewer); the second reviewer never sees this vault's decisions, only the blind CSV sheet. Do not edit the other \`second_reviewer_…\` properties by hand: they are imported from the returned sheet.
-
 ## Commands
 
 ${commands}
@@ -147,7 +143,6 @@ ${columns}
     view("Unsure at title-abstract", [`${n("ta_decision")} == "unsure"`], [...ta, "ft_decision"]),
     view("Included", [`${n("ft_decision")} == "include"`], ["file.name", "year", "journal", "publication", "sources"]),
     view("Excluded", [`${n("ta_decision")} == "exclude" || ${n("ft_decision")} == "exclude"`], ["file.name", "year", "ta_decision", "ta_reason", "ft_decision", "ft_reason"]),
-    view("Second-reviewer sample", [`${n("sample_ta")} == true || ${n("sample_ft")} == true`], ["file.name", "ta_decision", "r2_ta_decision", "ft_decision", "r2_ft_decision"]),
   ].join("");
 }
 
@@ -167,13 +162,10 @@ const stem = file => file.split("/").pop().replace(/\.md$/, "");
  * @param {string} p.reviewName @param {string} p.reviewLink @param {string} p.today
  * @param {ReturnType<typeof import("./flow.js").flowCounts>} p.counts
  * @param {import("./flow.js").SearchRow[]} p.searches
- * @param {{label: string, sampled: number, pairs: [string,string][], disagreements: object[], observed: number|null, kappa: number|null}[]} p.agreement
- * @param {string[]} p.testSet test-set publication names, sorted
- * @param {string[]} p.missed test-set papers the searches did not find
  * @param {{record: import("./records.js").ReviewRecord, text: string}[]} p.problems
  * @param {Generator} [p.generator]
  */
-export function prismaFlowNote({ reviewName, reviewLink, today, counts: c, searches, agreement, testSet, missed, problems, generator = APP_GENERATOR, type = REVIEW_TYPES.scoping }) {
+export function prismaFlowNote({ reviewName, reviewLink, today, counts: c, searches, problems, generator = APP_GENERATOR, type = REVIEW_TYPES.scoping }) {
   const included = "Sources included";
   const br = rows => rows.map(s => `<br/>${s.database} (n = ${s.records})`).join("");
   const mermaid = `\`\`\`mermaid
@@ -188,10 +180,6 @@ flowchart TD
     E --> EX["Reports excluded (n = ${c.ftExcluded})${c.ftReasons.map(([k, v]) => `<br/>${k}: ${v}`).join("")}"]
     E --> I["${included} (n = ${c.included})"]
 \`\`\``;
-  const agreeRows = agreement.map(a => `| ${a.label} | ${a.sampled} | ${a.pairs.length} | ` +
-    `${a.observed === null ? "" : formatPercent(a.observed)} | ${a.kappa === null ? "" : formatFixed(a.kappa, 2)} |`);
-  const disagreements = agreement.flatMap(a => a.disagreements.map(d =>
-    `- ${a.label}: [[${stem(d.record.file)}|${d.record.id}]] — you: ${d.mine}, second reviewer: ${d.theirs} (${d.reason || "no reason"})`));
   const lines = [
     frontmatter.serialize({ type: "prisma-flow", review: reviewLink, "generated-by": generator.path, generated: today }),
     `# ${reviewName} — PRISMA flow\n`,
@@ -212,15 +200,7 @@ flowchart TD
     "| ID | Kind | Database / source | Date | Query | Filters | Records | New | Duplicates |",
     "|---|---|---|---|---|---|---:|---:|---:|",
     ...searches.map(s => `| ${s.id} | ${s.kind} | ${s.database} | ${s.date} | \`${String(s.query).replaceAll("|", "/")}\` | ${s.filters} | ${s.records} | ${s.new} | ${s.duplicates} |`),
-    "", "## Agreement with the second reviewer\n",
-    "Cohen's κ is computed only from sampled records that both reviewers decided. Target κ ≥ 0.6.\n",
-    "| Stage | Sampled | Both decided | % agreement | Cohen's κ |", "|---|---:|---:|---:|---:|", ...agreeRows, "",
-    "### Disagreements to resolve\n", ...(disagreements.length ? disagreements : ["- none"]), "",
-    "## Search validation (test set)\n",
-    `Test set = publications with \`test_in: ${reviewLink}\` (or, if none, \`candidate_in\`). ` +
-    `Retrieved by the searches: **${testSet.length - missed.length} of ${testSet.length}**.\n`,
   ];
-  if (searches.length && missed.length) lines.push("<details><summary>Missed test-set papers</summary>\n", ...missed.map(m => `- ${m}`), "\n</details>");
   lines.push("", "## Open problems\n");
   lines.push(...(problems.length ? problems.map(p => `- [[${stem(p.record.file)}|${p.record.id}]]: ${p.text}`) : ["- none"]));
   return lines.join("\n") + "\n";

@@ -85,8 +85,6 @@ export function lockChecks(st, reasons) {
   const empty = reviewType(st).protocolSections.filter(([key]) => !strip(t[key] || "")).map(([, title]) => title);
   const holders = [...new Set(Object.values(t).flatMap(v => [...String(v || "").matchAll(/\[[^\]\n]{2,40}\]/g)].map(m => m[0])))].sort(compareCodePoints);
   const drafted = sectionsBy(st, "claude");
-  const pilot = st.stages.pilot.status;
-  const checked = st.pilots.filter(p => p.test_set !== "" && p.test_set !== null && p.test_set !== undefined);
   const sup = st.supervisor_review ?? {};
   const row = (label, ok, detail, required) => ({ label, ok: Boolean(ok), detail, required });
   return [
@@ -95,9 +93,6 @@ export function lockChecks(st, reasons) {
     row("All protocol sections written", !empty.length, empty.length ? "missing: " + empty.join(", ") : "8 of 8", true),
     row("No placeholders left", !holders.length, holders.length ? "replace: " + holders.join(", ") : "none found", true),
     row("Exclusion reasons set", !sameValue([...reasons.ta], [...DEFAULT_TA_REASONS]), `${reasons.ft.length} full-text reasons`, true),
-    row("Search piloted and checked against the test set", pilot === "skipped" || checked.length,
-      pilot === "skipped" ? "skipped: " + st.stages.pilot.reason
-        : checked.length ? `last check ${checked.at(-1).retrieved}/${checked.at(-1).test_set}` : "no checked pilot", true),
     row("Reviewed by your supervisor", sup.by, sup.by ? `${sup.by}, ${sup.when}` : "not yet", true),
     row("Sections drafted by Claude were read by you", !drafted.length,
       drafted.length ? "still unread drafts: " + drafted.join(", ") : "all edited or approved by you", false),

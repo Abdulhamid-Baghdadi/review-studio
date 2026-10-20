@@ -14,8 +14,8 @@ import { btn, card, hlQuery } from "../ui/components.js";
 // The animated demo on the Homepage: a small mock screen that plays through the five steps of a review.
 // Plain DOM and CSS (no video file), so it works offline and follows the light/dark theme.
 const DEMO = [
-  { key: "plan", you: "Write your question (Population, Intervention, Comparator, Outcomes), pick the search terms and set the inclusion rules. Lock the plan before searching.", ai: null, label: "Plan", caption: "Write down your idea, then turn it into questions and search terms.",
-    draw: el => { const t = h("div", { class: "demo-type" }); el.append(h("div", { class: "demo-lbl" }, "💡 Idea note"), t);
+  { key: "plan", you: "Write your question (Population, Concept, Context), pick the search terms and set the inclusion rules. Lock the plan before searching.", ai: null, label: "Plan", caption: "Write your question, then turn it into search terms.",
+    draw: el => { const t = h("div", { class: "demo-type" }); el.append(h("div", { class: "demo-lbl" }, "✍ Research question"), t);
       const s = "How do researchers measure how repairable a phone is?"; let i = 0;
       return setInterval(() => { t.textContent = s.slice(0, ++i); }, 45); } },
   { key: "search", you: "Run each string in the databases, export the results and drop the files in. Every search is dated and logged.", ai: null, label: "Find", caption: "Run the search strings in the databases and import the exports. Duplicates are removed.",
@@ -39,7 +39,7 @@ const DEMO = [
         } else if (t === Math.ceil(q.length / 2) + 33) total.classList.add("on");
       }, 40);
     } },
-  { key: "screen", you: "Decide every record. You confirm each suggestion; nothing is decided for you.", ai: "Pre-screen titles, abstracts and full texts, and act as the blind second reviewer (agreement as κ).", label: "Select", caption: "Read each title and abstract: include, unsure or exclude with a reason. Then the full texts.",
+  { key: "screen", you: "Decide every record. You confirm each suggestion; nothing is decided for you.", ai: "Pre-screen titles, abstracts and full texts; you confirm every suggestion.", label: "Select", caption: "Read each title and abstract: include, unsure or exclude with a reason. Then the full texts.",
     draw: el => { const papers = ["Repairability scoring of smartphones", "Battery chemistry review", "EN 45554 in practice", "Consumer repair behaviour"];
       const rows = papers.map(p => h("div", { class: "demo-row" }, h("span", {}, p), h("span", { class: "demo-dec" })));
       el.append(h("div", { class: "demo-lbl" }, "☑ Title/abstract screening"), ...rows);

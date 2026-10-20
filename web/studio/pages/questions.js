@@ -38,6 +38,9 @@ PAGES.questions = () => {
       h("div", { class: "hr" }),
       field("Why it changed (optional; kept with this version)", h("input", { type: "text", placeholder: "e.g. narrowed to household appliances after reading the first papers", value: d.why, oninput: bind("why") }),
         "Saved as you type. A new version is kept each time you come back to edit after a pause.")),
+    S.state.idea?.length ? h("details", { class: "card" }, h("summary", { style: "font-weight:700" }, `Idea notes (${S.state.idea.length})`,      // kept from before 2026-10-20
+      h("span", { class: "muted small", style: "font-weight:400" }, " — written before the question; kept for your record")),
+      S.state.idea.map(i => h("div", { class: "small", style: "margin-top:6px" }, h("b", {}, i.when), " — ", i.text))) : null,
     q.history.length ? card("Earlier versions", `${q.history.length} version(s), newest first`,
       [...q.history].reverse().map(v => h("details", { style: "padding:6px 0;border-bottom:1px solid var(--border)" },
         h("summary", {}, h("b", {}, v.when), " — ", v.why || "no reason given"),

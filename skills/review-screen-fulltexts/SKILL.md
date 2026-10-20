@@ -44,4 +44,4 @@ All reading and writing goes through `bin/ai-assist.js` (Scoping Review Workbenc
    - records still waiting for a PDF;
    - any criterion that was hard to apply consistently. That is for the reviewer; a change after the protocol lock is an amendment.
 
-   Remind the user to review the suggestions in the Full text tab (Suggested), one paper at a time: Enter accepts, I/E decides otherwise.
+   Remind the user to review the suggestions in Screen papers → Full texts (Suggested), one paper at a time: Enter accepts, I/E decides otherwise.
