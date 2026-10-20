@@ -67,14 +67,16 @@ export function flowMap() {
       }
       if (n.n === undefined) {
         const status = stepStatus(n.step);
-        return h("button", { class: `fmc-dot ${status} ${isHere ? "here" : ""}`, onclick: n.go, title: tipOf(n, isHere), "aria-label": n.step.title, "aria-current": isHere ? "step" : null },
-          status === "done" ? "✓" : status === "skipped" ? "–" : String(num));
+        // a step: its status dot and its name (the name folds away on narrower screens; the dot stays)
+        return h("button", { class: `fmc-step ${isHere ? "here" : ""}`, onclick: n.go, title: tipOf(n, isHere), "aria-label": n.step.title, "aria-current": isHere ? "step" : null },
+          h("span", { class: `fmc-dot ${status}`, "aria-hidden": "true" }, status === "done" ? "✓" : status === "skipped" ? "–" : String(num)),
+          h("span", { class: "fmc-name", "aria-hidden": "true" }, n.step.title));
       }
       return h("button", { class: `fmc-count ${isHere ? "here" : ""} ${n.good ? "good" : ""}`, onclick: n.go, title: tipOf(n, isHere), "aria-current": isHere ? "step" : null },
         h("span", {}, SHORT[n.id] ?? n.label), h("b", {}, Number(n.n).toLocaleString()));
     };
     return h("nav", { class: "flowmap compact", "aria-label": "Steps of the review, with the PRISMA flow" },
-      groups.flatMap((g, i) => [i ? arrow() : null, h("span", { class: `fmc-group ${g.prisma ? "prisma" : "steps"}`, title: g.phase },
+      groups.flatMap((g, i) => [i ? arrow() : null, h("span", { class: `fmc-group ${g.prisma ? "prisma" : "steps"} ${g.nodes.length === 1 && !g.prisma ? "single" : ""}`, title: g.phase },
         h("span", { class: "fmc-phase" }, g.phase), g.nodes.flatMap((n, j) => [j && g.prisma && g.phase !== "Find" ? h("span", { class: "fmc-sep", "aria-hidden": "true" }, n.id === "reviewer" ? "·" : "›") : null, item(n)]))]),
       h("span", { class: "spacer" }),
       iconBtn("⤢", "Show the full PRISMA flow diagram", full),
