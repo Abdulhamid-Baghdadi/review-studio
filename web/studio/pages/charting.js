@@ -58,7 +58,7 @@ PAGES.charting = () => {
   return h("div", {},
     h("div", { class: "row", style: "margin-bottom:12px" },
       h("div", { style: "flex:1" }, bar(inc.length ? n("me") / inc.length : 0),
-        h("div", { class: "small muted" }, `Checked by you: ${n("me")} of ${inc.length} included sources · AI from full text ${n("ft")} · AI from abstract ${n("abs")}`)),
+        h("div", { class: "small muted" }, `Checked by you: ${n("me")} of ${inc.length}`)),
       btn("Open Charting.base", () => openNote("12 - Charting.base"), "ghost")),
     h("div", { class: "chart-grid" },
       card("Included sources", null,

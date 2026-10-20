@@ -226,7 +226,7 @@ function renderMetrics() {
     searches: ["unique", "problems"],
     screening: SC.stage === "ft" ? ["ft", "included", "problems"] : ["unique", "ta", "problems"],   // only what the part on screen is about
     retrieval: ["included", "pdfs"],
-    charting: ["included", "pdfs", "charted", "checked"],
+    charting: [],                    // the page's own filter (All · Full text · Abstract · Checked) has these counts
     report: ["unique", "included", "pdfs", "checked", "problems"],
   };
   const keys = PER_STAGE[CUR] || [];
