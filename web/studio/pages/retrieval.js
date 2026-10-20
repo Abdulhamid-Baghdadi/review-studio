@@ -8,6 +8,7 @@ import { D, S } from "../core/state.js";
 import { PAGES } from "../shell/registry.js";
 import { render } from "../shell/chrome.js";
 import { btn, card, pill, segmented } from "../ui/components.js";
+import { announce } from "../ui/dialogs.js";
 
 // PDFs already on this PC: scan a folder, show the matches, copy the ticked ones into the review
 async function scanPdfs(folder) {
@@ -50,17 +51,26 @@ PAGES.retrieval = () => {
   const f = D.rfilter ?? (n("find") ? "find" : "all");     // nothing left to find: show them all
   const recs = all.filter(r => f === "all" || st(r) === f);
   const stat = r => ({ found: pill("found", "ok"), not: pill("not retrieved", "bad"), find: pill("to find", "warn") })[st(r)];
+  // after a row's action, say what happened and keep the keyboard on the list: the next paper's buttons (or this
+  // paper's, when it stays in view), not the top of the page
+  const done = async (r, action, said) => {
+    const i = recs.indexOf(r), stays = f === "all", target = stays ? r : recs[i + 1] ?? recs[i - 1];
+    await action();
+    announce(said);
+    document.querySelector(`#page tr[data-record="${target?.record_id}"] button`)?.focus();
+  };
   const actions = r => {
-    const file = h("input", { type: "file", accept: ".pdf", style: "display:none", onchange: async () => { const p = await upload(file.files[0]); api("attach_pdf", { record_id: r.record_id, path: p }); } });
+    const file = h("input", { type: "file", accept: ".pdf", style: "display:none", onchange: async () => { const p = await upload(file.files[0]);
+      done(r, () => api("attach_pdf", { record_id: r.record_id, path: p }), `${r.record_id}: PDF attached.`); } });
     const box = h("div", { style: "display:flex;flex-direction:column;gap:4px;align-items:stretch;min-width:120px" }, file);
     if (st(r) === "found") box.append(btn("📄 Open PDF", () => api("open_note", { note: `10 - Full texts/${r.file}.pdf` }, { silent: true }), "sm"),
       btn("Replace", () => file.click(), "sm ghost"));
-    else if (st(r) === "not") box.append(btn("Undo", () => api("mark_pdf", { record_id: r.record_id, status: "" }), "sm ghost"));
-    else box.append(btn("Attach PDF", () => file.click(), "sm"), btn("Not retrieved", () => api("mark_pdf", { record_id: r.record_id, status: "not-retrieved" }), "sm ghost"));
+    else if (st(r) === "not") box.append(btn("Undo", () => done(r, () => api("mark_pdf", { record_id: r.record_id, status: "" }), `${r.record_id}: back to find.`), "sm ghost"));
+    else box.append(btn("Attach PDF", () => file.click(), "sm"), btn("Not retrieved", () => done(r, () => api("mark_pdf", { record_id: r.record_id, status: "not-retrieved" }), `${r.record_id}: marked not retrieved.`), "sm ghost"));
     return box;
   };
   return h("div", {},
-    card("Full texts", `${all.length} papers passed the title and abstract check: ${n("found")} found · ${n("not")} not retrieved · ${n("find")} to find`,
+    card("Get the full texts", `${all.length} papers passed the title and abstract check: ${n("found")} found · ${n("not")} not retrieved · ${n("find")} to find`,
       h("div", { class: "row", style: "margin-bottom:12px" },
         btn("📁 Find PDFs in a folder…", e => busy(e.currentTarget, () => scanPdfs()), "primary"),
         S.pdf_folders.slice(0, 3).map(f => btn("↻ " + f.split(/[\\/]/).pop(), e => busy(e.currentTarget, () => scanPdfs(f)), "sm ghost")),
@@ -71,7 +81,7 @@ PAGES.retrieval = () => {
         segmented([["find", `To find (${n("find")})`], ["found", `Found (${n("found")})`], ["not", `Not retrieved (${n("not")})`], ["all", `All (${all.length})`]], f, v => { D.rfilter = v; render(); }, "Show papers")),
       recs.length ? h("div", { class: "scroll", style: "max-height:600px;overflow-x:auto" }, h("table", { class: "tbl", style: "width:100%" },
         h("tr", {}, ["Record", "Status", "Links", "Actions"].map(t => h("th", {}, t))),
-        recs.map(r => h("tr", {},
+        recs.map(r => h("tr", { "data-record": r.record_id },
           h("td", {}, h("b", { style: "font-family:var(--mono)" }, r.record_id), " ", r.title, h("div", { class: "small muted" }, r.authors.split(";")[0], r.year ? " · " + r.year : "")),
           h("td", {}, stat(r)),
           h("td", { style: "white-space:nowrap" }, r.doi ? h("a", { href: "https://doi.org/" + r.doi, target: "_blank" }, "DOI ↗") : null, r.oa_url ? [" · ", h("a", { href: r.oa_url, target: "_blank" }, "OA ↗")] : null),
