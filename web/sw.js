@@ -2,7 +2,7 @@
 // goes to the server first and falls back to the stored copy, so the app opens without a server or a network,
 // and edits to the app still show up as soon as the server is back. Review folders never pass through here.
 // Bump VERSION when the app's files move: a changed sw.js makes installed copies run "install" again and store the new list.
-const VERSION = "2026-10-20 include and exclude lists";
+const VERSION = "2026-10-20 reasons typed once; data items in words";
 const CACHE = "prisma-studio";    // the old app name, kept so installed copies update their cache in place
 
 self.addEventListener("install", event => {

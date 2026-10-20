@@ -24,6 +24,9 @@ const sectionsBy = (st, by) => reviewType(st).protocolSections.filter(([key]) =>
  * @param {string} [p.frozen] date of registration, for the frozen copy
  * @param {string} p.generatedBy written to `generated-by`
  */
+/** A charting field's name as words for the protocol: "source_type" → "Source type". */
+const fieldWords = name => { const t = String(name).replace(/_/g, " ").trim(); return t.charAt(0).toUpperCase() + t.slice(1); };
+
 export function protocolMarkdown({ reviewName, reviewLink, st, ftReasons, include = [], frozen = "", generatedBy }) {
   const q = st.questions, t = st.protocol_text, type = reviewType(st), Q = type.question;
   const reg = frozen ? "" : st.protocol.locked ?? "";
@@ -50,7 +53,7 @@ export function protocolMarkdown({ reviewName, reviewLink, st, ftReasons, includ
       lines.push("", include.length ? "Exclude a paper if (the reasons used in screening):" : "Exclusion reasons used in screening:", ...ftReasons.map(r => `- ${r}`));
     }
     if (key === "sources") lines.push("", "Databases: " + st.queries.databases.join(", "));
-    if (key === "charting") lines.push("", `Data items (${type.refs.dataItems}):`, ...st.charting.fields.map(f => `- \`${f.name}\` — ${f.description}`));
+    if (key === "charting") lines.push("", `Data items (${type.refs.dataItems}):`, ...st.charting.fields.map(f => `- **${fieldWords(f.name)}:** ${f.description}`));
   }
   lines.push("", `## Search strategy (${type.refs.search})\n`, "| Concept | Role | Terms |", "|---|---|---|",
     ...st.concepts.map(c => `| ${c.name} | ${c.role ?? "AND"} | ${(c.terms ?? []).join("; ")} |`));
