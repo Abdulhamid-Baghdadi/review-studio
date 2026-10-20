@@ -54,8 +54,9 @@ const protocolPage = rules => {
     draw(); return box;
   };
   const section = (sct, open) => h("details", { open, style: "border-bottom:1px solid var(--border);padding:8px 0" },
-    h("summary", {}, h("b", { style: "color:var(--text)" }, plainTitle(sct.title)), authorPill(sct.key), d[sct.key] ? h("span", { class: "pill ok", style: "margin-left:8px" }, "written") : h("span", { class: "pill", style: "margin-left:8px" }, "empty")),
+    h("summary", {}, h("b", { style: "color:var(--text)" }, plainTitle(sct.title)), sct.optional ? h("span", { class: "pill info", style: "margin-left:8px" }, "optional") : null, authorPill(sct.key), d[sct.key] ? h("span", { class: "pill ok", style: "margin-left:8px" }, "written") : h("span", { class: "pill", style: "margin-left:8px" }, "empty")),
     itemChips(sct.title),
+    sct.key === "appraisal" ? h("div", { class: "small muted", style: "margin-top:4px" }, "Optional in a scoping review. If you do not appraise the sources, say so in one sentence (e.g. \u201cNo critical appraisal was done, as this review maps the evidence\u201d).") : null,
     sct.key === "sources" ? h("div", { class: "small muted", style: "margin-top:4px" }, "The databases from Search strategy are added to the protocol automatically. Write here what they do not say: search dates, limits and any other sources.") : null,
     h("div", { style: "margin-top:8px" }, autosize(h("textarea", { rows: rules ? 6 : 3, "aria-label": plainTitle(sct.title), value: d[sct.key] || "", placeholder: exampleFor("protocol", sct.key) || exampleFor("protocol", sct.title), oninput: e => d[sct.key] = e.target.value })),
       ((S.state.protocol_meta || {})[sct.key] || {}).by === "claude" ? h("div", { class: "row end", style: "margin-top:6px" },

@@ -3,6 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { checklistOf, defaultState, restoreState, reviewType, saveQuestions, stagesOf } from "../../src/domain/stages.js";
 import { REVIEW_TYPES } from "../../src/domain/review-types.js";
+import { lockChecks } from "../../src/domain/protocol.js";
 import { workComplete } from "../../src/domain/progress.js";
 import { loadState } from "../../src/services/review-state.js";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
@@ -64,4 +65,13 @@ test("a new review is a scoping review; a review saved as systematic opens as on
   assert.equal(stagesOf(old).length, 11);
   assert.equal(old.synthesis.approach, "narrative");               // nothing the review saved is dropped
   assert.equal(old.checklist_prisma2020[3].done, true);
+});
+
+test("critical appraisal is an optional protocol section: the lock check does not require it", () => {
+  const st = defaultState();
+  const sections = REVIEW_TYPES.scoping.protocolSections;
+  assert.deepEqual(sections.filter(([, , optional]) => optional).map(([key]) => key), ["appraisal"]);
+  for (const [key, , optional] of sections) if (!optional) st.protocol_text[key] = "written";
+  const row = lockChecks(st, { ta: ["E1 x"], ft: ["E1 x"], include: [] }).find(c => c.label === "All protocol sections written");
+  assert.equal(row.ok, true, row.detail);
 });

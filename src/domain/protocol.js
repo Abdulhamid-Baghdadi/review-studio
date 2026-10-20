@@ -82,7 +82,8 @@ export function protocolMarkdown({ reviewName, reviewLink, st, ftReasons, includ
  */
 export function lockChecks(st, reasons) {
   const t = st.protocol_text;
-  const empty = reviewType(st).protocolSections.filter(([key]) => !strip(t[key] || "")).map(([, title]) => title);
+  const required = reviewType(st).protocolSections.filter(([, , optional]) => !optional);
+  const empty = required.filter(([key]) => !strip(t[key] || "")).map(([, title]) => title);
   const holders = [...new Set(Object.values(t).flatMap(v => [...String(v || "").matchAll(/\[[^\]\n]{2,40}\]/g)].map(m => m[0])))].sort(compareCodePoints);
   const drafted = sectionsBy(st, "claude");
   const sup = st.supervisor_review ?? {};
@@ -90,7 +91,7 @@ export function lockChecks(st, reasons) {
   return [
     row("Review questions written", st.questions.main, chars(st.questions.main).slice(0, 80).join("") || "not written yet (Research question)", true),
     row("Concept table and search strings", st.concepts.length, `${st.concepts.length} concept block(s)`, true),
-    row("All protocol sections written", !empty.length, empty.length ? "missing: " + empty.join(", ") : "8 of 8", true),
+    row("All protocol sections written", !empty.length, empty.length ? "missing: " + empty.join(", ") : `${required.length} of ${required.length} (optional ones not counted)`, true),
     row("No placeholders left", !holders.length, holders.length ? "replace: " + holders.join(", ") : "none found", true),
     row("Exclusion reasons set", !sameValue([...reasons.ta], [...DEFAULT_TA_REASONS]), `${reasons.ft.length} full-text reasons`, true),
     row("Reviewed by your supervisor", sup.by, sup.by ? `${sup.by}, ${sup.when}` : "not yet", true),

@@ -4,7 +4,7 @@
  */
 import { api, backend, busy, getJSON } from "../core/api.js";
 import { $, h, store } from "../core/dom.js";
-import { CUR, HOME, PART, REVIEW, S } from "../core/state.js";
+import { CUR, HOME, PART, REVIEW, S, SC } from "../core/state.js";
 import { PAGES } from "./registry.js";
 import { openHelp } from "./help.js";
 import { flowMap } from "./journey-map.js";
@@ -220,7 +220,7 @@ function renderMetrics() {
   };
   const PER_STAGE = {
     searches: ["unique", "problems"],
-    screening: ["unique", "ta", "ft", "included", "problems"],
+    screening: SC.stage === "ft" ? ["ft", "included", "problems"] : ["unique", "ta", "problems"],   // only what the part on screen is about
     retrieval: ["included", "pdfs"],
     charting: ["included", "pdfs", "charted", "checked"],
     report: ["unique", "included", "pdfs", "checked", "problems"],

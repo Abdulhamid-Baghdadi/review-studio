@@ -112,7 +112,7 @@ export async function snapshot(session, { review, reviews, vault }) {
     lock_checks: await session.lockChecks(),
     checklist_auto: Object.fromEntries(Object.entries(await stageActions.checklistAuto(repo, st)).map(([k, v]) => [String(k), v])),
     checklist_items: stages.reviewType(st).checklist.map(it => ({ ...it })),
-    protocol_sections: stages.reviewType(st).protocolSections.map(([key, title]) => ({ key, title })),
+    protocol_sections: stages.reviewType(st).protocolSections.map(([key, title, optional = false]) => ({ key, title, optional })),
     record_files: Object.fromEntries(records.map(r => [r.id, r.file])),
     "07 - Exports": await listing("07 - Exports"),
   };

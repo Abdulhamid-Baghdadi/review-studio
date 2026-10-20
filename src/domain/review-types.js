@@ -18,7 +18,7 @@ const SCOPING_STAGES = [
   ["concepts", "2 · Concepts and terms", false, "One block per idea in your question, with all its synonyms and spellings. A paper must match every block."],
   ["queries", "3 · Search strings", false, "Your keywords turned into a ready-to-paste search for each database. Edit one by hand if needed."],
   ["protocol", "4 · Inclusion & exclusion rules", false, "Decide which papers belong in your review and which do not. The short exclusion reasons (E1, E2 …) are the only ones you can pick while screening."],
-  ["methods", "5 · Methods", false, "The rest of your plan: the form you will fill in for every paper, then how you will find, select, chart and summarise. Your question, search strings, test results and rules are added to the Protocol note for you."],
+  ["methods", "5 · Methods", false, "The rest of your plan: the form you will fill in for every paper, then how you will find, select, chart and summarise. Your question, search strings and rules are added to the Protocol note for you."],
   ["registration", "6 · Registration", true, "Freeze your plan before the real searches, so later changes are visible (optionally registered on OSF)."],
   ["searches", "7 · Database searches", false, "Run each search in its database, export the results and drop the file here. Duplicates are merged."],
   ["screening", "8 · Screening", false, "Read each title and abstract and decide: include, unsure or exclude. Then do the same with the full texts."],
@@ -108,7 +108,7 @@ const SCOPING = freeze({
     ["sources", "Information sources (PRISMA-ScR 7)"],
     ["selection", "Selection of sources of evidence (PRISMA-ScR 9)"],
     ["charting", "Data charting process (PRISMA-ScR 10)"],
-    ["appraisal", "Critical appraisal (PRISMA-ScR 12)"],
+    ["appraisal", "Critical appraisal (PRISMA-ScR 12)", true],            // optional: say whether sources were appraised
     ["synthesis", "Synthesis of results (PRISMA-ScR 13)"],
     ["timeline", "Timeline and team"],
   ].map(freeze)),
