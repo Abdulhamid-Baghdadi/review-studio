@@ -118,7 +118,8 @@ PAGES.screening = () => {
   if (!q.find(r => r.record_id === SC.id)) SC.id = q[0]?.record_id || null;
   const rec = S.records.find(r => r.record_id === SC.id);
   const done = SC.stage === "ta" ? S.flow.unique - S.flow.ta_pending : S.flow.assessed;
-  const total = SC.stage === "ta" ? S.flow.unique : S.flow.sought;
+  // full texts: only the papers whose PDF was found can be read and decided; the others are counted apart
+  const total = SC.stage === "ta" ? S.flow.unique : S.flow.sought - S.flow.not_retrieved;
   const reasons = S.reasons[SC.stage];
   const dkey = SC.stage === "ta" ? "ta_decision" : "ft_decision", rkey = SC.stage === "ta" ? "ta_reason" : "ft_reason";
 
@@ -127,7 +128,7 @@ PAGES.screening = () => {
       ...(suggested().length || SC.filter === "suggest" ? [["suggest", `Suggested (${suggested().length})`]] : []),
       ...(SC.stage === "ta" && S.records.some(r => r.presort && r.ta_decision === "pending") ? [["presort", `Pre-sorted (${S.records.filter(r => r.presort && r.ta_decision === "pending").length})`]] : [])],
       SC.filter, v => { SC.filter = v; render(); }, "Show records"),
-    h("div", { style: "flex:1;min-width:160px" }, bar(total ? done / total : 0), h("div", { class: "small muted" }, `${done} of ${total} decided`)),
+    h("div", { style: "flex:1;min-width:160px" }, bar(total ? done / total : 0), h("div", { class: "small muted" }, `${done} of ${total} decided`, SC.stage === "ft" && S.flow.not_retrieved ? ` · ${S.flow.not_retrieved} not retrieved` : "")),
     btn("Check decisions", e => busy(e.currentTarget, () => api("check")), ""),
     btn("Open Screening.base", () => openNote("08 - Screening.base"), "ghost"));
 
@@ -163,7 +164,8 @@ PAGES.screening = () => {
       h("div", { class: "row", style: "margin-top:8px" },
         rec.doi ? h("a", { href: "https://doi.org/" + rec.doi, target: "_blank", class: "btn sm" }, "DOI ↗") : null,
         rec.oa_url ? h("a", { href: rec.oa_url, target: "_blank", class: "btn sm" }, "Open access ↗") : null,
-        SC.stage === "ft" ? pill(rec.pdf_status ? "PDF: " + rec.pdf_status : "PDF: not checked", rec.pdf_status === "found" ? "ok" : rec.pdf_status ? "bad" : "") : null),
+        SC.stage === "ft" && rec.pdf_status === "found" ? btn("📄 Open the PDF", () => api("open_note", { note: `10 - Full texts/${rec.file}.pdf` }, { silent: true }), "sm primary") : null,   // the full text is what this stage reads
+        SC.stage === "ft" && rec.pdf_status !== "found" ? pill(rec.pdf_status ? "PDF: " + rec.pdf_status : "PDF: not checked", rec.pdf_status ? "bad" : "") : null),
       absBox,
       SC.filter === "suggest" && rec[aiKey("decision")] ? suggestionBox(rec) : null,
       h("div", { style: "margin-top:12px" }, field("Note (optional)", notes)),
@@ -209,7 +211,7 @@ function decisionBar(rec, cur, reasonRow) {
   const pressed = d => ({ "aria-pressed": String(cur === d) });
   return h("div", { class: "decide-bar" },
     h("div", { class: "decide-top" },
-      lastDecisionLine() ?? h("span", { class: "kbdhint" }, `${SC.filter === "suggest" ? "Enter accept · " : ""}I include · U unsure · E exclude, then 1–9 reason · Z undo · ←/→ previous / next`),
+      lastDecisionLine() ?? h("span", { class: "kbdhint" }, `${SC.filter === "suggest" ? "Enter accept · " : ""}I include · ${SC.stage === "ta" ? "U unsure · " : ""}E exclude, then 1–9 reason · Z undo · ←/→ previous / next`),
       h("span", { class: "spacer" }),
       btn("← Previous", () => move(-1), "sm ghost", "Previous record (←)"), btn("Next →", () => move(1), "sm ghost", "Next record (→)")),
     h("div", { class: "decide" },
