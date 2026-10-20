@@ -61,7 +61,7 @@ export function protocolMarkdown({ reviewName, reviewLink, st, ftReasons, includ
   const aiUsed = Object.entries(AI_STEPS).filter(([k]) => aiMode(st, k) !== "off")
     .map(([k, def]) => [k, def.modes.find(([m]) => m === aiMode(st, k))]);
   if (drafted.length || approved.length || aiUsed.length) {
-    lines.push("", "## Use of AI assistance\n", ...aiUsed.map(([k, [, label, desc]]) => `- **${titleWithoutNumber(st, k)}:** ${label}. ${desc}`));
+    lines.push("", "## Use of AI assistance\n", ...aiUsed.map(([k, [, label, desc]]) => `- **${AI_STEPS[k].name ?? titleWithoutNumber(st, k)}:** ${label}. ${desc}`));
     for (const [stage, r] of Object.entries(st.reviewer_ai ?? {})) {
       lines.push(`- Second reviewer (${stage === "ta" ? "title/abstract" : "full text"}): ${r.model}, ${chars(r.when).slice(0, 10).join("")}, sheet \`${r.sheet}\`.`);
     }

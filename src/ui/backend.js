@@ -342,6 +342,9 @@ export class Backend {
       if (e instanceof AmendmentRequired) return answer(409, { amendment: e.what });
       if (e?.name === "AbortError") return answer(400, { error: "cancelled" });
       console.error(e);
+      // an action that failed half way may have changed the review in memory but not on disk: read it again, so that
+      // the page shows what is saved (before, a failed AI switch showed four modes while the file kept one)
+      if (this.session && !action.startsWith("preview")) await this.session.reload().catch(r => console.error("re-reading after an error:", r));
       return answer(400, { error: e.message });
     }
   }

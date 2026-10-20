@@ -9,7 +9,7 @@ import { event, guardedChange } from "./stages.js";
 
 export const AI_STEPS = Object.freeze({
   screening: {
-    skill: "review-screen-abstracts",
+    name: "Title and abstract screening", skill: "review-screen-abstracts",
     modes: [
       ["off", "Off", "You screen every record yourself."],
       ["suggest", "AI suggests", "The AI suggests a title/abstract decision per record. In the Suggested queue you read each record, then its suggestion under the abstract: Enter accepts it, I, U or E decides otherwise. Decisions are recorded as yours, noting whether you kept the suggestion."],
@@ -20,7 +20,7 @@ export const AI_STEPS = Object.freeze({
   },
   // full-text screening: chosen on the Full texts page, once the PDFs are there (its timeline entries go to screening)
   fulltext: {
-    skill: "review-screen-fulltexts", stage: "screening",
+    name: "Full-text screening", skill: "review-screen-fulltexts", stage: "screening",
     modes: [
       ["off", "Off", "You read every full text and decide yourself."],
       ["suggest", "AI suggests", "The AI reads each attached full text and suggests a full-text decision with page numbers. In the Suggested queue you check each one: Enter accepts it, I or E decides otherwise."],
@@ -30,7 +30,7 @@ export const AI_STEPS = Object.freeze({
       "Report the AI assistance in the methods (PRISMA-ScR item 9, selection of sources of evidence)."],
   },
   retrieval: {
-    skill: "review-fetch-fulltexts",
+    name: "Full-text retrieval", skill: "review-fetch-fulltexts",
     modes: [
       ["off", "Off", "You find and attach every full text yourself."],
       ["assist", "AI fetches", "The AI looks for each full text (open access first, then your library access) and attaches the PDFs it finds; it never marks a paper as excluded."],
@@ -39,7 +39,7 @@ export const AI_STEPS = Object.freeze({
       "Records the AI could not get stay in the queue; try your library or mark them not retrieved."],
   },
   charting: {
-    skill: "review-chart-data",
+    name: "Data charting", skill: "review-chart-data",
     modes: [
       ["off", "Off", "You fill the charting form yourself."],
       ["prefill", "AI prefills", "The AI fills empty charting fields from the full text, with page locators; each paper stays 'checked by AI' until you press Checked — next."],

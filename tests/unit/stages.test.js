@@ -186,3 +186,10 @@ test("Web of Science plain text: tagged records with indented continuation lines
   // a file that is not an export: no line becomes a record (before, each line counted as one and entered the flow)
   assert.equal(parseExport("notes.txt", "just some\nlines of text\nthat are not an export\n").length, 0);
 });
+
+test("the protocol names every AI step in use, the full-text step too (it is no stage of its own)", () => {
+  const st = defaultState();
+  st.ai = { screening: "suggest", fulltext: "suggest", retrieval: "assist", charting: "prefill" };
+  const text = protocolMarkdown({ reviewName: "R", reviewLink: "[[R]]", st, ftReasons: [], generatedBy: "test" });
+  for (const name of ["Title and abstract screening", "Full-text screening", "Full-text retrieval", "Data charting"]) assert.ok(text.includes(`- **${name}:**`), name);
+});

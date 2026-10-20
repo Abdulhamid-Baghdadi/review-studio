@@ -135,3 +135,14 @@ test("a search id is never given twice, also after an import was undone", async 
   const ids = (await backend.get("/api/state")).searches.map(s => s.id);
   assert.deepEqual(ids, ["S01", "S03", "S04"]);       // not S04 twice, and S02 (undone, its file kept) not given again
 });
+
+test("an action that fails half way leaves the review as saved, not as changed in memory", async () => {
+  const backend = await backendWithReview();
+  const s = backend.session;
+  const save = s.save.bind(s);
+  s.save = async () => { throw new Error("disk full"); };            // the change is made in memory, then saving fails
+  const failed = await backend.action("ai_mode", { stage: "charting", mode: "prefill" });
+  assert.equal(failed.status, 400);
+  s.save = save;
+  assert.equal((await backend.get("/api/state")).ai.modes.charting, "off", "the page sees what is on disk");
+});
