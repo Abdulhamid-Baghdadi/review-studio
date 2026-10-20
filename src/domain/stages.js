@@ -132,7 +132,7 @@ export function setStatus(st, stage, status, reason, now) {
   if (status === "skipped" && !strip(reason ?? "")) throw new Error("A reason is required to skip a stage.");
   st.stages[stage] = { status, reason: strip(reason ?? ""), updated: now };
   if (status === "in-progress") st.stages[stage].reopened = true;    // no automatic "done" until marked again
-  event(st, stage, { done: "marked done", skipped: `skipped — ${strip(reason ?? "")}`, "in-progress": "reopened", "not-started": "reset" }[status], now);
+  event(st, stage, { done: strip(reason ?? "") ? `marked done — ${strip(reason)}` : "marked done", skipped: `skipped — ${strip(reason ?? "")}`, "in-progress": "reopened", "not-started": "reset" }[status], now);
 }
 
 export const isLocked = st => Boolean(st.protocol.locked);

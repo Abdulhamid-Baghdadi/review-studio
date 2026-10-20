@@ -73,13 +73,13 @@ test("use cases on an in-memory review: import, check, report", async () => {
   const ris = ["A method for module identification in printed circuit boards", "Product architecture and modularity in consumer electronics", "Design structure matrices for electronic products"]
     .map((t, i) => `TY  - JOUR\nTI  - ${t}\nAU  - Liu, Z.\nPY  - 202${i}\nDO  - 10.1/${i}\nER  - `).join("\n") + "\n";
   const msg = await commands.importSearch(await open(), { fileName: "s.ris", bytes: new TextEncoder().encode(ris), database: "Scopus", query: "q" });
-  assert.match(msg, /S01 Scopus: 3 records -> 3 new, 0 duplicates/);
+  assert.match(msg, /S01 Scopus: 3 records → 3 new, 0 duplicates merged/);
   assert.ok(await folder.exists("07 - Exports/S01 - s.ris"));
   assert.ok(await folder.exists("08 - Screening guide.md"));
   assert.ok(await folder.exists("14 - PRISMA flow.md"));
 
   const again = await commands.importSearch(await open(), { fileName: "w.ris", bytes: new TextEncoder().encode(ris), database: "WoS", query: "q" });
-  assert.match(again, /3 records -> 0 new, 3 duplicates/);
+  assert.match(again, /3 records → 0 new, 3 duplicates merged/);
   const repo = await open();
   assert.deepEqual([...repo.records.values()].map(r => r.props.sources), [["S01", "S02"], ["S01", "S02"], ["S01", "S02"]]);
 

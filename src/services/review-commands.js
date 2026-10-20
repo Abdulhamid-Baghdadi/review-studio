@@ -78,7 +78,7 @@ export async function importSearch(repo, { fileName, bytes, database, query, dat
   await repo.writeSearches(rows);
   await repo.log("import", `${id} ${database}: ${entries.length} records, ${added} new, ${duplicates} duplicates`);
   const report = await writeReport(repo, library);
-  return `${id} ${database}: ${entries.length} records -> ${added} new, ${duplicates} duplicates (export kept as ${kept})\n${report}`;
+  return `${id} ${database}: ${entries.length} records → ${added} new, ${duplicates} duplicate${duplicates === 1 ? "" : "s"} merged (export kept as ${kept})\n${report}`;
 }
 
 /** Adds one paper found another way (a reference list, a colleague…) under an "other" source named `via`. */

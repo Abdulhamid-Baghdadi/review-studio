@@ -11,7 +11,7 @@ import { flowMap } from "./journey-map.js";
 import { curTab, go, goTab, pageIndex, pageSequence, sectioned, sectionId, skipStage, stage, stepOf, stepStatus } from "./navigation.js";
 import { openReviewFolder, renderDraftBar, saveDraft, switchReview } from "./reviews.js";
 import { btn, copy, iconBtn, libraryName, openNote, pill, segmented, statusKind } from "../ui/components.js";
-import { toast } from "../ui/dialogs.js";
+import { confirmBox, toast } from "../ui/dialogs.js";
 import { aiStrip } from "../ui/ai-strip.js";
 
 /** "AI" next to a step where AI can help: grey while off, in the accent colour when the review switched it on. */
@@ -62,6 +62,25 @@ const PART_DESC = {
 };
 
 /**
+ * Marks a stage done. The searches first say which planned databases have no import: a search that differs from the
+ * locked protocol is a deviation the report must state, so marking done anyway records which ones in the timeline.
+ */
+async function markDone(key) {
+  let reason = "";
+  if (key === "searches") {
+    const missing = S.state.queries.databases.filter(db => !S.searches.some(s => s.database === db));
+    if (missing.length) {
+      const n = missing.length;
+      if (!(await confirmBox(`${n} planned database${n > 1 ? "s" : ""} not searched`,
+        `Your protocol plans ${S.state.queries.databases.join(", ")}. Nothing was imported from ${missing.join(", ")}. If you will not search ${n > 1 ? "them" : "it"}, the report must say so (a deviation from the protocol); this is noted in the timeline.`,
+        `Mark done without ${n > 1 ? `these ${n}` : missing[0]}`))) return;
+      reason = `not searched, though planned: ${missing.join(", ")}`;
+    }
+  }
+  api("stage_status", { stage: key, status: "done", reason });
+}
+
+/**
  * One part of a step shown as a section of its page: a heading with the part's status, help, files and buttons, then the
  * part's own page (drawn with its part chosen). A stage split over two sections gets its buttons in the last one.
  */
@@ -83,7 +102,7 @@ function sectionOf(t, i, tabs) {
       btn("? Help", () => openHelp(t.stage), "ghost", `Help: ${t.label}`),
       !last ? null : s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", () => skipStage(t.stage), "ghost", `Skip ${what} (it is optional)`) : null,
       !last ? null : s.status === "done" || s.status === "skipped" ? btn("Reopen", () => api("stage_status", { stage: t.stage, status: "in-progress" }), "", `Reopen ${what}`)
-        : btn("✓ Mark done", () => api("stage_status", { stage: t.stage, status: "done" }), "primary", `Mark ${what} as done`)),
+        : btn("✓ Mark done", () => markDone(t.stage), "primary", `Mark ${what} as done`)),
     h("div", { class: "infoline" },
       h("span", { class: "desc" }, PART_DESC[`${t.stage}:${t.part}`] ?? s.desc, s.reason ? h("span", { class: "muted" }, ` — skipped: ${s.reason}`) : null),
       last ? savedIn(t.stage) : null),
@@ -139,7 +158,7 @@ function renderTop() {
       s.optional && !["skipped", "done"].includes(s.status) ? btn("Skip…", skipStage, "ghost", `Skip ${what} (it is optional)`) : null,
       s.status === "done" || s.status === "skipped" ? btn("Reopen", () => api("stage_status", { stage: CUR, status: "in-progress" }), "", `Reopen ${what}`)
         : nothingYet(CUR) ? [Object.assign(btn("✓ Mark done", null, "primary"), { disabled: true }), h("span", { class: "small muted" }, nothingYet(CUR))]
-        : btn("✓ Mark done", () => api("stage_status", { stage: CUR, status: "done" }), "primary", `Mark ${what} as done`)),
+        : btn("✓ Mark done", () => markDone(CUR), "primary", `Mark ${what} as done`)),
     h("div", { class: "infoline" },
       h("span", { class: "desc" }, PART_DESC[`${CUR}:${tab.part}`] ?? s.desc, s.reason ? h("span", { class: "muted" }, ` — skipped: ${s.reason}`) : null),
       aiStep ? h("button", { class: "btn sm ai-chip" + (aiMode === "off" ? "" : " on"), "aria-expanded": String(aiOpen), title: "AI assistance for this step: who does what, and the prompt for Claude",
