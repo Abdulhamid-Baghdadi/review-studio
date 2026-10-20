@@ -12,6 +12,7 @@ import { curTab, go, goTab, pageIndex, pageSequence, sectioned, sectionId, skipS
 import { openReviewFolder, renderDraftBar, saveDraft, switchReview } from "./reviews.js";
 import { btn, copy, iconBtn, libraryName, openNote, pill, segmented, statusKind } from "../ui/components.js";
 import { toast } from "../ui/dialogs.js";
+import { aiStrip } from "../ui/ai-strip.js";
 
 /** "AI" next to a step where AI can help: grey while off, in the accent colour when the review switched it on. */
 export function aiMark(keys) {
@@ -171,6 +172,11 @@ function aiCard(key) {
       h("button", { class: "btn sm ghost ai-toggle", "aria-expanded": String(open), onclick: toggle }, "Close ▴")),
     open ? h("div", { class: "aibody" },
       h("div", { class: "small muted" }, cur.desc),
+      mode === "off" ? null : (() => {                // who does what, as pictures (full texts only when the AI reads them)
+        const which = key === "screening" ? (SC.stage === "ft" ? (mode === "suggest-ft" ? "ft" : null) : "ta") : key;
+        const strip = which && aiStrip(which);
+        return strip ? h("div", {}, h("div", { class: "small", style: "font-weight:700;margin:8px 0 2px" }, "How it works with Claude"), strip) : null;
+      })(),
       mode === "off" ? null : h("div", { class: "small muted" }, step.skills.length > 1 ? "AI skills: " : "AI skill: ",
         step.skills.map((n, i) => [i ? ", " : "", h("code", {}, `skills/${n}/SKILL.md`)])),
       mode === "off" ? null : h("div", { class: "small" }, h("b", {}, "You check: "),
