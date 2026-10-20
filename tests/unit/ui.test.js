@@ -89,3 +89,21 @@ test("backend: re-reads the review after changes made outside the app, and never
   const saved = JSON.parse(await folder.readText("review_state.json"));
   assert.ok(saved.events.some(e => e.text === "written by Claude again"), "an action first takes in the outside change");
 });
+
+test("actions sent at once run one after another: seven fields of one note saved together are all kept", async () => {
+  // a folder that takes a few random milliseconds per call, like a real disk, so the saves would overlap
+  let seed = 7;
+  const wait = () => new Promise(ok => setTimeout(ok, (seed = (seed * 48271) % 2147483647) % 6));
+  const slow = folder => new Proxy(folder, { get: (t, k) => typeof t[k] === "function" ? async (...a) => { await wait(); return t[k](...a); } : t[k] });
+  const session = await ReviewSession.open(slow(memoryFolder({}, "Demo records")), { clock, settings: { name: "Demo", recordsPath: "Demo records/08 - Records" } });
+  const backend = await backendWithReview();
+  backend.session = session;
+  const token = backend.upload({ name: "s.ris", arrayBuffer: async () => new TextEncoder().encode(ris).buffer });
+  await backend.action("import", { path: token, database: "Scopus", query: "q", force: true });
+  const fields = ["study_type", "motor_type", "design_feature", "method", "criteria", "key_findings", "locators"];
+  // what the charting form does when it is filled quickly: one save per field, all within a second (found in a self-test)
+  const answers = await Promise.all(fields.map(f => backend.action("set_record", { record_id: "R0001", fields: { [`chart_${f}`]: `value of ${f}` } })));
+  assert.ok(answers.every(a => a.status === 200));
+  const chart = (await backend.get("/api/state")).records.find(r => r.record_id === "R0001").chart;
+  for (const f of fields) assert.equal(chart[f], `value of ${f}`, f);
+});

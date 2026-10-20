@@ -54,6 +54,7 @@ export class Backend {
   #lastPdfFolder = null;
   #stamp = null;              // when review_state.json was last written by this app (or read)
   #busy = 0;                  // actions running (no re-reading meanwhile)
+  #queue = Promise.resolve(); // the action running now: the next one waits for it
 
   /**
    * @param {object} p
@@ -310,8 +311,18 @@ export class Backend {
     return true;
   }
 
-  /** POST /api/action: one action of the page. Answers like the server: {status, ok, body}. */
-  async action(action, args = {}) {
+  /**
+   * POST /api/action: one action of the page. Answers like the server: {status, ok, body}. Actions run one at a
+   * time, in the order they came: two at once could each read a note, change their own part and write it back, so
+   * one would undo the other (seven charting fields saved within a second kept six).
+   */
+  action(action, args = {}) {
+    const run = this.#queue.then(() => this.#action(action, args));
+    this.#queue = run.catch(() => {});
+    return run;
+  }
+
+  async #action(action, args) {
     try {
       if (!action.startsWith("preview")) await this.refreshIfChanged();    // never save over changes made outside meanwhile
       await this.#connectSettings();
