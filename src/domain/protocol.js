@@ -8,7 +8,7 @@ import * as frontmatter from "./frontmatter.js";
 import { buildQuery } from "./queries.js";
 import { chars, compareCodePoints, strip } from "./text-rules.js";
 import { isLocked, reviewType, sameValue, stageOf } from "./stages.js";
-import { DEFAULT_TA_REASONS } from "./vocabulary.js";
+import { DEFAULT_TA_REASONS, LEGACY_TA_REASONS } from "./vocabulary.js";
 
 export const PROTOCOL_FILE = "05 - Protocol.md";
 export const frozenProtocolName = day => `06 - Protocol (registered ${day}).md`;
@@ -105,9 +105,9 @@ export function lockChecks(st, reasons) {
     row("Inclusion criteria written", (reasons.include ?? []).some(x => strip(x)), `${(reasons.include ?? []).filter(x => strip(x)).length} criteria (Inclusion & exclusion rules)`, true),
     row("All protocol sections written", !empty.length, empty.length ? "missing: " + empty.join(", ") : `${required.length} of ${required.length} (optional ones not counted)`, true),
     row("No placeholders left", !holders.length, holders.length ? "replace: " + holders.join(", ") : "none found", true),
-    row("Exclusion reasons set", !sameValue([...reasons.ta], [...DEFAULT_TA_REASONS]) && !clashes.length,
+    row("Exclusion reasons set", !sameValue([...reasons.ta], [...DEFAULT_TA_REASONS]) && !sameValue([...reasons.ta], [...LEGACY_TA_REASONS]) && !clashes.length,
       clashes.length ? `${clashes.join(", ")} ${clashes.length > 1 ? "mean" : "means"} different things at title/abstract and full text: give each its own code` : `${reasons.ta.length} title/abstract and ${reasons.ft.length} full-text reasons`, true),
-    row("Reviewed by your supervisor", sup.by, sup.by ? `${sup.by}, ${sup.when}` : "not yet", true),
+    row("Reviewed by your supervisor or a colleague (recommended)", sup.by, sup.by ? `${sup.by}, ${sup.when}` : "not yet", false),
     row("Sections drafted by Claude were read by you", !drafted.length,
       drafted.length ? "still unread drafts: " + drafted.join(", ") : "all edited or approved by you", false),
   ];

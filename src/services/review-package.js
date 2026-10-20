@@ -73,7 +73,10 @@ export async function writePackage(repo, st) {
   await copy(FILES.searches, `02 Searches/${FILES.searches}`, "every search run: database, date, exact string, records");
   for (const name of await folder.list(FILES.exports)) {
     if (name.startsWith(PACKAGE_PREFIX) || await folder.isDirectory(`${FILES.exports}/${name}`)) continue;
-    await copy(`${FILES.exports}/${name}`, `02 Searches/Exports/${name}`, "export file as downloaded, or an export made by the app");
+    // a database export (S01 - …) belongs to the searches; the app's own exports (BibTeX, RIS, charting table) to the report
+    const search = /^Sd+ - /.test(name);
+    await copy(`${FILES.exports}/${name}`, search ? `02 Searches/Exports/${name}` : `07 Report/Exports/${name}`,
+      search ? "the database export as downloaded" : "an export made by the app for the manuscript or a reference manager");
   }
 
   add("03 Screening/Screening decisions.csv", "﻿" + csv.writeRecords(DECISION_COLUMNS.map(fullName), records.map(r => toNote(r.props))),

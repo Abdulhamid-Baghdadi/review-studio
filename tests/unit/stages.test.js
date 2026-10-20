@@ -168,3 +168,11 @@ test("PDF matching: DOI first, title needs the first author, letter-spaced names
   assert.deepEqual(matchPdfs(records, pdfs).map(m => [m.record_id, m.how, m.pdf]), [["R1", "doi", "a.pdf"], ["R2", "title", "b.pdf"]]);
   assert.equal(firstAuthor("Agus Sudjianto; Kevin Otto"), "sudjianto");
 });
+
+test("the charting table names its columns as the form does; a field named like a fixed column keeps a prefix", async () => {
+  const { chartingCsv } = await import("../../src/domain/stage-notes.js");
+  const st = defaultState();
+  st.charting.fields = [{ name: "study_design", description: "" }, { name: "year", description: "" }];
+  const header = chartingCsv(st, []).replace(/^﻿/, "").split(/\r?\n/)[0];
+  assert.equal(header, "record_id,authors,year,title,journal,doi,study_design,charted_year,appraisal,appraisal_note");
+});

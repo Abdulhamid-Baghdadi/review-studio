@@ -104,8 +104,8 @@ const SCOPING = freeze({
   checklistParts: freeze([["Title & abstract", "1", "2"], ["Introduction", "3", "4"], ["Methods — in the protocol", "5", "13"], ["Results", "14", "18"], ["Discussion", "19", "21"], ["Funding", "22", "22"]]),
   question: freeze({ framework: "PCC", population: "Population", concept: "Concept", context: "Context", outcome: null }),
   protocolSections: freeze([
-    ["rationale", "Background and rationale (PRISMA-ScR 3)"],
-    ["eligibility", "Eligibility criteria with rationale (PRISMA-ScR 6)"],
+    ["rationale", "Background: why this review is needed (PRISMA-ScR 3)"],
+    ["eligibility", "Eligibility criteria and why (PRISMA-ScR 6)"],
     ["sources", "Information sources (PRISMA-ScR 7)"],
     ["selection", "Selection of sources of evidence (PRISMA-ScR 9)"],
     ["charting", "Data charting process (PRISMA-ScR 10)"],

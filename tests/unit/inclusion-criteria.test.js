@@ -32,3 +32,12 @@ test("after locking, changing the inclusion criteria is an amendment", async () 
   assert.equal(s.st.amendments.at(-1).what, "criteria");
   assert.deepEqual(await s.integrityProblems(), []);
 });
+
+test("a new review starts with 'E6 wrong population'; an older guide without its lists keeps the old codes", async () => {
+  const fresh = await open(memoryFolder());
+  assert.deepEqual((await fresh.repo.reasons()).ta.at(-1), "E6 wrong population");
+  assert.deepEqual((await fresh.repo.reasons()).ft.at(-1), "E7 no usable content on the concept");
+  // a guide written before the lists were stored in it: E6 there meant "no usable content", and still does
+  const old = await open(memoryFolder({ "08 - Screening guide.md": "---\ntype: \"screening-guide\"\n---\n\n# Guide\n" }));
+  assert.equal((await old.repo.reasons()).ft.at(-1), "E6 no usable content on the concept");
+});

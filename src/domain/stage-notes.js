@@ -124,7 +124,11 @@ export function chartingBase(st, withAppraisal) {
 export function chartingCsv(st, includedProps) {
   const keys = [...st.charting.fields.map(f => `chart_${f.name}`), "appraisal", "appraisal_note"];
   const rows = includedProps.map(f => [f.record_id, f.authors, f.year, f.title, f.journal, f.doi, ...keys.map(k => f[k] ?? "")]);
-  return "﻿" + writeRows([["record_id", "authors", "year", "title", "journal", "doi", ...keys.map(fullName)], ...rows]);
+  // columns named as in the charting form (study_type), not as the note's property (extracted_study_type); a field
+  // named like a fixed column (title, year …) keeps a prefix so that no two columns share a name
+  const fixed = ["record_id", "authors", "year", "title", "journal", "doi"];
+  const column = k => k.startsWith("chart_") ? (fixed.includes(k.slice(6)) ? `charted_${k.slice(6)}` : k.slice(6)) : k;
+  return "﻿" + writeRows([[...fixed, ...keys.map(column)], ...rows]);
 }
 
 const authorList = f => String(f.authors ?? "").split(";").map(a => a.trim()).filter(Boolean);

@@ -10,7 +10,7 @@ import { DecisionLog } from "./decision-log.js";
 import { compareCodePoints } from "../domain/text-rules.js";
 import { parseRecord, RECORDS_DIR, recordText } from "../domain/records.js";
 import { hasShortNames, libraryFormat } from "../domain/record-properties.js";
-import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS } from "../domain/vocabulary.js";
+import { DEFAULT_FT_REASONS, DEFAULT_TA_REASONS, LEGACY_FT_REASONS, LEGACY_TA_REASONS } from "../domain/vocabulary.js";
 
 export const SEARCH_COLUMNS = Object.freeze(["id", "kind", "database", "date", "query", "filters", "export", "records", "new", "duplicates"]);
 
@@ -145,10 +145,10 @@ export class ReviewRepository {
 
   /** Inclusion criteria and allowed exclusion reasons from the screening guide (defaults when there is none). */
   async reasons() {
-    if (!(await this.folder.exists(FILES.guide))) return { ta: DEFAULT_TA_REASONS, ft: DEFAULT_FT_REASONS, include: [] };
+    if (!(await this.folder.exists(FILES.guide))) return { ta: DEFAULT_TA_REASONS, ft: DEFAULT_FT_REASONS, include: [] };   // no records yet, so no code in use
     const [props] = frontmatter.parse(await this.folder.readText(FILES.guide));
     const list = v => (Array.isArray(v) && v.length ? v : null);
-    return { ta: list(props[GUIDE_REASONS.ta] ?? props.ta_reasons) ?? DEFAULT_TA_REASONS, ft: list(props[GUIDE_REASONS.ft] ?? props.ft_reasons) ?? DEFAULT_FT_REASONS,
+    return { ta: list(props[GUIDE_REASONS.ta] ?? props.ta_reasons) ?? LEGACY_TA_REASONS, ft: list(props[GUIDE_REASONS.ft] ?? props.ft_reasons) ?? LEGACY_FT_REASONS,   // a guide without its lists (older reviews): the codes keep their old meaning
       include: (Array.isArray(props[GUIDE_INCLUDE]) ? props[GUIDE_INCLUDE] : []).map(String).filter(Boolean) };
   }
 

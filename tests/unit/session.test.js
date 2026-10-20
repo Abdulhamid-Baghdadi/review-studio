@@ -21,9 +21,11 @@ test("a new review: concepts, strings, protocol, lock, then amendments", async (
   await s.lockProtocol("OSF-1");
   assert.ok(await folder.exists("06 - Protocol (registered 2026-01-15).md"));
   assert.match(s.st.protocol.sha256, /^[0-9a-f]{64}$/);
-  // locked with checks still open (no supervisor review here): the timeline and the state say which
-  assert.match(s.st.events.at(-1).text, /required check\(s\) still open: .*Reviewed by your supervisor/);
-  assert.ok(s.st.protocol.open_checks.includes("Reviewed by your supervisor"));
+  // locked with required checks still open (no inclusion criteria here): the timeline and the state say which;
+  // the supervisor's review is recommended, not required, so it is not among them
+  assert.match(s.st.events.at(-1).text, /required check\(s\) still open: .*Inclusion criteria written/);
+  assert.ok(s.st.protocol.open_checks.includes("Inclusion criteria written"));
+  assert.ok(!s.st.protocol.open_checks.some(c => c.startsWith("Reviewed by")));
   await assert.rejects(s.saveConcepts([{ name: "Other", terms: ["x"] }]), AmendmentRequired);
   await s.saveConcepts([{ name: "Other", terms: ["x"] }], "", "pilot showed noise");
   assert.equal(s.st.amendments.at(-1).what, "concepts");

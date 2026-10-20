@@ -76,7 +76,7 @@ const protocolPage = rules => {
           h("div", { class: "grid2" }, h("div", {}, h("b", {}, "Title and abstract"), reasonList("ta", "title and abstract")), h("div", {}, h("b", {}, "Full text"), ftColumn())),
           h("div", { class: "row end small muted", style: "margin-top:12px" }, "Saved as you type.")))),
       textSaver.watch(card("Why these rules", "The reasons behind your rules, in a few sentences. The protocol's eligibility section is this text followed by both lists (PRISMA-ScR 6).",
-        elig ? section({ ...elig, title: "Rationale (PRISMA-ScR 6)" }, true) : null, saveRow())));
+        elig ? section({ ...elig, title: "Why these rules (PRISMA-ScR 6)" }, true) : null, saveRow())));
   }
   return h("div", {},
     chartingFormCard(),
