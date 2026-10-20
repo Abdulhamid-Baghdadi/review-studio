@@ -18,7 +18,7 @@ PAGES.questions = () => {
   const subs = h("div", { class: "stack" }), subsTitle = h("span", { class: "small muted", style: "font-weight:600" }, "Sub-questions");
   const drawSubs = () => subs.replaceChildren(...d.sub.map((s, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
     ...(n => [n, labelBy(h("input", { type: "text", value: s, placeholder: exampleFor("questions", "Sub-questions", i), oninput: e => d.sub[i] = e.target.value }), [subsTitle, n])])(h("span", { class: "muted", style: "width:22px" }, `${i + 1}.`)),
-    iconBtn("✕", "Remove sub-question", () => { d.sub.splice(i, 1); drawSubs(); saver.schedule(); }))), btn("+ Add sub-question", () => { d.sub.push(""); drawSubs(); }, "sm"));
+    iconBtn("✕", `Remove sub-question ${i + 1}`, () => { d.sub.splice(i, 1); drawSubs(); saver.schedule(); }))), btn("+ Add sub-question", () => { d.sub.push(""); drawSubs(); subs.querySelectorAll("input")[d.sub.length - 1]?.focus(); }, "sm"));
   drawSubs();
   const pcc = (k, label, hint, color) => {
     const title = h("h2", {}, label), sub = h("p", { class: "sub" }, hint);   // the card's title is the field's label

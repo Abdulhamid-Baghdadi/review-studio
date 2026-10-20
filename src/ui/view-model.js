@@ -4,7 +4,7 @@
  * @module ui/view-model
  */
 import {
-  AI_STEPS, aiMode, aiPrompt, buildQuery, chartingProgress, checkScreening,
+  AI_STEPS, aiMode, aiPrompt, buildQuery, chartingProgress, openalexChanges, checkScreening,
   normalizeDoi, stageActions, stages,
 } from "../index.js";
 
@@ -92,6 +92,7 @@ export async function snapshot(session, { review, reviews, vault }) {
       "concepts_history", "protocol", "amendments", "charting"]), checklist: stages.checklistOf(st) },
     events: st.events.slice(-200).reverse().map(e => ({ ...e, title: stages.stageOf(st, e.stage)?.title ?? e.stage })),
     queries: Object.fromEntries(st.queries.databases.map(db => [db, buildQuery(st, db)])),
+    openalex_changes: openalexChanges(st.concepts),           // stems the OpenAlex string completes (no wildcards there)
     manual: Object.keys(st.queries.manual),
     searches: await repo.searches(),
     flow: flowView(props, await repo.searches()),

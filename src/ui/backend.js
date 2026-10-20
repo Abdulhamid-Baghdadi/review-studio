@@ -8,7 +8,7 @@ import { browserFolder, requestAccess } from "../adapters/browser-folder.js";
 import { fixedSettings, forgetReview, recentReviews, rememberFixedSettings, rememberReview } from "../adapters/browser-store.js";
 import { fetchHttp } from "../adapters/fetch-http.js";
 import { pdfjsText } from "../adapters/pdfjs-text.js";
-import { AmendmentRequired, emptyLibrary, openLibrary, OpenAlexClient, ReviewSession } from "../index.js";
+import { AmendmentRequired, emptyLibrary, openalexChanges, openLibrary, OpenAlexClient, ReviewSession } from "../index.js";
 import { recordView, snapshot } from "./view-model.js";
 
 /** What makes a folder a review folder (any of these). */
@@ -341,7 +341,7 @@ export class Backend {
       case "stage_status": return s.setStageStatus(a.stage, a.status, a.reason ?? "");
       case "save_questions": return s.saveQuestions(a.q, a.why ?? "", amendment);
       case "save_concepts": return s.saveConcepts(a.concepts, a.why ?? "", amendment);
-      case "preview_queries": return { raw: { queries: s.previewQueries(a.concepts) } };
+      case "preview_queries": return { raw: { queries: s.previewQueries(a.concepts), openalex_changes: openalexChanges(a.concepts) } };
       case "save_databases": return s.saveDatabases(a.databases, amendment);
       case "save_manual_query": return s.saveManualQuery(a.db, a.text ?? null, amendment);
       case "save_protocol_text": return s.saveProtocolText(a.text, { author: a.author ?? "user", generate: a.generate, amendment });

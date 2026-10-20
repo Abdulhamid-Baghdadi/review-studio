@@ -173,7 +173,10 @@ export function saveQuestions(st, { population, concept, context, outcome, main,
   if (amendment_) amend(st, "questions", amendment || why, now);
   else devNote(st, "questions", devMode, now);
   // saved while typing: a new version only when an editing session starts (or for an amendment)
-  if (amendment_ || !sameSession(q.edited, now)) {
+  // nothing written yet: the first words are not a revision, so no empty "earlier version"
+  const blank = Object.values(old).every(v => (Array.isArray(v) ? !v.length : !strip(v ?? "")));
+  if (blank && !sameSession(q.edited, now)) event(st, "questions", "questions written", now);
+  else if (!blank && (amendment_ || !sameSession(q.edited, now))) {
     q.history.push({ when: now, why: strip(why), ...copy(old) });
     event(st, "questions", `questions revised — ${strip(why) || "no reason given"}`, now);
   } else if (strip(why) && q.history.length) q.history.at(-1).why = strip(why);   // the reason typed later in the session

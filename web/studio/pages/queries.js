@@ -28,7 +28,7 @@ export function searchStringCards(generated) {
     box.replaceChildren(
       h("div", { class: "tabs", role: "group", "aria-label": "Database" }, dbs.map(x => h("button", { class: x === db ? "on" : "", "aria-pressed": String(x === db), onclick: () => { D.qdb = x; D.qedit = null; update(); } }, x, S.manual.includes(x) ? " ✎" : ""))),
       h("div", { class: "row", style: "margin-bottom:8px" }, pill(manual ? "edited by hand" : "made from your keyword blocks, updates as you type", manual ? "warn" : "accent"),
-        db === "OpenAlex" ? pill("OpenAlex: no wildcards — stems completed to full words", "info") : null),
+        db === "OpenAlex" && !manual ? openalexNote() : null),
       editing ? ta : h("div", { class: "code", html: hlQuery(q || "(add a keyword block with terms)") }),
       h("div", { class: "row end", style: "margin-top:10px" },
         editing ? [h("span", { class: "small muted" }, "Saved as you type."), btn("✓ Done", async () => { await runSave("query:" + db, () => api("save_manual_query", { db, text: ta.value }, { silent: true })); D.qedit = null; render(); }, "primary")]
@@ -41,6 +41,17 @@ export function searchStringCards(generated) {
     card("Search strings", "The result of this page: copy each string into the database's advanced search. Syntax differs per database; the tool translates it.", box),
     card("Databases", "Which sources this review searches. At least two bibliographic databases is the usual minimum (see Help). Saved as you add or remove one.", chips));
   return { el, update };
+}
+
+// OpenAlex has no wildcards: each term with * is searched as a full word. Every change is listed, so the reviewer
+// can check them (the tool's completions are rules, not a dictionary).
+function openalexNote() {
+  const changes = D.oaChanges ?? S.openalex_changes ?? [];
+  if (!changes.length) return null;
+  return h("div", { class: "small", style: "flex-basis:100%" },
+    h("b", {}, "OpenAlex has no wildcards. Check these words: "),
+    changes.map(([from, to], i) => [i ? " · " : "", h("code", {}, from), " → ", h("code", {}, to)]),
+    h("span", { class: "muted" }, ". Wrong? Edit by hand."));
 }
 
 // Advanced-search pages of the databases (opened from the search-string and import pages)

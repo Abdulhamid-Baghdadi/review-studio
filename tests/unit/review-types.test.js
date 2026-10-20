@@ -23,18 +23,18 @@ test("scoping questions keep their PCC history without an outcome", () => {
   const st = defaultState();
   saveQuestions(st, { population: "p", concept: "c", context: "x", main: "m", sub: [], why: "first" }, { now });
   saveQuestions(st, { population: "p2", concept: "c", context: "x", main: "m", sub: [], why: "second" }, { now: "2026-10-12 11:00" });
-  assert.equal("outcome" in st.questions.history[1], false);
+  assert.equal("outcome" in st.questions.history[0], false);
 });
 
 test("saving while typing: one version and one timeline entry per editing session", () => {
   const st = defaultState();
   const q = (main, when) => saveQuestions(st, { population: "p", concept: "c", context: "x", main, sub: [] }, { now: when });
   q("W", "2026-10-12 10:00"); q("Wh", "2026-10-12 10:00"); q("Which", "2026-10-12 10:01"); q("Which methods?", "2026-10-12 10:25");
-  assert.equal(st.questions.history.length, 1);                       // the state before the session
+  assert.equal(st.questions.history.length, 0);                       // nothing was written before: no earlier version
   assert.equal(st.questions.main, "Which methods?");
   assert.equal(st.events.filter(e => e.stage === "questions").length, 1);
   q("Which methods work?", "2026-10-12 11:30");                         // a new session after a pause
-  assert.equal(st.questions.history.length, 2);
+  assert.equal(st.questions.history.length, 1);
   assert.equal(st.questions.history.at(-1).main, "Which methods?");
 });
 

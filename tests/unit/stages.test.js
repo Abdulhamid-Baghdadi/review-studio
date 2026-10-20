@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { amend, defaultState, guardedChange, restoreState, sameValue, saveQuestions, setStatus, touch } from "../../src/domain/stages.js";
 import { aiMode, aiPrompt, setAiMode } from "../../src/domain/ai-steps.js";
-import { buildQuery, cleanTerms, openalexWord } from "../../src/domain/queries.js";
+import { buildQuery, cleanTerms, openalexChanges, openalexWord } from "../../src/domain/queries.js";
 import { integrityProblems, lockChecks, protocolMarkdown } from "../../src/domain/protocol.js";
 import { autoDone, chartingProgress, workComplete } from "../../src/domain/progress.js";
 import { bibtex, citekeyOf, timelineNote, zoteroRis } from "../../src/domain/stage-notes.js";
@@ -42,7 +42,8 @@ test("questions and AI modes", () => {
   const st = defaultState();
   assert.equal(saveQuestions(st, { population: "P", concept: "C", context: "X", main: "Q?", sub: ["a", " "], why: "first" }, { now: NOW }), true);
   assert.equal(saveQuestions(st, { population: "P", concept: "C", context: "X", main: "Q?", sub: ["a"], why: "same" }, { now: NOW }), false);
-  assert.deepEqual(st.questions.history[0], { when: NOW, why: "first", population: "", concept: "", context: "", main: "", sub: [] });
+  assert.deepEqual(st.questions.history, [], "the first words are not a revision: no empty earlier version");
+  assert.equal(st.events.at(-1).text, "questions written");
   assert.equal(aiMode(st, "screening"), "off");
   setAiMode(st, "fulltext", "suggest", { now: NOW });
   assert.equal(aiPrompt("R", st, "fulltext"), 'Use the skill review-screen-fulltexts for the review "R" (mode: suggest).');
@@ -53,7 +54,14 @@ test("questions and AI modes", () => {
 
 test("search strings per database", () => {
   assert.deepEqual(cleanTerms("a; b\n\nc"), ["a", "b", "c"]);
-  assert.equal(openalexWord("repairab* disassembl* scor* modul*"), "repairability disassembly score modul");
+  assert.equal(openalexWord("repairab* disassembl* scor* modul*"), "repairability disassembly score module");
+  assert.equal(openalexWord("modul*"), "module OR modular");                  // one stem, two words: both searched
+  // OpenAlex finds a stem that is not a word almost never (remanufactur 4 papers, remanufacture 14,246): whole words
+  assert.equal(openalexWord("measur* recycl* evaluat* optimiz*"), "measure recycle evaluate optimize");
+  assert.equal(openalexWord("behaviour* analysis* format* heat* habitat* sensor*"), "behaviour analysis format heat habitat sensor");
+  // a guessed ending never makes a word that does not exist (found in a self-test, 20 October 2026)
+  assert.equal(openalexWord("electric motor* remanufactur* lab* tabl* reusab* assembl*"), "electric motor remanufacture lab table reusability assembly");
+  assert.deepEqual(openalexChanges([{ terms: ["motor*", "design for", "disassembl*"] }]), [["motor*", "motor"], ["disassembl*", "disassembly"]]);
   const st = defaultState();
   st.concepts = [{ name: "Mod", terms: ["modular*", "module identification"] }, { name: "El", terms: ["electronic*"] }, { name: "Not", role: "NOT", terms: ["software"] }];
   assert.equal(buildQuery(st, "Scopus"), 'TITLE-ABS-KEY((modular* OR "module identification") AND (electronic*) AND NOT (software))');

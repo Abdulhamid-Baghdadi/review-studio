@@ -19,7 +19,7 @@ export { APP_GENERATOR, FILES } from "./domain/notes.js";
 export { normalizeNewlines } from "./domain/text-rules.js";
 export * as stages from "./domain/stages.js";
 export { AI_STEPS, aiMode, aiPrompt, setAiMode } from "./domain/ai-steps.js";
-export { buildQuery, cleanTerms, openalexQuery } from "./domain/queries.js";
+export { buildQuery, cleanTerms, openalexChanges, openalexQuery } from "./domain/queries.js";
 export { lockChecks, protocolMarkdown } from "./domain/protocol.js";
 export { chartingProgress, workComplete } from "./domain/progress.js";
 

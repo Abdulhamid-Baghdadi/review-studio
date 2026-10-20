@@ -20,7 +20,7 @@ PAGES.concepts = () => {
     if (JSON.stringify(d) !== JSON.stringify(S.state.concepts)) saver.schedule();
     try {
       const r = await api("preview_queries", { concepts: d }, { silent: true, quietError: true });
-      D.previews = r.queries; strings.update();
+      D.previews = r.queries; D.oaChanges = r.openalex_changes; strings.update();
     } catch (e) { /* ignore */ }
   }, 250);
   // a deleted block stays one click away: its place shows "deleted · Undo" until the next change of the blocks
@@ -35,7 +35,7 @@ PAGES.concepts = () => {
     const blocks = d.flatMap((c, i) => [i ? h("div", { class: "joiner" }, c.role === "NOT" ? "AND NOT" : "AND") : [],
       h("div", { class: "concept " + (c.role === "NOT" ? "not" : "and") },
         h("div", { class: "head" },
-          h("input", { type: "text", value: c.name, placeholder: "Concept name", "aria-label": `Name of keyword block ${i + 1}`, oninput: e => { c.name = e.target.value; refresh(); } }),
+          h("input", { type: "text", value: c.name, placeholder: "Block name, e.g. Product", "aria-label": `Name of keyword block ${i + 1}`, oninput: e => { c.name = e.target.value; refresh(); } }),
           segmented([["AND", "AND"], ["NOT", "NOT"]], c.role || "AND", v => { c.role = v; draw(); refresh(); }, "How this block joins the search"),
           h("span", { class: "spacer", style: "flex:1" }),
           Object.assign(iconBtn("↑", "Move this block up", restructure(() => { [d[i - 1], d[i]] = [d[i], d[i - 1]]; })), { disabled: !i }),
@@ -51,7 +51,7 @@ PAGES.concepts = () => {
     h("div", { class: "grid2" },
       h("div", {}, card("Keyword blocks", "One block per idea in your question. A paper needs any word from a block (OR) and a match in every block (AND).",
         list, h("div", { class: "row", style: "margin-top:12px" },
-          btn("+ Add concept", () => { D.deletedBlock = null; d.push({ name: "", role: "AND", terms: [] }); draw(); }, ""),   // saved once it has a name or terms
+          btn("+ Add keyword block", () => { D.deletedBlock = null; d.push({ name: "", role: "AND", terms: [] }); draw(); list.querySelectorAll(".concept .head input")[d.length - 1]?.focus(); }, ""),   // saved once it has a name or terms
           h("span", { class: "small muted" }, "Saved as you type.")),
         h("div", { style: "margin-top:8px" }, field("Why it changed (optional; kept with this version)",
           h("input", { type: "text", placeholder: "e.g. added synonyms found in the first papers", value: D.cwhy || "", oninput: e => { D.cwhy = e.target.value; saver.schedule(); } })))),
