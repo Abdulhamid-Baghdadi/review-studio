@@ -16,7 +16,7 @@ Scoping Review Workbench walks you through a scoping review from the first idea 
 
 **Highlights**
 
-- 🧭 **Guided, step by step:** 8 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
+- 🧭 **Guided, step by step:** 9 steps from idea to report, each with what to do, where it is saved, and help with a worked example.
 - 🔒 **Your files, your PC:** no account, no upload, no database. A review is a folder of Markdown, CSV and PDFs.
 - 🟣 **Opens in Obsidian:** a review folder is an Obsidian vault as it is, with the screening and charting tables as `.base` files.
 - 🤖 **AI only if you want it:** Claude can pre-screen, fetch PDFs or prefill charting. It suggests; you confirm.
@@ -26,7 +26,7 @@ Scoping Review Workbench walks you through a scoping review from the first idea 
 
 - [Getting started](#getting-started)
 - [Three ways to use it](#three-ways-to-use-it)
-- [The 8 steps](#the-8-steps)
+- [The 9 steps](#the-9-steps)
 - [Your review folder](#your-review-folder)
 - [AI assistance with Claude (optional)](#ai-assistance-with-claude-optional)
 - [Privacy and data safety](#privacy-and-data-safety)

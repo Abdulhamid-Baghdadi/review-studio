@@ -12,7 +12,7 @@ const TOUR = [
   { title: "Welcome to Scoping Review Workbench 👋",
     text: "This app guides you through a scoping review, step by step: from your first idea to a finished PRISMA report. It keeps every step documented, so your review is transparent and easy to reproduce." },
   { target: ".flowmap", title: "Your review, step by step",
-    text: "The map shows the whole review: plan (question, search, inclusion rules), the PRISMA flow with your live counts (records found, screened, included), then analysis and the report. Click any step to open it; the ringed one is where you are. While you work it stays folded to this one line: Map ▾ unfolds it." },
+    text: "The map shows the whole review: plan (question, search, inclusion rules, methods, lock), the PRISMA flow with your live counts (records found, screened, included), then charting the data and the report. Click any step to open it; the ringed one is where you are. While you work it stays folded to this one line: Map ▾ unfolds it." },
   { target: "#topbar", title: "One step at a time",
     text: "Each step is one page; a step with several parts shows them as sections, so just scroll down. Each page says what to do; ? Help explains the method with a filled-in example, ✓ Mark done ticks it off, and Next at the bottom takes you on." },
   { target: "#draftBar", title: "Your files stay on your PC",
