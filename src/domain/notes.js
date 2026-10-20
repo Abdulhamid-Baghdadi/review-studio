@@ -79,6 +79,8 @@ ${commands}
 
 /** The properties of the screening guide that hold the exclusion reasons (older guides: ta_reasons, ft_reasons). */
 export const GUIDE_REASONS = Object.freeze({ ta: "title_abstract_reasons", ft: "full_text_reasons" });
+/** The property of the screening guide that holds the inclusion criteria: what a paper must be or contain, one per item. */
+export const GUIDE_INCLUDE = "inclusion_criteria";
 
 /** An older screening guide with its reason lists renamed; null if it is current. */
 export function upgradeGuide(text) {
@@ -89,7 +91,7 @@ export function upgradeGuide(text) {
 
 /** 08 - Screening guide.md with the default exclusion reasons. */
 export const screeningGuide = (reviewLink, generator = APP_GENERATOR) =>
-  frontmatter.serialize({ type: "screening-guide", review: reviewLink, [GUIDE_REASONS.ta]: [...DEFAULT_TA_REASONS], [GUIDE_REASONS.ft]: [...DEFAULT_FT_REASONS] })
+  frontmatter.serialize({ type: "screening-guide", review: reviewLink, [GUIDE_INCLUDE]: [], [GUIDE_REASONS.ta]: [...DEFAULT_TA_REASONS], [GUIDE_REASONS.ft]: [...DEFAULT_FT_REASONS] })
   + guideBody(generator.commands);
 
 /**

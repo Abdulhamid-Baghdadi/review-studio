@@ -24,7 +24,7 @@ const sectionsBy = (st, by) => reviewType(st).protocolSections.filter(([key]) =>
  * @param {string} [p.frozen] date of registration, for the frozen copy
  * @param {string} p.generatedBy written to `generated-by`
  */
-export function protocolMarkdown({ reviewName, reviewLink, st, ftReasons, frozen = "", generatedBy }) {
+export function protocolMarkdown({ reviewName, reviewLink, st, ftReasons, include = [], frozen = "", generatedBy }) {
   const q = st.questions, t = st.protocol_text, type = reviewType(st), Q = type.question;
   const reg = frozen ? "" : st.protocol.locked ?? "";
   const status = frozen ? "registered" : reg ? "current" : "draft";
@@ -45,7 +45,10 @@ export function protocolMarkdown({ reviewName, reviewLink, st, ftReasons, frozen
   const drafted = sectionsBy(st, "claude"), approved = sectionsBy(st, "approved");
   for (const [key, title] of type.protocolSections) {
     lines.push("", `## ${title}\n`, t[key] || "_(to be written)_");
-    if (key === "eligibility") lines.push("", "Exclusion reasons used in screening:", ...ftReasons.map(r => `- ${r}`));
+    if (key === "eligibility") {
+      if (include.length) lines.push("", "Include a paper if:", ...include.map(r => `- ${r}`));
+      lines.push("", include.length ? "Exclude a paper if (the reasons used in screening):" : "Exclusion reasons used in screening:", ...ftReasons.map(r => `- ${r}`));
+    }
     if (key === "sources") lines.push("", "Databases: " + st.queries.databases.join(", "));
     if (key === "charting") lines.push("", `Data items (${type.refs.dataItems}):`, ...st.charting.fields.map(f => `- \`${f.name}\` — ${f.description}`));
   }
@@ -107,8 +110,9 @@ export function integrityProblems(st, reasons, frozenHash) {
   const out = [];
   const snap = st.protocol.snapshot ?? {};
   if (!isLocked(st) || !Object.keys(snap).length) return out;
-  const changed = !sameValue([...reasons.ta], snap.ta_reasons) || !sameValue([...reasons.ft], snap.ft_reasons);
-  if (changed && !st.amendments.some(a => a.what === "criteria")) out.push("exclusion reasons in the Screening guide changed after locking without a logged amendment");
+  const changed = !sameValue([...reasons.ta], snap.ta_reasons) || !sameValue([...reasons.ft], snap.ft_reasons)
+    || (snap.inclusion_criteria && !sameValue([...(reasons.include ?? [])], snap.inclusion_criteria));   // older locks have no inclusion list
+  if (changed && !st.amendments.some(a => a.what === "criteria")) out.push("inclusion criteria or exclusion reasons in the Screening guide changed after locking without a logged amendment");
   if (frozenHash !== null && frozenHash !== st.protocol.sha256) out.push(`the registered protocol file '${st.protocol.file}' was edited after locking`);
   return out;
 }

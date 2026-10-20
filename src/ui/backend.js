@@ -352,7 +352,7 @@ export class Backend {
       case "set_test_set": return s.setTestSet(a.stems);
       case "approve_section": return s.approveSection(a.key);
       case "supervisor_review": return s.supervisorReview(a.by ?? "", a.when ?? "");
-      case "save_reasons": return s.saveReasons(a.ta, a.ft, amendment);
+      case "save_reasons": return s.saveReasons(a.ta, a.ft, amendment, a.include);
       case "lock_protocol": return s.lockProtocol(a.registration ?? "");
       case "import": {
         const f = await this.#uploaded(a.path);

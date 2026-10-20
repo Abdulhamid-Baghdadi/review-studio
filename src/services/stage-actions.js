@@ -14,7 +14,7 @@ import { checklistOf, event, FULLTEXT_DIR, isLocked, reviewType, touch } from ".
 import { NO_ABSTRACT } from "../domain/vocabulary.js";
 import { bibtex, zoteroRis, chartingBase, chartingCsv, checklistEvidence, checklistNote, STAGE_FILES } from "../domain/stage-notes.js";
 import * as frontmatter from "../domain/frontmatter.js";
-import { APP_GENERATOR, FILES, GUIDE_REASONS, screeningGuide, upgradeGuide } from "../domain/notes.js";
+import { APP_GENERATOR, FILES, GUIDE_INCLUDE, GUIDE_REASONS, screeningGuide, upgradeGuide } from "../domain/notes.js";
 import { decodeExport, ReviewError } from "./review-commands.js";
 import { emptyLibrary, testSet } from "./library.js";
 import { allWorks } from "./openalex-client.js";
@@ -38,26 +38,28 @@ const testSetNotes = (repo, library) => new Map(testSet(library, repo.link).map(
 /** Writes 05 - Protocol.md from the stages. */
 export async function writeProtocol(repo, st) {
   const reasons = await repo.reasons();
-  await repo.folder.writeText(PROTOCOL_FILE, protocolMarkdown({ reviewName: repo.name, reviewLink: repo.link, st, ftReasons: reasons.ft, generatedBy: generatorOf(repo).stagesBy }));
+  await repo.folder.writeText(PROTOCOL_FILE, protocolMarkdown({ reviewName: repo.name, reviewLink: repo.link, st, ftReasons: reasons.ft, include: reasons.include, generatedBy: generatorOf(repo).stagesBy }));
   touch(st, "protocol", repo.clock.now());
   event(st, "protocol", "protocol draft regenerated", repo.clock.now());
 }
 
-/** Writes the exclusion reasons into the screening guide (created when missing; an older guide is upgraded first). */
-export async function writeExclusionReasons(repo, ta, ft) {
+/** Writes the inclusion criteria and exclusion reasons into the screening guide (created when missing; an older guide is upgraded first). */
+export async function writeExclusionReasons(repo, ta, ft, include) {
   const folder = repo.folder;
   if (!(await folder.exists(FILES.guide))) await folder.writeText(FILES.guide, screeningGuide(repo.link, repo.settings.generator));
   const text = await folder.readText(FILES.guide);
-  await folder.writeText(FILES.guide, frontmatter.replaceList(frontmatter.replaceList(upgradeGuide(text) ?? text, GUIDE_REASONS.ta, ta), GUIDE_REASONS.ft, ft));
+  let next = frontmatter.replaceList(frontmatter.replaceList(upgradeGuide(text) ?? text, GUIDE_REASONS.ta, ta), GUIDE_REASONS.ft, ft);
+  if (include) next = frontmatter.replaceList(next, GUIDE_INCLUDE, include);
+  await folder.writeText(FILES.guide, next);
 }
 
 /** Freezes the protocol: a registered copy with its checksum; later changes to protected parts are amendments. */
 export async function lockProtocol(repo, st, { registration = "" } = {}) {
   if (isLocked(st)) throw new ReviewError(`The protocol is already locked (${st.protocol.locked}).`);
   const day = repo.clock.today(), name = frozenProtocolName(day), reasons = await repo.reasons();
-  await repo.folder.writeText(name, protocolMarkdown({ reviewName: repo.name, reviewLink: repo.link, st, ftReasons: reasons.ft, frozen: day, generatedBy: generatorOf(repo).stagesBy }));
+  await repo.folder.writeText(name, protocolMarkdown({ reviewName: repo.name, reviewLink: repo.link, st, ftReasons: reasons.ft, include: reasons.include, frozen: day, generatedBy: generatorOf(repo).stagesBy }));
   Object.assign(st.protocol, { locked: day, file: name, sha256: await sha256(await repo.folder.readBytes(name)),
-    registration: strip(registration), snapshot: { ta_reasons: [...reasons.ta], ft_reasons: [...reasons.ft] } });
+    registration: strip(registration), snapshot: { ta_reasons: [...reasons.ta], ft_reasons: [...reasons.ft], inclusion_criteria: [...reasons.include] } });
   st.stages.registration = { status: "done", reason: "", updated: repo.clock.now() };
   event(st, "registration", `protocol locked (${name})` + (registration ? `, registration ${registration}` : "")
     + (st.protocol.commit ? `, commit ${chars(st.protocol.commit).slice(0, 10).join("")}` : ""), repo.clock.now());

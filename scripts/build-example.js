@@ -46,10 +46,12 @@ const REASONS_TA = ["E1 Not about battery packs or modules", "E2 Disassembly pro
   "E3 Pack or module design without regard to disassembly", "E4 Not a journal article or conference paper (book, chapter, thesis, preprint, abstract, editorial, report)",
   "E5 Not in English"];
 const REASONS_FT = REASONS_TA;
+const INCLUDE = ["Lithium-ion battery packs or modules, any application", "Describes, proposes or assesses a design feature or design method that affects how easily the pack or module comes apart",
+  "Journal article or conference paper", "In English; any year; any study design (case study, design concept, assessment, review)"];
 
 const PROTOCOL = {
   rationale: "Millions of lithium-ion battery packs will reach the end of their first life in the coming years. Whether they can be repaired, remanufactured, reused or recycled well depends largely on how easily they come apart, and that is decided when the pack is designed. Work on this is spread over product design, manufacturing and recycling research. This scoping review maps which design features and methods for easier disassembly are described, and how ease of disassembly is assessed.",
-  eligibility: "Include: sources about lithium-ion battery packs or modules (any application) that describe, propose or assess design features or design methods affecting how easily the pack or module can be disassembled. Journal articles and conference papers in English, any year, any study design (case studies, design concepts, assessments, reviews).\nExclude: E1 not about battery packs or modules; E2 disassembly processes, automation, planning or recycling only, with no link to the pack's design; E3 pack or module design without regard to disassembly (performance, thermal, electrical); E4 books, chapters, theses, preprints, conference abstracts, editorials and reports; E5 not in English.",
+  eligibility: "Disassembly is decided when a pack is designed, so the review looks for sources that link design choices to disassembly, from any battery application. Process, automation and recycling studies that say nothing about the pack's design are left out, as is design work that ignores disassembly. Journal articles and conference papers carry the methods detail the charting needs; books, theses, preprints and abstracts are left out to keep the example small.",
   sources: "OpenAlex (title and abstract search), searched once on the day of the search. This example searches one database only to stay small; a real scoping review searches several (e.g. Scopus, Web of Science, IEEE Xplore) and grey literature.",
   selection: "One reviewer screened titles and abstracts, then the full texts. Records without an abstract were judged on the title, or went to full text as 'unsure'. Only openly licensed (CC BY) full texts are used in this example: the others are marked 'not retrieved' and reported as such.",
   charting: "A charting form with six fields (application, type of source, design features, how disassembly is assessed, main findings, locators), filled from the full texts with page numbers.",
@@ -144,7 +146,7 @@ const planned = buildQuery(s.st, "OpenAlex");
 if (planned !== search.query) throw new Error(`planned OpenAlex string differs from the search that was run:\n${planned}\n${search.query}`);
 await s.pilotFile({ fileName: "openalex-pilot.ris", bytes: new TextEncoder().encode(ris), database: "OpenAlex", note: "final string: small enough to screen every record" });
 await s.saveProtocolText(PROTOCOL, { generate: true });
-await s.saveReasons(REASONS_TA, REASONS_FT);
+await s.saveReasons(REASONS_TA, REASONS_FT, "", INCLUDE);
 await s.saveFields(FIELDS);                                   // the charting form is part of the plan
 await s.lockProtocol("");
 await s.importSearch({ fileName: `openalex-${DAY}.ris`, bytes: new TextEncoder().encode(ris), database: "OpenAlex", query: search.query, date: DAY,

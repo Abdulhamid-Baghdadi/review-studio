@@ -163,7 +163,11 @@ PAGES.screening = () => {
   // the queue lists at most 400 records: those around the current one, so it is always in view
   const at = Math.max(0, q.findIndex(r => r.record_id === SC.id)), from = Math.max(0, Math.min(at - 100, q.length - 400));
   const shown = q.slice(from, from + 400);
+  const include = S.reasons.include ?? [];
   const side = h("div", {},
+    include.length ? h("details", { class: "card", open: true, style: "padding:10px 14px;margin-bottom:12px" },
+      h("summary", { style: "font-weight:700" }, `Include a paper if… (${include.length})`),
+      h("ul", { class: "small", style: "margin:6px 0 0;padding-left:18px" }, include.map(c => h("li", {}, c)))) : null,
     h("div", { class: "card", style: "padding:12px" }, h("h2", { style: "padding:4px 6px" }, `Queue (${q.length})`,
       q.length > shown.length ? h("span", { class: "small muted" }, ` · showing ${from + 1}–${from + shown.length}`) : null),
       h("div", { class: "queue" }, shown.map(r => h("div", { class: "qitem" + (r.record_id === SC.id ? " cur" : ""), onclick: () => { SC.id = r.record_id; SC.excl = false; render(); } },

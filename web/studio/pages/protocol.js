@@ -20,17 +20,20 @@ const itemChips = t => { const chips = withScr(t).filter(x => x instanceof Node)
 // screening), and the other method sections of the protocol. Both are saved in the same protocol.
 PAGES.protocol = () => {
   const d = D.protocol ??= { ...S.state.protocol_text };
-  const r = D.reasons ??= { ta: [...S.reasons.ta], ft: [...S.reasons.ft] };
+  const r = D.reasons ??= { ta: [...S.reasons.ta], ft: [...S.reasons.ft], include: [...(S.reasons.include ?? [])] };
   const rules = (PART.protocol ?? "rules") === "rules";
   const textSaver = autoSave("protocol_text", () => api("save_protocol_text", { text: d }, { render: false, silent: true }), "protocol_text");
   const reasonSaver = autoSave("reasons", () => api("save_reasons", r, { render: false, silent: true }), "criteria");
-  const reasonList = (key, stage) => {
+  // one editable list per kind of rule: what a paper must be (include) or the coded reasons to drop it (exclude)
+  const ruleList = (key, what, add, start = () => "", placeholder = "") => {
     const wrap = h("div", { class: "stack" });
     const draw = () => wrap.replaceChildren(...r[key].map((x, i) => h("div", { class: "row", style: "flex-wrap:nowrap" },
-      h("input", { type: "text", value: x, "aria-label": `Exclusion reason ${i + 1}, ${stage}`, oninput: e => r[key][i] = e.target.value }), iconBtn("✕", `Remove exclusion reason ${i + 1}`, () => { r[key].splice(i, 1); draw(); reasonSaver.schedule(); }))),
-      btn("+ Add reason", () => { r[key].push(`E${r[key].length + 1} `); draw(); }, "sm"));
+      h("input", { type: "text", value: x, placeholder, "aria-label": `${what} ${i + 1}`, oninput: e => r[key][i] = e.target.value }),
+      iconBtn("✕", `Remove ${what.toLowerCase()} ${i + 1}`, () => { r[key].splice(i, 1); draw(); reasonSaver.schedule(); }))),
+      btn(add, () => { r[key].push(start()); draw(); wrap.querySelectorAll("input")[r[key].length - 1]?.focus(); }, "sm"));
     draw(); return wrap;
   };
+  const reasonList = (key, stage) => ruleList(key, `Exclusion reason, ${stage},`, "+ Add reason", () => `E${r[key].length + 1} `);
   const section = (sct, open) => h("details", { open, style: "border-bottom:1px solid var(--border);padding:8px 0" },
     h("summary", {}, h("b", { style: "color:var(--text)" }, plainTitle(sct.title)), authorPill(sct.key), d[sct.key] ? h("span", { class: "pill ok", style: "margin-left:8px" }, "written") : h("span", { class: "pill", style: "margin-left:8px" }, "empty")),
     itemChips(sct.title),
@@ -43,11 +46,14 @@ PAGES.protocol = () => {
   if (rules) {
     const elig = S.protocol_sections.find(sct => sct.key === "eligibility");
     return h("div", {},
-      textSaver.watch(card("Who is in, who is out", "Describe the papers you want (include) and the ones you don't (exclude), with a short reason for each rule. Your question's parts are a good checklist: who or what, which topic, which setting, which publication types.",
-        elig ? section({ ...elig, title: elig.title.replace(/^Eligibility criteria/, "Inclusion and exclusion criteria") }, true) : null, saveRow())),
-      reasonSaver.watch(card("Exclusion reasons for screening", "The only reasons you can choose when you exclude a paper. Short code first (E1, E2 …), so screeners can type just the code.",
-        h("div", { class: "grid2" }, h("div", {}, h("b", {}, "Title and abstract"), reasonList("ta", "title and abstract")), h("div", {}, h("b", {}, "Full text"), reasonList("ft", "full text"))),
-        h("div", { class: "row end small muted", style: "margin-top:12px" }, "Saved as you type."))));
+      reasonSaver.watch(h("div", {},
+        card("Include a paper if…", "One rule per line: what a paper must be or contain. Your question's parts are a good checklist: who or what, which topic, which setting, which publication types. Shown next to every paper while you screen.",
+          ruleList("include", "Inclusion criterion", "+ Add criterion", () => "", "e.g. Lithium-ion battery packs or modules")),
+        card("Exclude a paper if…", "One rule per line, with a short code first (E1, E2 …). These are the only reasons you can choose when you exclude a paper, and the PRISMA flow counts them.",
+          h("div", { class: "grid2" }, h("div", {}, h("b", {}, "Title and abstract"), reasonList("ta", "title and abstract")), h("div", {}, h("b", {}, "Full text"), reasonList("ft", "full text"))),
+          h("div", { class: "row end small muted", style: "margin-top:12px" }, "Saved as you type.")))),
+      textSaver.watch(card("Why these rules", "The reasons behind your rules, in a few sentences. The protocol's eligibility section is this text followed by both lists (PRISMA-ScR 6).",
+        elig ? section({ ...elig, title: "Rationale (PRISMA-ScR 6)" }, true) : null, saveRow())));
   }
   return h("div", {},
     h("div", { class: "callout", style: "margin-bottom:16px" }, "Your question, search strings, test results and inclusion rules are added to the protocol automatically. Write the remaining sections below, then generate the Protocol note."),

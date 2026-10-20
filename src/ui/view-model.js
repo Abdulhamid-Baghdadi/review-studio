@@ -112,7 +112,7 @@ export async function snapshot(session, { review, reviews, vault }) {
     flow: flowView(props, await repo.searches()),
     agreement: { ta: agreementView(props, "ta"), ft: agreementView(props, "ft") },
     problems: [...problems.map(p => ({ record_id: p.record.id, text: p.text })), ...integrity.map(text => ({ record_id: "protocol", text }))],
-    reasons: { ta: [...reasons.ta], ft: [...reasons.ft] },
+    reasons: { ta: [...reasons.ta], ft: [...reasons.ft], include: [...reasons.include] },
     test_set: { size: tests.length, found: tests.filter(s => found.has(s)).length,
       dois: tests.map(s => normalizeDoi(library.notes.get(s).doi)).filter(Boolean).sort(), papers: [...tests].sort() },
     records: session.records().map(r => recordView(r)),

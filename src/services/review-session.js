@@ -235,22 +235,26 @@ export class ReviewSession {
     await this.save();
   }
 
-  /** Saves the exclusion reasons in the screening guide (an amendment of the criteria once locked). */
-  async saveReasons(ta, ft, amendment = "") {
+  /**
+   * Saves the inclusion criteria and exclusion reasons in the screening guide (an amendment of the criteria once
+   * locked). `include` undefined keeps the inclusion criteria as they are.
+   */
+  async saveReasons(ta, ft, amendment = "", include) {
     const nextTa = ta.map(strip).filter(Boolean), nextFt = ft.map(strip).filter(Boolean);
     const current = await this.repo.reasons();
-    if (!sameValue([[...current.ta], [...current.ft]], [nextTa, nextFt])) {
+    const nextInc = include === undefined ? [...current.include] : include.map(strip).filter(Boolean);
+    if (!sameValue([[...current.ta], [...current.ft], [...current.include]], [nextTa, nextFt, nextInc])) {
       if (this.#protected()) {
-        if (!strip(amendment)) throw new AmendmentRequired("exclusion reasons");
+        if (!strip(amendment)) throw new AmendmentRequired("inclusion and exclusion rules");
         amend(this.st, "criteria", amendment, this.now);
       } else if (isLocked(this.st) && this.devMode) {
-        event(this.st, "protocol", "developer mode: exclusion reasons changed without an amendment", this.now);
+        event(this.st, "protocol", "developer mode: inclusion and exclusion rules changed without an amendment", this.now);
       }
-      await actions.writeExclusionReasons(this.repo, nextTa, nextFt);
-      event(this.st, "protocol", "exclusion reasons edited", this.now);
+      await actions.writeExclusionReasons(this.repo, nextTa, nextFt, nextInc);
+      event(this.st, "protocol", "inclusion and exclusion rules edited", this.now);
     }
     await this.save();
-    return "Exclusion reasons saved.";
+    return "Inclusion and exclusion rules saved.";
   }
 
   /** What must be in order before locking. */

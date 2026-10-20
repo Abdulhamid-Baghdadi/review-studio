@@ -50,7 +50,7 @@ async function criteria(repo, st, rel) {
   const reasons = await repo.reasons();
   return {
     questions: Object.fromEntries(["population", "concept", "context", "main", "sub"].map(k => [k, get(st.questions, k)])),
-    eligibility: st.protocol_text.eligibility ?? "", screening_guide: rel("08 - Screening guide.md"),
+    inclusion_criteria: [...reasons.include], eligibility: st.protocol_text.eligibility ?? "", screening_guide: rel("08 - Screening guide.md"),
     ta_reasons: [...reasons.ta], ft_reasons: [...reasons.ft],
   };
 }

@@ -5,7 +5,7 @@
  */
 import * as csv from "../domain/csv.js";
 import * as frontmatter from "../domain/frontmatter.js";
-import { FILES, GUIDE_REASONS, logHeader, logRow, screeningBase, screeningGuide, upgradeBase, upgradeGuide } from "../domain/notes.js";
+import { FILES, GUIDE_INCLUDE, GUIDE_REASONS, logHeader, logRow, screeningBase, screeningGuide, upgradeBase, upgradeGuide } from "../domain/notes.js";
 import { DecisionLog } from "./decision-log.js";
 import { compareCodePoints } from "../domain/text-rules.js";
 import { parseRecord, RECORDS_DIR, recordText } from "../domain/records.js";
@@ -143,12 +143,13 @@ export class ReviewRepository {
     await this.folder.writeText(FILES.searches, csv.writeRecords([...SEARCH_COLUMNS], rows));
   }
 
-  /** Allowed exclusion reasons from the screening guide (defaults when there is none). */
+  /** Inclusion criteria and allowed exclusion reasons from the screening guide (defaults when there is none). */
   async reasons() {
-    if (!(await this.folder.exists(FILES.guide))) return { ta: DEFAULT_TA_REASONS, ft: DEFAULT_FT_REASONS };
+    if (!(await this.folder.exists(FILES.guide))) return { ta: DEFAULT_TA_REASONS, ft: DEFAULT_FT_REASONS, include: [] };
     const [props] = frontmatter.parse(await this.folder.readText(FILES.guide));
     const list = v => (Array.isArray(v) && v.length ? v : null);
-    return { ta: list(props[GUIDE_REASONS.ta] ?? props.ta_reasons) ?? DEFAULT_TA_REASONS, ft: list(props[GUIDE_REASONS.ft] ?? props.ft_reasons) ?? DEFAULT_FT_REASONS };
+    return { ta: list(props[GUIDE_REASONS.ta] ?? props.ta_reasons) ?? DEFAULT_TA_REASONS, ft: list(props[GUIDE_REASONS.ft] ?? props.ft_reasons) ?? DEFAULT_FT_REASONS,
+      include: (Array.isArray(props[GUIDE_INCLUDE]) ? props[GUIDE_INCLUDE] : []).map(String).filter(Boolean) };
   }
 
   /** Appends a row to 00 - Review log.md (created on first use). */
