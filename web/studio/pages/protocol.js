@@ -7,6 +7,7 @@ import { autoSave, flushSaves } from "../core/autosave.js";
 import { h } from "../core/dom.js";
 import { D, PART, S } from "../core/state.js";
 import { authorPill } from "./pilot.js";
+import { chartingFormCard } from "./charting-form.js";
 import { PAGES } from "../shell/registry.js";
 import { exampleFor, withScr } from "../shell/help.js";
 import { autosize, btn, card, iconBtn, openNote } from "../ui/components.js";
@@ -48,6 +49,7 @@ PAGES.protocol = () => {
   const section = (sct, open) => h("details", { open, style: "border-bottom:1px solid var(--border);padding:8px 0" },
     h("summary", {}, h("b", { style: "color:var(--text)" }, plainTitle(sct.title)), authorPill(sct.key), d[sct.key] ? h("span", { class: "pill ok", style: "margin-left:8px" }, "written") : h("span", { class: "pill", style: "margin-left:8px" }, "empty")),
     itemChips(sct.title),
+    sct.key === "sources" ? h("div", { class: "small muted", style: "margin-top:4px" }, "The databases from Search strategy are added to the protocol automatically. Write here what they do not say: search dates, limits and any other sources.") : null,
     h("div", { style: "margin-top:8px" }, autosize(h("textarea", { rows: rules ? 6 : 3, "aria-label": plainTitle(sct.title), value: d[sct.key] || "", placeholder: exampleFor("protocol", sct.key) || exampleFor("protocol", sct.title), oninput: e => d[sct.key] = e.target.value })),
       ((S.state.protocol_meta || {})[sct.key] || {}).by === "claude" ? h("div", { class: "row end", style: "margin-top:6px" },
         btn("✓ Approve as is", () => api("approve_section", { key: sct.key }), "sm")) : null));
@@ -67,7 +69,8 @@ PAGES.protocol = () => {
         elig ? section({ ...elig, title: "Rationale (PRISMA-ScR 6)" }, true) : null, saveRow())));
   }
   return h("div", {},
-    h("div", { class: "callout", style: "margin-bottom:16px" }, "Your question, search strings, test results and inclusion rules are added to the protocol automatically. Write the remaining sections below, then generate the Protocol note."),
+    h("div", { class: "callout", style: "margin-bottom:16px" }, "Your question, search strings, test results, inclusion rules and data items are added to the protocol automatically. Plan the data items, write the remaining sections below, then generate the Protocol note."),
+    chartingFormCard(),
     textSaver.watch(card("Method sections", null, S.protocol_sections.filter(sct => sct.key !== "eligibility").map(sct => section(sct, !d[sct.key])),
       saveRow(btn("Open Protocol in Obsidian", () => openNote("05 - Protocol.md"), "ghost")))));
 };

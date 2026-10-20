@@ -464,9 +464,8 @@
   "protocol": {
    "what": "The plan of the review, written before searching: which papers are in and which are out, and how you will work.",
    "how": [
-    "Include / exclude rules: write the criteria, with a reason for each.",
-    "Set the short exclusion reasons (E1, E2 …) used in screening.",
-    "Other methods: write the remaining sections and generate the Protocol note.",
+    "Inclusion rules: list what a paper must be (include) and the coded reasons to drop it (E1, E2 …, used in screening), then say why.",
+    "Methods: plan the data items (the charting form), write the remaining sections and generate the Protocol note.",
     "Let your supervisor review it, then lock it on the Lock & register tab."
    ],
    "terms": [

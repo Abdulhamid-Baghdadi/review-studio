@@ -69,13 +69,13 @@ A review is a **scoping review, reported to PRISMA-ScR**. A map at the top of ev
 
 | # | Step | Tabs | What you do |
 |---:|---|---|---|
-| 1 | **Research question** | Question · Idea notes *(optional)* | Say exactly what you want to find out, as Population–Concept–Context; jot down early ideas with dates. Every version is kept. |
+| 1 | **Research question** | Idea notes *(optional)* · Question | Say exactly what you want to find out, as Population–Concept–Context; jot down early ideas with dates. Every version is kept. |
 | 2 | **Search strategy** | Keywords · Search strings · Test the search *(optional)* | One block of synonyms per idea in your question; ready-to-paste strings per database (Scopus, Web of Science, IEEE Xplore, OpenAlex, …); trial runs against papers you already know. |
-| 3 | **Inclusion rules** | Include / exclude rules · Other methods · Lock & register | Which sources are in and which are out, with the exclusion reasons (E1, E2 …) used while screening; the other protocol sections; freeze the plan before searching. |
+| 3 | **Protocol** | Inclusion rules · Methods · Lock & register | What a paper must be (include) and the coded reasons to drop it (E1, E2 …, used while screening), with the rationale; the data items of the charting form and the other method sections; freeze the plan before searching. |
 | 4 | **Search & import** | | Import each export (RIS, BibTeX, CSV) with its exact string and date; duplicates are merged. |
-| 5 | **Screen papers** | Screen · Get full texts · Second reviewer | Title/abstract, then full text, with keyboard shortcuts; find and attach the PDFs; a blind second reviewer, with Cohen's κ. |
-| 6 | **Chart the data** | | The charting form for every included source, with page numbers. |
-| 7 | **Report** | | PRISMA flow diagram, PRISMA-ScR checklist, report draft and exports. |
+| 5 | **Screen papers** | Titles & abstracts · Get full texts · Full texts · Second reviewer *(optional)* | In the order of the work: titles and abstracts with keyboard shortcuts, then find and attach the PDFs, then read the full texts; a blind second reviewer, with Cohen's κ. |
+| 6 | **Chart the data** | | Fill in the charting form (planned in the protocol) for every included source, with page numbers. |
+| 7 | **Report** | Flow diagram & checklist · Exports & review package · Obsidian library | The PRISMA flow diagram and the PRISMA-ScR checklist for your paper; BibTeX, RIS and CSV exports and the review package; the included papers into your Obsidian library. |
 
 **Where the app stops.** It covers the review up to the charted evidence: the charting table, the flow diagram, the checklist and the exports (CSV, RIS, BibTeX, your Obsidian library). How you summarise and analyse the charted data depends on your field, so that is done in the tools you already use; the protocol's *Synthesis of results* section records how.
 

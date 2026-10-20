@@ -111,7 +111,6 @@ PAGES.screening = () => {
   const dkey = SC.stage === "ta" ? "ta_decision" : "ft_decision", rkey = SC.stage === "ta" ? "ta_reason" : "ft_reason";
 
   const head = h("div", { class: "row", style: "margin-bottom:14px" },
-    segmented([["ta", "Title / abstract"], ["ft", "Full text"]], SC.stage, v => { SC.stage = v; store.set("sc_stage", v); SC.id = null; if (SC.filter === "suggest" && !suggested(v).length) SC.filter = "todo"; render(); }, "Screening stage"),
     segmented([["todo", "To do"], ["all", "All"], ...(S.records.some(r => (r.notes || "").includes("[pilot]")) ? [["pilot", "Pilot"]] : []),
       ...(suggested().length || SC.filter === "suggest" ? [["suggest", `Suggested (${suggested().length})`]] : []),
       ...(SC.stage === "ta" && S.records.some(r => r.presort && r.ta_decision === "pending") ? [["presort", `Pre-sorted (${S.records.filter(r => r.presort && r.ta_decision === "pending").length})`]] : [])],

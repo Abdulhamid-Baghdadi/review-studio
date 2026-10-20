@@ -5,7 +5,7 @@
 import { api } from "../core/api.js";
 import { flushSaves } from "../core/autosave.js";
 import { $, store } from "../core/dom.js";
-import { CUR, HOME, PART, S, setCur } from "../core/state.js";
+import { CUR, HOME, PART, S, SC, setCur } from "../core/state.js";
 import { render } from "./chrome.js";
 import { openExample, openHelp } from "./help.js";
 import { promptText } from "../ui/dialogs.js";
@@ -18,7 +18,8 @@ export const stepStages = st => [...new Set(st.tabs.map(t => t.stage))].map(stag
 /** The tab on screen: the stage, and for a split page the part chosen. */
 export const curTab = () => {
   const tabs = stepOf(CUR)?.tabs.filter(t => t.stage === CUR) ?? [];
-  return tabs.find(t => t.part === (PART[CUR] ?? null)) ?? tabs[0];
+  const part = CUR === "screening" ? SC.stage : PART[CUR];      // screening: titles and abstracts (ta) or full texts (ft)
+  return tabs.find(t => t.part === (part ?? null)) ?? tabs[0];
 };
 /** Every tab of every step in order: what "Next" and "Back" walk through. */
 export const tabSequence = () => S.steps.flatMap(st => st.tabs.map(t => ({ step: st, tab: t })));
@@ -31,12 +32,17 @@ export function stepStatus(st) {
   return ss.some(s => ["in-progress", "done"].includes(s.status)) ? "in-progress" : "not-started";
 }
 /** What the page calls a stage: its tab label, or its step's title when the step has one tab. */
-export const stageName = key => { const st = stepOf(key); return st?.tabs.length > 1 ? st.tabs.find(t => t.stage === key).label : st?.title ?? stage(key)?.title; };
+export const stageName = key => {
+  const st = stepOf(key), own = st?.tabs.filter(t => t.stage === key) ?? [];
+  if (own.length > 1) return (key === CUR ? curTab() : own[0]).label;          // a split page: the part on screen
+  return st?.tabs.length > 1 ? own[0].label : st?.title ?? stage(key)?.title;
+};
 export const stepOptional = st => stepStages(st).every(s => s.optional);
 
 /** Opens a tab (a stage, and the part of a split page). */
 export function goTab(t) {
-  if (t.part) { PART[t.stage] = t.part; store.set("part_" + t.stage, t.part); }
+  if (t.stage === "screening" && t.part) { SC.stage = t.part; store.set("sc_stage", t.part); SC.id = null; }
+  else if (t.part) { PART[t.stage] = t.part; store.set("part_" + t.stage, t.part); }
   go(t.stage);
 }
 /** Opens a step on the tab last used there, or its first tab. */

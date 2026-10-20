@@ -29,7 +29,7 @@ function flowGroups() {
   const stepNode = (id, key, label) => step(key) && { id, step: step(key), label, go: () => goStep(step(key)) };
   const screen = st => () => { SC.stage = st; store.set("sc_stage", st); SC.id = null; go("screening"); };
   return [
-    { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Inclusion rules")] },
+    { phase: "Plan", nodes: [stepNode("question", "question", "Question"), stepNode("search", "search", "Search strategy"), stepNode("rules", "rules", "Protocol")] },
     { phase: "Find", prisma: true, nodes: [
       { id: "identified", step: step("import"), label: "Records found", n: f.n_db + f.n_other, minus: f.duplicates > 0 ? `${f.duplicates} duplicates` : "", go: () => go("searches"),
         tip: `Search & import: records from the databases (${f.n_db}) and other sources (${f.n_other}); duplicates are removed before screening.` },] },

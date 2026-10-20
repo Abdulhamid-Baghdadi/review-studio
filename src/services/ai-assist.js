@@ -147,7 +147,7 @@ export async function aiSuggest(repo, st, items, { model, stage = "ta" }) {
     event(st, "screening", `AI (${model}) suggested ${ft ? "full-text" : "title/abstract"} decisions for ${written} record(s); awaiting the reviewer`, repo.clock.now());
     await saveState(repo, st);
   }
-  const message = `${written} suggestion(s) written. The reviewer confirms them in Scoping Review Workbench (Screening, ${ft ? "Full text" : "Title / abstract"} tab, Suggested queue).`;
+  const message = `${written} suggestion(s) written. The reviewer confirms them in Scoping Review Workbench (Screen papers, ${ft ? "Full texts" : "Titles & abstracts"} tab, Suggested queue).`;
   return { written, skipped, message };
 }
 

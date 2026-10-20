@@ -11,7 +11,7 @@ export let CUR = location.hash.slice(1) || store.get("stage", "home");
 export const D = {};            // unsaved drafts per stage
 
 export const HOME = "home";                                  // the introduction page above the stages (not a stage itself)
-export const PART = { protocol: store.get("part_protocol", "rules") };   // which part of a split stage page is shown
+export const PART = { protocol: store.get("part_protocol", "rules"), report: store.get("part_report", "paper") };   // which part of a split stage page is shown
 // ---------- screening
 export const SC = { stage: store.get("sc_stage", "ta"), filter: "todo", id: null, cache: {}, excl: false };
 

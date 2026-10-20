@@ -31,19 +31,20 @@ const SCOPING_STAGES = [
 
 /**
  * The steps the page shows: plain-language groups of stages. A step with more than one tab shows its stages as
- * tabs; a tab with a `part` shows one part of its stage's page (the protocol page has the rules and the other
- * method sections). Steps only change how the review is shown: statuses and files stay per stage.
+ * tabs; a tab with a `part` shows one part of its stage's page (the protocol page: rules and methods; screening:
+ * titles and abstracts or full texts; the report: the paper, exports, the library). Steps only change how the review is shown: statuses and files stay per stage.
  * [key, title, hint, phase, tabs: [stage, tab label, part?][]]
  */
 const SCOPING_STEPS = [
-  ["question", "Research question", "What you want to find out", "Plan", [["questions", "Question"], ["idea", "Idea notes"]]],
+  ["question", "Research question", "What you want to find out", "Plan", [["idea", "Idea notes"], ["questions", "Question"]]],
   ["search", "Search strategy", "Keywords and database search strings", "Plan", [["concepts", "Keywords"], ["queries", "Search strings"], ["pilot", "Test the search"]]],
-  ["rules", "Inclusion rules", "Which papers are in, which are out", "Plan",
-    [["protocol", "Include / exclude rules", "rules"], ["protocol", "Other methods", "methods"], ["registration", "Lock & register"]]],
+  ["rules", "Protocol", "Inclusion rules, methods, lock before searching", "Plan",
+    [["protocol", "Inclusion rules", "rules"], ["protocol", "Methods", "methods"], ["registration", "Lock & register"]]],
   ["import", "Search & import", "Run the searches, load the results", "Find", [["searches", "Search & import"]]],
-  ["screen", "Screen papers", "Include or exclude each paper", "Select", [["screening", "Screen"], ["retrieval", "Get full texts"], ["reviewer", "Second reviewer"]]],
+  ["screen", "Screen papers", "Include or exclude each paper", "Select", [["screening", "Titles & abstracts", "ta"], ["retrieval", "Get full texts"], ["screening", "Full texts", "ft"], ["reviewer", "Second reviewer"]]],
   ["extract", "Chart the data", "Fill in a form for each paper", "Chart", [["charting", "Chart the data"]]],
-  ["report", "Report", "Flow diagram, checklist, exports", "Report", [["report", "Report"]]],
+  ["report", "Report", "Flow diagram, checklist, exports", "Report",
+    [["report", "Flow diagram & checklist", "paper"], ["report", "Exports & review package", "exports"], ["report", "Obsidian library", "library"]]],
 ];
 
 const step = ([key, title, hint, phase, tabs]) => Object.freeze({ key, title, hint, phase,
