@@ -29,14 +29,16 @@ export const STATUS_ICON = Object.freeze({ "not-started": "○", "in-progress": 
 export const PROTECTED = Object.freeze(["questions", "concepts", "queries", "protocol_text", "charting", "criteria"]);
 export const DEFAULT_DATABASES = Object.freeze(["Scopus", "Web of Science", "IEEE Xplore", "OpenAlex"]);
 
+// The charting form a new review starts with: the data items JBI suggests for a scoping review, following the
+// question's Population, Concept and Context, so they fit any topic (a review edits them in Methods).
 export const DEFAULT_FIELDS = Object.freeze([
-  { name: "study_type", description: "Study type / design (e.g. case study, method development, LCA, review)" },
-  { name: "product_domain", description: "Products or systems studied" },
-  { name: "modularity_definition", description: "How modularity is defined or measured" },
-  { name: "method", description: "Method or approach used" },
-  { name: "criteria", description: "Criteria or outcomes assessed (impact, cost, repair, upgrade, ...)" },
+  { name: "source_type", description: "Type of source (e.g. journal article, conference paper, standard, report)" },
+  { name: "study_design", description: "Study design or approach (e.g. case study, method development, experiment, review)" },
+  { name: "population", description: "What or who was studied (products, systems, people …)" },
+  { name: "concept", description: "What the source says about the review's concept (definition, method, feature, measure …)" },
+  { name: "context", description: "Setting: industry, application, country, period" },
   { name: "key_findings", description: "Main findings relevant to the review questions" },
-  { name: "locators", description: "Page / section / table locators for the values above" },
+  { name: "locators", description: "Page, section or table of each value above" },
 ].map(Object.freeze));
 
 /** @type {readonly [string, string][]} section key, heading — of a scoping review; `reviewType(st).protocolSections` per review */

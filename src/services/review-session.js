@@ -136,7 +136,7 @@ export class ReviewSession {
       // saved while typing: a new version only when an editing session starts (or for an amendment)
       if (strip(amendment ?? "") || !sameSession(this.st.concepts_edited, this.now)) {
         if (old.length) (this.st.concepts_history ??= []).push({ when: this.now, why: strip(why || amendment || ""), concepts: old });
-        event(this.st, "concepts", `concept table saved` + (strip(why || "") ? ` — ${strip(why)}` : ""), this.now);
+        event(this.st, "concepts", `keyword blocks saved` + (strip(why || "") ? ` — ${strip(why)}` : ""), this.now);
       }
       this.st.concepts_edited = this.now;
       touch(this.st, "concepts", this.now);

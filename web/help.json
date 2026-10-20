@@ -723,11 +723,11 @@
   "charting": {
    "items": [
     [
-     "study_type",
+     "study_design",
      "method development"
     ],
     [
-     "product_domain",
+     "population",
      "smartphones, tablets (mobile ICT devices)"
     ],
     [

@@ -80,6 +80,16 @@ export function protocolMarkdown({ reviewName, reviewLink, st, ftReasons, includ
  * What must be in order before the protocol is locked.
  * @returns {{label: string, ok: boolean, detail: string, required: boolean}[]}
  */
+/**
+ * Codes used at both stages with different meanings (E6 "wrong population" at title/abstract, E6 "no usable content"
+ * at full text): the flow diagram and the report would count two reasons as one. @returns {string[]} e.g. ["E6"]
+ */
+export function reasonCodeClashes(reasons) {
+  const code = r => strip(r).split(" ")[0], text = r => strip(r).slice(code(r).length).trim().toLowerCase();
+  const ta = new Map((reasons.ta ?? []).filter(r => strip(r)).map(r => [code(r), text(r)]));
+  return [...new Set((reasons.ft ?? []).filter(r => strip(r) && ta.has(code(r)) && ta.get(code(r)) !== text(r)).map(code))];
+}
+
 export function lockChecks(st, reasons) {
   const t = st.protocol_text;
   const required = reviewType(st).protocolSections.filter(([, , optional]) => !optional);
@@ -88,12 +98,15 @@ export function lockChecks(st, reasons) {
   const drafted = sectionsBy(st, "claude");
   const sup = st.supervisor_review ?? {};
   const row = (label, ok, detail, required) => ({ label, ok: Boolean(ok), detail, required });
+  const clashes = reasonCodeClashes(reasons);
   return [
     row("Review questions written", st.questions.main, chars(st.questions.main).slice(0, 80).join("") || "not written yet (Research question)", true),
-    row("Concept table and search strings", st.concepts.length, `${st.concepts.length} concept block(s)`, true),
+    row("Keyword blocks and search strings", st.concepts.length, `${st.concepts.length} keyword block(s)`, true),
+    row("Inclusion criteria written", (reasons.include ?? []).some(x => strip(x)), `${(reasons.include ?? []).filter(x => strip(x)).length} criteria (Inclusion & exclusion rules)`, true),
     row("All protocol sections written", !empty.length, empty.length ? "missing: " + empty.join(", ") : `${required.length} of ${required.length} (optional ones not counted)`, true),
     row("No placeholders left", !holders.length, holders.length ? "replace: " + holders.join(", ") : "none found", true),
-    row("Exclusion reasons set", !sameValue([...reasons.ta], [...DEFAULT_TA_REASONS]), `${reasons.ft.length} full-text reasons`, true),
+    row("Exclusion reasons set", !sameValue([...reasons.ta], [...DEFAULT_TA_REASONS]) && !clashes.length,
+      clashes.length ? `${clashes.join(", ")} ${clashes.length > 1 ? "mean" : "means"} different things at title/abstract and full text: give each its own code` : `${reasons.ta.length} title/abstract and ${reasons.ft.length} full-text reasons`, true),
     row("Reviewed by your supervisor", sup.by, sup.by ? `${sup.by}, ${sup.when}` : "not yet", true),
     row("Sections drafted by Claude were read by you", !drafted.length,
       drafted.length ? "still unread drafts: " + drafted.join(", ") : "all edited or approved by you", false),

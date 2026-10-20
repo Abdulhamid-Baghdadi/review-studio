@@ -110,7 +110,8 @@ export function checklistNote({ reviewName, reviewLink, st, today, evidence }) {
 /** 12 - Charting.base: the charting form as a table over the included records (and appraisal, if used). */
 export function chartingBase(st, withAppraisal) {
   const views = [["Charting", ["file.name", "year", ...st.charting.fields.map(f => fullName(`chart_${f.name}`))]]];
-  if (withAppraisal) views.push(["Appraisal", ["file.name", "year", fullName("chart_study_type"), "appraisal", "appraisal_note"]]);
+  const design = st.charting.fields.find(f => f.name === "study_design" || f.name === "study_type")?.name ?? "study_design";   // older reviews: study_type
+  if (withAppraisal) views.push(["Appraisal", ["file.name", "year", fullName(`chart_${design}`), "appraisal", "appraisal_note"]]);
   return "views:\n" + views.map(([name, order]) =>
     `  - type: table\n    name: ${name}\n    filters:\n      and:\n${RECORD_FILTERS.map(f => `        - ${f}\n`).join("")}        - ${fullName("ft_decision")} == "include"\n    order:\n`
     + order.map(c => `      - ${c}\n`).join("")

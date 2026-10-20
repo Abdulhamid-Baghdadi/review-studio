@@ -42,7 +42,9 @@ const protocolPage = rules => {
       btn(add, () => { r[key].push(start()); draw(); wrap.querySelectorAll("input")[r[key].length - 1]?.focus(); }, "sm"));
     draw(); return wrap;
   };
-  const reasonList = (key, stage) => ruleList(key, `Exclusion reason, ${stage},`, "+ Add reason", () => `E${r[key].length + 1} `);
+  // a new reason gets the next free code over both stages, so no code is used twice (E7 after E1–E5 and E7)
+  const nextCode = () => `E${Math.max(0, ...[...r.ta, ...r.ft].map(x => Number(/^E(\d+)\b/.exec(String(x).trim())?.[1] ?? 0))) + 1} `;
+  const reasonList = (key, stage) => ruleList(key, `Exclusion reason, ${stage},`, "+ Add reason", nextCode);
   // the full-text reasons: the same list as title and abstract (typed once), or a list of their own
   const ftColumn = () => {
     const box = h("div", {});

@@ -59,9 +59,13 @@ export async function lockProtocol(repo, st, { registration = "" } = {}) {
   await repo.folder.writeText(name, protocolMarkdown({ reviewName: repo.name, reviewLink: repo.link, st, ftReasons: reasons.ft, include: reasons.include, frozen: day, generatedBy: generatorOf(repo).stagesBy }));
   Object.assign(st.protocol, { locked: day, file: name, sha256: await sha256(await repo.folder.readBytes(name)),
     registration: strip(registration), snapshot: { ta_reasons: [...reasons.ta], ft_reasons: [...reasons.ft], inclusion_criteria: [...reasons.include] } });
+  // required checks still open at the lock are part of the record (the page says so before locking anyway)
+  const open = lockChecks(st, reasons).filter(c => c.required && !c.ok).map(c => c.label);
+  if (open.length) st.protocol.open_checks = open;
   st.stages.registration = { status: "done", reason: "", updated: repo.clock.now() };
   event(st, "registration", `protocol locked (${name})` + (registration ? `, registration ${registration}` : "")
-    + (st.protocol.commit ? `, commit ${chars(st.protocol.commit).slice(0, 10).join("")}` : ""), repo.clock.now());
+    + (st.protocol.commit ? `, commit ${chars(st.protocol.commit).slice(0, 10).join("")}` : "")
+    + (open.length ? ` with ${open.length} required check(s) still open: ${open.join("; ")}` : ""), repo.clock.now());
 }
 
 /** What must be in order before locking. */
