@@ -49,6 +49,7 @@ export function applySuggestions(repo, items, stage = "ta") {
     if (!r) continue;
     const f = { ...r.props };
     if ((f[dkey] || "pending") !== "pending" || (ft && !["include", "unsure"].includes(f.ta_decision))) continue;
+    if (ft && !["include", "exclude"].includes(it.decision)) continue;          // full text has no "unsure"
     f[dkey] = it.decision;
     f[rkey] = it.decision === "exclude" ? (it.reason ?? "") : "";
     const agreed = it.decision === f[ai + "decision"] && f[rkey] === (f[ai + "reason"] || "");

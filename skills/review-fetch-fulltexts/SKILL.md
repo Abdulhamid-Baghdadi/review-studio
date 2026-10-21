@@ -1,6 +1,6 @@
 ---
 name: review-fetch-fulltexts
-description: Find and attach the full-text PDFs for records awaiting full-text screening in a scoping review (Scoping Review Workbench, step Screen papers, Get full texts tab). Use when the user asks to collect, download, or fetch the PDFs or full texts for a review.
+description: Find and attach the full-text PDFs for records awaiting full-text screening in a scoping review (Scoping Review Workbench, Screen papers → Get full texts). Use when the user asks to collect, download, or fetch the PDFs or full texts for a review.
 ---
 
 # Fetch full texts
@@ -17,14 +17,14 @@ Run the commands from the Scoping Review Workbench folder (the project open in C
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context retrieval --limit 200
    ```
-   - If AI assistance is **off**, stop and tell the user where to switch it on (Scoping Review Workbench, step Screen papers, Get full texts tab).
+   - If AI assistance is **off**, stop and tell the user where to switch it on (Scoping Review Workbench, Screen papers → Get full texts).
    - Each record comes with title, authors, year, DOI, URL and `open_access_url`, which is filled when Scoping Review Workbench found an open-access link.
 
    - Before downloading anything, ask whether the user has already run "Find PDFs in a folder…" on the Retrieval page, which matches PDFs already on their PC (Downloads, Zotero, a library folder) by DOI or by title plus first author. Records it found are no longer in the queue.
 
 2. **Look for each PDF, in this order:**
    1. `open_access_url`, if present.
-   2. The Unpaywall API: `https://api.unpaywall.org/v2/<doi>?email=<the user's email>`, and its `best_oa_location.url_for_pdf`.
+   2. The OpenAlex API (no email needed): `https://api.openalex.org/works/doi:<doi>`, every entry of `locations` with `is_oa` true (`pdf_url`, or the repository page). Unpaywall needs an email address in each request: use it only if the user gives you one to use for this, and never take their address from anywhere else.
    3. Repositories: arXiv, author pages, institutional repositories. Use a search engine with the exact title.
    4. Publisher access through the user's own browser, if they have institutional access and have said you may use it. Check the user's memory or notes for publisher-specific recipes. Common PDF URL patterns:
       - Springer: `/content/pdf/<doi>.pdf`

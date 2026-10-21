@@ -1,6 +1,6 @@
 ---
 name: review-screen-fulltexts
-description: Suggest full-text screening decisions for a scoping review (Scoping Review Workbench, step Screen papers, Full texts tab) by reading each retrieved PDF against the eligibility criteria. Use when the user asks to pre-screen, suggest decisions for, or help with full-text screening of a review. The reviewer confirms every suggestion; this skill never decides.
+description: Suggest full-text screening decisions for a scoping review (Scoping Review Workbench, Screen papers → Full texts) by reading each retrieved PDF against the eligibility criteria. Use when the user asks to pre-screen, suggest decisions for, or help with full-text screening of a review. The reviewer confirms every suggestion; this skill never decides.
 ---
 
 # Suggest full-text decisions
@@ -20,7 +20,7 @@ All reading and writing goes through `bin/ai-assist.js` (Scoping Review Workbenc
    - Records without a PDF are not listed; retrieval comes first (skill `review-fetch-fulltexts`).
 
 2. **Read each PDF completely** (use the pdf skill or a PDF reader): methods, case study and results, not only the abstract and conclusions. Then judge it against the eligibility criteria and the questions only:
-   - **Full text is where the decision is made**, so `unsure` is a last resort. Use it only when the paper is genuinely ambiguous against a criterion, and say which criterion.
+   - **Full text is where the decision is made:** `include` or `exclude` only (the full-text stage has no `unsure`). If a paper is genuinely ambiguous against a criterion, give it **no suggestion** and name it and the criterion in your report, so the reviewer decides it.
    - Every `exclude` takes exactly one reason code from `ft_reasons`: the first one that applies, in list order.
    - **First check that the PDF is the right paper** (title and authors on page 1). If it isn't, don't suggest anything for that record; report it so the PDF can be replaced.
    - `why`: one or two sentences with page or section locators, e.g. `Software product lines only (§2, p. 3); no physical product.` Never claim anything the paper does not say.

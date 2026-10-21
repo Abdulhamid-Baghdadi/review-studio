@@ -58,7 +58,8 @@ export function flowView(records, searches) {
     ta_pending: count(ta, "pending"), ta_excluded: count(ta, "exclude"), ta_include: count(ta, "include"), ta_unsure: count(ta, "unsure"),
     sought: sought.length,
     not_retrieved: sought.filter(f => f.pdf_status === "not-retrieved" && f.ft_decision === "pending").length,
-    ft_pending: sought.filter(f => ["", "pending"].includes(f.ft_decision ?? "") && f.pdf_status !== "not-retrieved").length,
+    ft_pending: sought.filter(f => ["", "pending", "unsure"].includes(f.ft_decision ?? "")   // "unsure" at full text (older AI suggestions) is still to decide
+       && f.pdf_status !== "not-retrieved").length,
     assessed: count(ft, "include") + count(ft, "exclude"), ft_excluded: count(ft, "exclude"), included: count(ft, "include"),
     ta_reasons: tally(records.filter(f => f.ta_decision === "exclude").map(f => f.ta_reason || "?")),
     ft_reasons: tally(sought.filter(f => f.ft_decision === "exclude").map(f => f.ft_reason || "?")),

@@ -1,6 +1,6 @@
 ---
 name: review-screen-abstracts
-description: Suggest title/abstract screening decisions for a scoping review (Scoping Review Workbench, step Screen papers, Titles & abstracts tab). Use when the user asks to pre-screen, suggest decisions, or help with title/abstract screening of a review. The reviewer confirms every suggestion; this skill never decides.
+description: Suggest title/abstract screening decisions for a scoping review (Scoping Review Workbench, Screen papers → Titles & abstracts). Use when the user asks to pre-screen, suggest decisions, or help with title/abstract screening of a review. The reviewer confirms every suggestion; this skill never decides.
 ---
 
 # Suggest title/abstract decisions

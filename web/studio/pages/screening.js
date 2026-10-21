@@ -53,7 +53,8 @@ function queue() {
   if (SC.filter === "suggest") return suggested();
   if (SC.stage === "ta") return SC.filter === "todo" ? recs.filter(r => r.ta_decision === "pending" && !r.presort) : recs;
   const ft = recs.filter(r => ["include", "unsure"].includes(r.ta_decision));
-  return SC.filter === "todo" ? ft.filter(r => ["", "pending"].includes(r.ft_decision) && r.pdf_status !== "not-retrieved") : ft;
+  // full text has no "unsure" (older AI suggestions set it): such a paper is still to decide
+  return SC.filter === "todo" ? ft.filter(r => ["", "pending", "unsure"].includes(r.ft_decision) && r.pdf_status !== "not-retrieved") : ft;
 }
 
 const KEYS = stage => (stage === "ta" ? ["ta_decision", "ta_reason"] : ["ft_decision", "ft_reason"]);
@@ -235,7 +236,7 @@ function suggestionBox(rec) {
       h("span", { class: "spacer" }), btn(["Accept ", h("kbd", {}, "Enter")], acceptSuggestion, "sm", "Make Claude's suggestion your decision")),
     reason ? h("div", { class: "ai-reason" }, reason) : null,
     why ? h("p", {}, why) : null,
-    h("div", { class: "small muted" }, "Enter accepts · I, U or E decides otherwise · the log notes whether you kept the suggestion"));
+    h("div", { class: "small muted" }, `Enter accepts · ${SC.stage === "ta" ? "I, U or E" : "I or E"} decides otherwise · the log notes whether you kept the suggestion`));
 }
 
 function presortView(q) {

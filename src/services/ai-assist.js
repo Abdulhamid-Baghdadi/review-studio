@@ -114,7 +114,10 @@ export async function aiSuggest(repo, st, items, { model, stage = "ta" }) {
     if (!r) { skipped.push(`${it.id}: unknown record`); continue; }
     if ((r.props[dkey] || "pending") !== "pending" || (ft && !["include", "unsure"].includes(r.props.ta_decision))) { skipped.push(`${it.id}: already decided by the reviewer, left alone`); continue; }
     if (ft && !(await repo.folder.exists(pdfPath(r)))) { skipped.push(`${it.id}: no full text attached; suggest only from the PDF`); continue; }
-    if (!["include", "unsure", "exclude"].includes(decision)) { skipped.push(`${it.id}: decision must be include / unsure / exclude`); continue; }
+    // full text decides: include or exclude (the stage has no "unsure"; a paper still unclear gets no suggestion, and
+    // the report names the criterion, so the reviewer decides it)
+    const choices = ft ? ["include", "exclude"] : ["include", "unsure", "exclude"];
+    if (!choices.includes(decision)) { skipped.push(`${it.id}: decision must be ${choices.join(" / ")}${ft && decision === "unsure" ? " at full text: leave it without a suggestion and name the unclear criterion in your report" : ""}`); continue; }
     if (decision === "exclude" && !allowed.has(code)) { skipped.push(`${it.id}: exclusion needs a reason code from the screening guide (${[...allowed].sort(compareCodePoints).join(", ")})`); continue; }
     repo.put({ ...r, props: { ...r.props, [pre + "decision"]: decision, [pre + "reason"]: decision === "exclude" ? code : "", [pre + "why"]: strip(it.why || "") } });
     written++;
@@ -125,7 +128,7 @@ export async function aiSuggest(repo, st, items, { model, stage = "ta" }) {
     event(st, "screening", `AI (${model}) suggested ${ft ? "full-text" : "title/abstract"} decisions for ${written} record(s); awaiting the reviewer`, repo.clock.now());
     await saveState(repo, st);
   }
-  const message = `${written} suggestion(s) written. The reviewer confirms them in Scoping Review Workbench (Screen papers, ${ft ? "Full texts" : "Titles & abstracts"} tab, Suggested queue).`;
+  const message = `${written} suggestion(s) written. The reviewer confirms them in Scoping Review Workbench (Screen papers → ${ft ? "Full texts" : "Titles & abstracts"} → Suggested).`;
   return { written, skipped, message };
 }
 
