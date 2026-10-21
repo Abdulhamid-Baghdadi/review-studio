@@ -43,7 +43,7 @@ export function confirmPresorted(repo, ids, reason = "") {
 export function applySuggestions(repo, items, stage = "ta") {
   const ft = stage === "ft";
   const [dkey, rkey, ai] = KEYS[ft ? "ft" : "ta"];
-  const changed = new Set();
+  const changed = new Set(), kept = new Set();         // kept: the reviewer chose what the AI suggested
   for (const it of items) {
     const r = repo.records.get(it.id);
     if (!r) continue;
@@ -56,8 +56,9 @@ export function applySuggestions(repo, items, stage = "ta") {
     f.notes = strip((f.notes || "") + (agreed ? ` [AI ${what}suggestion confirmed by reviewer]` : ` [reviewer changed AI ${what}suggestion]`));
     repo.put({ ...r, props: f });
     changed.add(it.id);
+    if (agreed) kept.add(it.id);
   }
-  return changed;
+  return Object.assign(changed, { kept });
 }
 
 /** Returns pre-sorted records to the normal screening queue. */

@@ -53,7 +53,7 @@ export class DecisionLog {
     for (const c of changes) {
       const mine = ids.has(c.record_id);
       const row = { seq: String(++seq), when: now, ...c,
-        by: mine ? by : "", how: mine ? how : isNew ? HOW.baseline : HOW.outside };
+        by: mine ? by : "", how: mine ? (typeof how === "function" ? how(c.record_id) : how) : isNew ? HOW.baseline : HOW.outside };   // how: text, or per record
       row.hash = await sha256Text(chainText(previous, row));
       previous = row.hash;
       added.push(row);

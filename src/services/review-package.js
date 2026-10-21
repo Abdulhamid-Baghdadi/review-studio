@@ -41,7 +41,7 @@ function aiUse(st, records, logRows, type) {
     "## Outcome of AI suggestions\n",
     `- Screening suggestions confirmed unchanged by the reviewer: ${count("suggestion confirmed by reviewer")}`,
     `- Screening suggestions changed by the reviewer: ${count("reviewer changed AI")}`,
-    `- Decisions in the decision log made through reviewed AI suggestions: ${logRows.filter(r => r.how === HOW.ai).length}`,
+    `- Decisions in the decision log made through reviewed AI suggestions: ${logRows.filter(r => [HOW.ai, HOW.aiKept, HOW.aiChanged].includes(r.how)).length} (${logRows.filter(r => r.how === HOW.aiChanged).length} changed by the reviewer)`,
     `- Charting prefilled by AI and not yet checked by the reviewer: ${records.filter(r => isIncluded(r.props) && r.props.chart_checked_by === "AI").length}`,
     ...Object.entries(st.reviewer_ai ?? {}).map(([stage, r]) => `- Second reviewer (${stage === "ta" ? "title/abstract" : "full text"}) was an AI: ${r.model}, ${r.when}, sheet ${r.sheet}`),
     "", "## Every AI event in the timeline\n", "| When | Stage | What |", "|---|---|---|",

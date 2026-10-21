@@ -25,7 +25,9 @@ export const HOW = Object.freeze({
   hand: "by hand",
   undo: "undone by the reviewer (the decision before is restored)",
   rule: "rule-based pre-sort, confirmed by the reviewer",
-  ai: "AI suggestion, reviewed by the reviewer",
+  ai: "AI suggestion, reviewed by the reviewer",          // logs before 20 October 2026; since then kept or changed:
+  aiKept: "AI suggestion kept by the reviewer",
+  aiChanged: "AI suggestion changed by the reviewer",
   sheet: "second-reviewer sheet imported",
   outside: "changed outside the app (e.g. Obsidian)",
   baseline: "state when the decision log started",

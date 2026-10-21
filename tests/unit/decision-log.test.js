@@ -55,7 +55,10 @@ test("a reviewed AI suggestion is logged as such, and undoing it also restores t
   assert.equal(s.repo.records.get("R0001").props.ta_decision, "pending");
   assert.equal(s.repo.records.get("R0001").props.notes ?? "", note);
   const h = await s.repo.decisionLog.history("R0001");
-  assert.deepEqual(h.map(r => [r.from, r.to, r.how]), [["pending", "exclude", HOW.ai], ["exclude", "pending", HOW.undo]]);
+  assert.deepEqual(h.map(r => [r.from, r.to, r.how]), [["pending", "exclude", HOW.aiKept], ["exclude", "pending", HOW.undo]]);
+  // the reviewer decides otherwise than the AI suggested: the log says so (found in self-test 2)
+  await s.applyDecisions([{ id: "R0001", decision: "include" }], "ta");
+  assert.equal((await s.repo.decisionLog.history("R0001")).at(-1).how, HOW.aiChanged);
 });
 
 test("a decision changed in Obsidian is found when the review is opened again", async () => {

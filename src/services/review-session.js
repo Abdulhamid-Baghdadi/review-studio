@@ -283,8 +283,9 @@ export class ReviewSession {
   /** Saves a reviewed batch of AI-suggested decisions as the reviewer's; each record notes whether it was changed. */
   async applyDecisions(items, stage = "ta") {
     const changed = screening.applySuggestions(this.repo, items, stage);
-    await this.#afterScreeningChange(changed, HOW.ai);
-    event(this.st, "screening", `batch of ${changed.size} AI-suggested ${stage === "ft" ? "full-text" : "title/abstract"} decisions reviewed and confirmed by the reviewer`, this.now);
+    // the log says, per decision, whether the reviewer kept the AI's suggestion or changed it
+    await this.#afterScreeningChange(changed, id => (changed.kept.has(id) ? HOW.aiKept : HOW.aiChanged));
+    if (changed.size > 1) event(this.st, "screening", `${changed.size} AI-suggested ${stage === "ft" ? "full-text" : "title/abstract"} decisions reviewed: ${changed.kept.size} kept, ${changed.size - changed.kept.size} changed by the reviewer`, this.now);
     await this.save();
     return `${changed.size} decision(s) saved.`;
   }
