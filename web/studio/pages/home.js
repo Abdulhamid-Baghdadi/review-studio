@@ -10,6 +10,7 @@ import { openFinishedExample } from "../shell/reviews.js";
 import { startTour } from "../shell/tour.js";
 import { svg } from "../ui/charts.js";
 import { btn, card, hlQuery } from "../ui/components.js";
+import { folderStrip } from "../ui/folder-strip.js";
 
 // The animated demo on the Homepage: a small mock screen that plays through the five steps of a review.
 // Plain DOM and CSS (no video file), so it works offline and follows the light/dark theme.
@@ -118,8 +119,10 @@ PAGES.home = () => {
       choice("📘", "See a finished example", "A real search of 110 records, screened down to 4 included papers.", openFinishedExample),
       choice("🎓", "Take the 1-minute tour", "What each part of the screen is for.", () => { go("questions"); setTimeout(() => startTour(), 250); })),
     card("How a review goes", "Five phases, one minute. Click a part of the circle to jump to it.", homeDemo()),
-    h("p", { class: "home-foot small muted" }, "📝 Plain Markdown notes and CSV tables · 🟣 opens in Obsidian · 🔒 nothing is uploaded, no account · ",
-      h("a", { href: "https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench/releases/latest/download/scoping-review-workbench.zip" }, "💾 desktop version")));
+    card("Your review is a folder on your PC", "Nothing is uploaded and there is no account. Every note is plain Markdown, so the folder opens in Obsidian (or any text editor) as it is.",
+      folderStrip(),
+      h("p", { class: "small muted", style: "margin:10px 0 0" }, "In Obsidian: Open folder as vault, and choose the review's folder (or the folder above it, e.g. your vault). ",
+        h("a", { href: "https://github.com/Abdulhamid-Baghdadi/scoping-review-workbench/releases/latest/download/scoping-review-workbench.zip" }, "💾 Desktop version"))));
 };
 
 /** Opens the finished example review (backend.exampleEntry), on its Report step: the result first, Back walks through it. */
