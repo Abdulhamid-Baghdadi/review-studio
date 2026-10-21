@@ -164,9 +164,15 @@ export async function aiChart(repo, st, items, { model }) {
     }
     if (!wrote.length) continue;
     props.chart_checked_by = "AI";
+    // what the values come from is about the charting, not a field of the form: always kept, so the reviewer knows
+    // whether to check them against the full text or the abstract (it was dropped when the form had no "basis" field)
+    const basis = strip(String(it.fields?.basis ?? "")).toLowerCase();
+    if (basis === "full text" || basis === "abstract") props.chart_basis = basis;
+    const noBasis = !props.chart_basis;
     repo.put({ ...r, props });
     n++;
     lines.push(`${it.id}: ${wrote.join(", ")}`);
+    if (noBasis) lines.push(`  ${it.id}: basis missing or not "full text" / "abstract"; the reviewer will not know what to check against`);
   }
   if (n) {
     await repo.save();

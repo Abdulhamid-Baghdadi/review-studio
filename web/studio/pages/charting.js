@@ -20,9 +20,9 @@ PAGES.charting = () => {
   const kind = r => {
     if ((r.chart.checked_by || "").toLowerCase() === "reviewer") return "me";
     const basis = (r.chart.basis || "").toLowerCase(), byAi = (r.chart.checked_by || "").toLowerCase() === "ai" || basis;
-    return !byAi ? "todo" : basis === "full text" ? "ft" : "abs";
+    return !byAi ? "todo" : basis === "full text" ? "ft" : basis === "abstract" ? "abs" : "ai";   // ai: basis not given
   };
-  const LABEL = { me: ["checked by you", "ok"], todo: ["to chart", ""], ft: ["AI · full text, check it", "info"], abs: ["AI · abstract, check it", "warn"] };
+  const LABEL = { me: ["checked by you", "ok"], todo: ["to chart", ""], ft: ["AI · full text, check it", "info"], abs: ["AI · abstract, check it", "warn"], ai: ["AI · check it", "warn"] };
   const n = k => inc.filter(r => kind(r) === k).length;
   const flt = D.cfilter ??= "all";
   const list = inc.filter(r => flt === "all" || kind(r) === flt);
@@ -50,9 +50,12 @@ PAGES.charting = () => {
         h("span", { style: "flex:1" }),
         k !== "me" ? btn(k === "todo" ? "✓ Charted — next" : "✓ Checked — next", e => busy(e.currentTarget, async () => {
           const nx = next();
+          (D.checkedFrom ??= {})[r.record_id] = r.chart.checked_by ?? "";   // what Undo puts back
+          if (nx) D.chartSel = nx.record_id;                                 // before saving: the page is drawn on save
           await api("set_record", { record_id: r.record_id, fields: { chart_checked_by: "reviewer" } }, { silent: true });
-          if (nx) D.chartSel = nx.record_id;
-        }), "primary") : btn("Undo checked", () => api("set_record", { record_id: r.record_id, fields: { chart_checked_by: r.chart.basis ? "AI" : "" } }), "ghost"),   // back to the AI only if the AI prefilled it
+        }), "primary") : btn("Undo checked", () => api("set_record", { record_id: r.record_id,
+          // back to what it was: the AI's prefill, or nobody (after a reload, the AI if it left its basis)
+          fields: { chart_checked_by: D.checkedFrom?.[r.record_id] ?? (r.chart.basis ? "AI" : "") } }), "ghost"),
         btn("Next ›", () => { const nx = next(); if (nx) { D.chartSel = nx.record_id; render(); } }, "ghost")),
       r.notes ? h("details", { class: "small", style: "margin-bottom:10px" }, h("summary", { class: "muted" }, "Notes on this record"), h("div", { class: "muted", style: "margin-top:4px;white-space:pre-wrap" }, r.notes)) : null,
       ...(hasCols ? S.state.charting.fields.filter(f => f.name !== "checked_by").map(f => field(fieldLabel(f.name), autosize(h("textarea", {
@@ -70,10 +73,10 @@ PAGES.charting = () => {
       btn("Open Charting.base", () => openNote("12 - Charting.base"), "ghost")),
     h("div", { class: "chart-grid" },
       card("Included sources", null,
-        segmented([["all", `All ${inc.length}`], ["todo", `To chart ${n("todo")}`], ...(n("ft") ? [["ft", `AI, full text ${n("ft")}`]] : []), ...(n("abs") ? [["abs", `AI, abstract ${n("abs")}`]] : []), ["me", `Checked ${n("me")}`]], flt,
+        segmented([["all", `All ${inc.length}`], ["todo", `To chart ${n("todo")}`], ...(n("ft") ? [["ft", `AI, full text ${n("ft")}`]] : []), ...(n("abs") ? [["abs", `AI, abstract ${n("abs")}`]] : []), ...(n("ai") ? [["ai", `AI ${n("ai")}`]] : []), ["me", `Checked ${n("me")}`]], flt,
           v => { D.cfilter = v; D.chartSel = null; render(); }, "Show papers"),
         h("div", { class: "queue", style: "max-height:640px;margin-top:10px" }, list.map(r => h("div", { class: "qitem" + (r.record_id === sel ? " cur" : ""), onclick: () => { D.chartSel = r.record_id; render(); } },
-          kind(r) === "me" ? decDot("include", "checked by you") : kind(r) === "todo" ? decDot("pending", "not charted yet") : decDot("unsure", `prefilled by AI from the ${kind(r) === "ft" ? "full text" : "abstract"}, not checked yet`), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
+          kind(r) === "me" ? decDot("include", "checked by you") : kind(r) === "todo" ? decDot("pending", "not charted yet") : decDot("unsure", kind(r) === "ai" ? "prefilled by AI, not checked yet" : `prefilled by AI from the ${kind(r) === "ft" ? "full text" : "abstract"}, not checked yet`), h("span", { class: "id" }, r.record_id), h("span", { class: "t", title: r.title }, r.title))))),
       card(null, null, form)),
     card("Charting form", `The data items (${S.review_type.refs.dataItems}) are planned in Methods; after locking, a change is an amendment.`,
       h("div", { class: "small" }, S.state.charting.fields.filter(f => f.name !== "checked_by").map(f => h("div", {}, h("b", {}, fieldLabel(f.name)), " — ", f.description))),

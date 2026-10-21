@@ -101,9 +101,20 @@ test("charting: fills only empty fields of included records, never after the rev
   const lines = await aiChart(s.repo, s.st, [
     { id: "R0001", fields: { [first]: "AI value", [second]: "  p. 4: graph partitioning  ", unknown: "x" } },
     { id: "R0002", fields: { [first]: "x" } }, { id: "R0003", fields: { [first]: "x" } }], { model });
-  assert.deepEqual(lines, [`R0001: ${second}`, "  skipped R0002: already checked by the reviewer", "  skipped R0003: not an included record"]);
+  assert.deepEqual(lines, [`R0001: ${second}`, '  R0001: basis missing or not "full text" / "abstract"; the reviewer will not know what to check against',
+    "  skipped R0002: already checked by the reviewer", "  skipped R0003: not an included record"]);
   assert.equal(props(s, "R0001")[`chart_${first}`], "by hand", "a value already there is kept");
   assert.equal(props(s, "R0001")[`chart_${second}`], "p. 4: graph partitioning");
   assert.equal(props(s, "R0001").chart_checked_by, "AI");
 });
 
+
+test("the AI's charting basis is kept even when the charting form has no 'basis' field (found in self-test 2)", async () => {
+  const s = await review();
+  s.st.ai = { charting: "prefill" };
+  const r = s.repo.records.get("R0001");
+  s.repo.put({ ...r, props: { ...r.props, ta_decision: "include", ft_decision: "include" } });
+  s.st.charting.fields = [{ name: "method", description: "" }];
+  await aiChart(s.repo, s.st, [{ id: "R0001", fields: { method: "case study", basis: "full text" } }], { model: "m" });
+  assert.equal(s.repo.records.get("R0001").props.chart_basis, "full text");
+});
