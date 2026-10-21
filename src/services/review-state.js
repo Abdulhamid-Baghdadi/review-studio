@@ -25,7 +25,7 @@ export async function saveState(repo, st) {
   autoDone(st, [...repo.records.values()].map(r => r.props), clock.now());
   await folder.writeText(STATE_FILE, JSON.stringify(st, null, 2));
   const common = { reviewName: repo.name, reviewLink: repo.link, st, today: clock.today() };
-  await folder.writeText(STAGE_FILES.timeline, timelineNote(common));
+  await folder.writeText(STAGE_FILES.timeline, timelineNote({ ...common, files: await folder.list("") }));
   const strategy = strategyNote({ ...common, exists: await folder.exists(STAGE_FILES.strategy) });
   if (strategy !== null) await folder.writeText(STAGE_FILES.strategy, strategy);
 }

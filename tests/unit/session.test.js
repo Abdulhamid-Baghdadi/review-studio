@@ -68,3 +68,34 @@ test("saving keeps edits made outside the app (e.g. in Obsidian) since the note 
   await s.decide(r.id, "ta", "exclude", { reason: "E1", notes: "mine" });
   assert.match(await folder.readText(r.file), /^notes: "mine"$/m, "a property the app changes itself wins");
 });
+
+test("the review's main note: written when missing, with links only to files that exist; never overwritten", async () => {
+  const folder = memoryFolder();
+  const s = await ReviewSession.open(folder, deps());
+  await s.saveQuestions({ population: "P", concept: "C", context: "X", main: "What is known?", sub: [] });
+  assert.equal(await s.writeMainNote(), true);
+  const text = await folder.readText("T.md");                           // [[T]] in every note resolves to this one
+  assert.match(text, /^---\ntype: "review"/);
+  assert.match(text, /\*\*Main question\.\*\* What is known\?/);
+  assert.match(text, /\[\[00 - Review timeline\]\]/);
+  assert.ok(!text.includes("[[05 - Protocol]]"), "no link to a protocol that is not written yet");
+  await folder.writeText("T.md", "my own note");
+  assert.equal(await s.writeMainNote(), false);
+  assert.equal(await folder.readText("T.md"), "my own note");
+});
+
+test("a draft saved under its own name: every note links to the new main note, none to [[Draft review]]", async () => {
+  const folder = memoryFolder();
+  const clock = deps().clock;
+  const draft = await ReviewSession.open(folder, { clock, settings: { name: "Draft review", recordsPath: "Draft review records/08 - Records" } });
+  await draft.importSearch({ fileName: "a.ris", bytes: new TextEncoder().encode(ris), database: "Scopus", query: "q" }, { force: true });
+  const saved = await ReviewSession.open(folder, { clock, settings: { name: "Scooter review", recordsPath: "Scooter review records/08 - Records" } });
+  assert.ok(await saved.relinkReview("[[Draft review]]") > 0);
+  await saved.writeMainNote();
+  const all = [];
+  for (const name of await folder.list("")) if (name.endsWith(".md")) all.push(await folder.readText(name));
+  for (const name of await folder.list("08 - Records")) all.push(await folder.readText(`08 - Records/${name}`));
+  assert.ok(all.every(t => !t.includes("[[Draft review]]")), "no note links to the draft any more");
+  assert.ok(all.some(t => t.includes('review: "[[Scooter review]]"')));
+  assert.ok(await folder.exists("Scooter review.md"));
+});

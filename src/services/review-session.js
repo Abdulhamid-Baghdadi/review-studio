@@ -7,6 +7,7 @@
 import { aiMode, setAiMode } from "../domain/ai-steps.js";
 import { PROTOCOL_FILE } from "../domain/protocol.js";
 import { buildQuery } from "../domain/queries.js";
+import { mainNote } from "../domain/stage-notes.js";
 import { compareCodePoints, splitWords, strip } from "../domain/text-rules.js";
 import { amend, event, FULLTEXT_DIR, guardedChange, isLocked, needsAmendment, sameSession, sameValue, saveQuestions, setStatus, touch } from "../domain/stages.js";
 import { checkScreening, importSearch, addPaper, removeSearch, writeReport, ReviewError } from "./review-commands.js";
@@ -231,6 +232,36 @@ export class ReviewSession {
 
   /** Changes after locking that bypassed the amendment log. */
   integrityProblems() { return actions.protocolIntegrity(this.repo, this.st); }
+
+  /**
+   * Writes "<review name>.md", the main note every record links to, when the folder has none (a review saved from the
+   * draft, a copy of the example). An existing note is never touched. @returns {Promise<boolean>} whether it was written
+   */
+  async relinkReview(oldLink) {
+    // a draft saved under its own name: its notes linked to [[Draft review]]; they now link to the review's main note
+    const newLink = this.repo.link;
+    if (!oldLink || oldLink === newLink) return 0;
+    let n = 0;
+    for (const r of this.repo.records.values()) {
+      if (r.props.review !== oldLink && !r.body.includes(oldLink)) continue;
+      this.repo.put({ ...r, props: { ...r.props, ...(r.props.review === oldLink ? { review: newLink } : {}) }, body: r.body.replaceAll(oldLink, newLink) });
+      n++;
+    }
+    await this.repo.save();
+    for (const name of await this.repo.folder.list("")) {               // the screening guide, the log, the flow …
+      if (!name.endsWith(".md")) continue;
+      const text = await this.repo.folder.readText(name);
+      if (text.includes(oldLink)) { await this.repo.folder.writeText(name, text.replaceAll(oldLink, newLink)); n++; }
+    }
+    return n;
+  }
+
+  async writeMainNote() {
+    const name = `${this.repo.name}.md`;
+    if (await this.repo.folder.exists(name)) return false;
+    await this.repo.folder.writeText(name, mainNote({ reviewName: this.repo.name, st: this.st, files: await this.repo.folder.list(""), today: this.today }));
+    return true;
+  }
 
   async lockProtocol(registration = "") {
     await actions.writeProtocol(this.repo, this.st);

@@ -231,6 +231,7 @@ export class Backend {
     await copyFolder(this.entry.handle, handle);
     const entry = await rememberReview(handle, { recordsPath: `${EXAMPLE_DIR}/08 - Records` });
     await this.open(entry);
+    await this.session.writeMainNote();
     return this.entry;
   }
 
@@ -247,6 +248,8 @@ export class Backend {
     const entry = await rememberReview(handle, { recordsPath: `${name} records/08 - Records` });
     await this.open(entry);
     await this.session.save();                         // the notes written from the state, now with the review's name
+    await this.session.relinkReview(`[[${draft.settings.name}]]`);   // its notes linked to [[Draft review]]
+    await this.session.writeMainNote();                // "<name>.md", which every note links to
     for await (const key of draft.handle.keys()) await draft.handle.removeEntry(key, { recursive: true });
     return this.entry;
   }
