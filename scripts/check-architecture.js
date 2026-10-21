@@ -30,9 +30,10 @@ const AREAS = [
     layerOf: r => (r[0] === "studio" ? (r.length > 2 ? `studio/${r[1]}` : "studio/app") : r[0] === "start" ? "start" : r.length === 1 ? "main" : `web/${r[0]}`),
     allowed: {
       main: ["start", "src/index", "src/ui"],
-      start: ["start", "src/index", "src/ui"],
+      start: ["start", "src/index", "src/ui", "web/art"],
+      "web/art": [],                                                        // pictures as SVG text: no imports, used by the start screen and the app
       "studio/core": ["studio/core"],
-      "studio/ui": ["studio/ui", "studio/core"],
+      "studio/ui": ["studio/ui", "studio/core", "web/art"],
       "studio/shell": ["studio/shell", "studio/ui", "studio/core"],
       "studio/pages": ["studio/pages", "studio/shell", "studio/ui", "studio/core"],
       "studio/app": ["studio/pages", "studio/shell", "studio/ui", "studio/core"],

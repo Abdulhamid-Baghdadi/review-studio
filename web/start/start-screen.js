@@ -7,6 +7,11 @@ import { stages } from "../../src/index.js";
 import { Backend } from "../../src/ui/backend.js";
 import { $, button, el, remember, say } from "./dom.js";
 import { openReview } from "./open-review.js";
+import { folderStripHtml } from "../art/folder-pictures.js";
+
+// "Your review is a folder": the same pictures as on the Homepage, for visitors who see only this screen
+// (while the app loads, or in a browser that cannot open folders)
+document.getElementById("startFolder")?.insertAdjacentHTML("beforeend", folderStripHtml());
 
 /** The steps of a review in the start screen's sidebar; clicking one shows what it is for. */
 export function startSteps() {

@@ -55,3 +55,5 @@ dialog.modal .mh { font-weight: 700; padding: 16px 20px 0; }
 dialog.modal .mb { padding: 12px 20px; display: grid; gap: 12px; }
 dialog.modal .mf { padding: 0 20px 16px; display: flex; justify-content: flex-end; gap: 8px; }
 .start-stage .muted { display: block; margin-top: 2px; }
+.start-folder { max-width: 1000px; margin-top: 14px; padding: 18px 20px; }
+.start-folder h2 { margin: 0 0 4px; font-size: 17px; } .start-folder .sub { margin: 0 0 12px; }

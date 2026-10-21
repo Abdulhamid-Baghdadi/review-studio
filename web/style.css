@@ -706,4 +706,6 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
 @media (min-width: 900px) { .topbar { padding-left: max(32px, calc((100% - 1440px) / 2 + 32px)); padding-right: max(32px, calc((100% - 1440px) / 2 + 32px)); } }
 .folder-strip .imp-pic svg { max-width: 360px; }   /* the folder pictures carry file names: larger than the other strips */
 .folder-strip .imp-pic { min-width: 200px; }
-@media (max-width: 700px) { .folder-strip { flex-direction: column; } .folder-strip .imp-arrow { transform: rotate(90deg); } }   /* narrow: one picture under the other */
+/* stacked when its card is narrow (the card, not the window: the start screen has a sidebar) */
+.start-folder, .home .card { container-type: inline-size; }
+@container (max-width: 680px) { .folder-strip { flex-direction: column; overflow-x: visible; } .folder-strip .imp-arrow { transform: rotate(90deg); } }
