@@ -53,7 +53,7 @@ a { color: var(--accent); }
 .titlerow h1 { font-size: 24px; margin: 2px 0; letter-spacing: -.01em; }
 .titlerow .spacer { flex: 1; }
 .desc { color: var(--muted); margin: 2px 0 0; max-width: 880px; }
-.content { padding: 8px 32px 64px; max-width: 1240px; }
+.content { padding: 8px 32px 64px; max-width: 1440px; margin-inline: auto; }   /* centred: on a wide screen the space is an even margin, not a gap on the right */
 
 /* ---------- metrics ---------- */
 .metrics { display: grid; grid-template-columns: repeat(7, minmax(110px, 1fr)); gap: 10px; margin: 14px 0 18px; }
@@ -702,3 +702,5 @@ details.savedin .files { display: flex; flex-wrap: wrap; gap: 6px; }
   .flowmap.compact .fm-arrow { margin: 0 1px; }
 }
 .prisma-link { padding-block: 4px; }   /* inline links to the PRISMA guidelines: 24 px tall (WCAG 2.5.8) */
+/* the top bar lines up with the centred page below it (1440 px column, 32 px padding) */
+@media (min-width: 900px) { .topbar { padding-left: max(32px, calc((100% - 1440px) / 2 + 32px)); padding-right: max(32px, calc((100% - 1440px) / 2 + 32px)); } }
