@@ -21,7 +21,7 @@ All reading and writing goes through `bin/ai-assist.js` (Scoping Review Workbenc
 2. **Judge each record against the eligibility criteria and the questions only.** Rules:
    - **Be cautious.** In doubt → `unsure` (it goes to full text). Exclude only when the title and abstract clearly meet an exclusion reason.
    - **No abstract** → `unsure`, unless the title alone clearly meets an exclusion reason.
-   - Every `exclude` takes exactly one reason code from `ta_reasons`: the first one that applies, in list order.
+   - Every `exclude` takes exactly one reason code from `ta_reasons`: the one that fits **most specifically** (a paper about another product is "wrong population", not "wrong concept"). If two fit equally well, take the first in list order.
    - `why`: one short sentence pointing to what in the title or abstract decided it. Never invent content that isn't in the record.
 
 3. **Write the suggestions** to a JSON file in your scratch or temp folder, never in the review folder:
@@ -37,4 +37,4 @@ All reading and writing goes through `bin/ai-assist.js` (Scoping Review Workbenc
 
 4. **Repeat** while `remaining` > 0 and the user wants more. Batches of 40 keep each judgement careful.
 
-5. **Report:** how many records you suggested (include / unsure / exclude per reason), anything that made the criteria hard to apply, and a reminder to review the suggestions in Scoping Review Workbench (Screen papers › Suggested): one record at a time, the suggestion under the abstract, Enter to accept or I/U/E to decide otherwise. Criteria problems belong to the reviewer; a change after the protocol lock is an amendment.
+5. **Report:** how many records you suggested (include / unsure / exclude per reason), anything that made the criteria hard to apply, and a reminder to review the suggestions in Scoping Review Workbench (Screen papers → Titles & abstracts → Suggested): one record at a time, the suggestion under the abstract, Enter to accept or I/U/E to decide otherwise. Criteria problems belong to the reviewer; a change after the protocol lock is an amendment.

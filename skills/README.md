@@ -4,8 +4,8 @@ Each skill helps with one step of a scoping review. The AI only suggests: the re
 
 | Skill | Step | What it does |
 |---|---|---|
-| [review-screen-abstracts](review-screen-abstracts/SKILL.md) | Screen papers → Screen | Suggests title/abstract decisions with a reason |
-| [review-screen-fulltexts](review-screen-fulltexts/SKILL.md) | Screen papers → Screen (full text) | Reads each retrieved PDF against the eligibility criteria and suggests a decision |
+| [review-screen-abstracts](review-screen-abstracts/SKILL.md) | Screen papers → Titles & abstracts | Suggests title/abstract decisions with a reason |
+| [review-screen-fulltexts](review-screen-fulltexts/SKILL.md) | Screen papers → Full texts | Reads each retrieved PDF against the eligibility criteria and suggests a decision |
 | [review-fetch-fulltexts](review-fetch-fulltexts/SKILL.md) | Screen papers → Get full texts | Finds the PDFs (open access first) and attaches them |
 | [review-chart-data](review-chart-data/SKILL.md) | Chart the data | Prefills the charting form from the full texts, with page locators |
 

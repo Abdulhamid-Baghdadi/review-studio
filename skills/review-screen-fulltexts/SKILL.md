@@ -15,13 +15,13 @@ All reading and writing goes through `bin/ai-assist.js` (Scoping Review Workbenc
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context fulltext --limit 5
    ```
-   - If it says full-text suggestions are **off**, stop. Tell the user that the reviewer can choose "AI suggests" in Scoping Review Workbench (Screen papers → Full texts, AI assistance card).
+   - If it says full-text suggestions are **off**, stop. Tell the user that the reviewer can choose "AI suggests" in Scoping Review Workbench (Screen papers → Full texts, AI assistance card). Never switch it on yourself.
    - The output has the review questions (PCC), the eligibility text, the full-text exclusion reasons (`ft_reasons`), `remaining`, `without_pdf` and up to 5 records with their `pdf` path.
    - Records without a PDF are not listed; retrieval comes first (skill `review-fetch-fulltexts`).
 
 2. **Read each PDF completely** (use the pdf skill or a PDF reader): methods, case study and results, not only the abstract and conclusions. Then judge it against the eligibility criteria and the questions only:
    - **Full text is where the decision is made:** `include` or `exclude` only (the full-text stage has no `unsure`). If a paper is genuinely ambiguous against a criterion, give it **no suggestion** and name it and the criterion in your report, so the reviewer decides it.
-   - Every `exclude` takes exactly one reason code from `ft_reasons`: the first one that applies, in list order.
+   - Every `exclude` takes exactly one reason code from `ft_reasons`: the one that fits **most specifically** (a paper about another product is "wrong population", not "wrong concept"). If two fit equally well, take the first in list order.
    - **First check that the PDF is the right paper** (title and authors on page 1). If it isn't, don't suggest anything for that record; report it so the PDF can be replaced.
    - `why`: one or two sentences with page or section locators, e.g. `Software product lines only (§2, p. 3); no physical product.` Never claim anything the paper does not say.
 

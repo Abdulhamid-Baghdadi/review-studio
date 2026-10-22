@@ -1,6 +1,6 @@
 ---
 name: review-fetch-fulltexts
-description: Find and attach the full-text PDFs for records awaiting full-text screening in a scoping review (Scoping Review Workbench, Screen papers → Get full texts). Use when the user asks to collect, download, or fetch the PDFs or full texts for a review.
+description: Find and attach the full-text PDFs for records awaiting full-text screening in a scoping review (Scoping Review Workbench, Screen papers → Get full texts, AI assistance card). Never switch it on yourself. Use when the user asks to collect, download, or fetch the PDFs or full texts for a review.
 ---
 
 # Fetch full texts
@@ -17,10 +17,9 @@ Run the commands from the Scoping Review Workbench folder (the project open in C
    ```
    node bin/ai-assist.js --review "<review name or full path of its records folder>" context retrieval --limit 200
    ```
-   - If AI assistance is **off**, stop and tell the user where to switch it on (Scoping Review Workbench, Screen papers → Get full texts).
+   - If AI assistance is **off**, stop and tell the user where to switch it on (Scoping Review Workbench, Screen papers → Get full texts, AI assistance card). Never switch it on yourself.
    - Each record comes with title, authors, year, DOI, URL and `open_access_url`, which is filled when Scoping Review Workbench found an open-access link.
-
-   - Before downloading anything, ask whether the user has already run "Find PDFs in a folder…" on the Retrieval page, which matches PDFs already on their PC (Downloads, Zotero, a library folder) by DOI or by title plus first author. Records it found are no longer in the queue.
+   - Before downloading anything, ask whether the user has already run "Find PDFs in a folder…" (Screen papers → Get full texts), which matches PDFs already on their PC (Downloads, Zotero, a library folder) by DOI or by title plus first author. Records it found are no longer in the queue.
 
 2. **Look for each PDF, in this order:**
    1. `open_access_url`, if present.
